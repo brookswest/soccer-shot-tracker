@@ -128,9 +128,281 @@
         /* Game Setup */
         .setup-grid {
             display: grid;
-            grid-template-columns: auto 1fr auto 1fr auto 1fr;
+            grid-template-columns: auto 1fr auto 1fr;
             gap: 12px;
             align-items: center;
+        }
+
+        .setup-row {
+            display: contents;
+        }
+
+        /* Color Picker */
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .color-picker {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            padding: 2px;
+            background: var(--surface);
+        }
+
+        .color-picker::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .color-picker::-webkit-color-swatch {
+            border: none;
+            border-radius: 6px;
+        }
+
+        .color-picker::-moz-color-swatch {
+            border: none;
+            border-radius: 6px;
+        }
+
+        /* Half Selector */
+        .half-selector {
+            display: flex;
+            gap: 8px;
+        }
+
+        .half-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--surface);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .half-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .half-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* Half Breakdown Stats */
+        .half-breakdown {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .half-breakdown-title {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .half-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .half-stats-column {
+            background: var(--surface-hover);
+            border-radius: var(--radius);
+            padding: 12px;
+        }
+
+        .half-stats-column h4 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .half-stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 0.8125rem;
+        }
+
+        .half-stat-label {
+            color: var(--text-muted);
+        }
+
+        .half-stat-value {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* Game Clock */
+        .game-clock-container {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .clock-display {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .clock-time {
+            font-size: 3rem;
+            font-weight: 700;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            color: white;
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .clock-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .clock-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-clock {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-clock.start {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-clock.start:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-clock.pause {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-clock.pause:hover {
+            background: var(--accent-dark);
+        }
+
+        .btn-clock.reset {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .btn-clock.reset:hover {
+            background: #d1d5db;
+        }
+
+        .clock-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .clock-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        .clock-status-dot.running {
+            background: var(--primary);
+            animation: pulse 1.5s infinite;
+        }
+
+        .clock-status-dot.paused {
+            background: var(--accent);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Notes Section */
+        .notes-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .notes-input {
+            flex: 1;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.9375rem;
+            transition: all 0.2s ease;
+            background: var(--surface);
+            resize: none;
+        }
+
+        .notes-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .note-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+            background: #fef3c7;
+            border-left: 3px solid var(--accent);
+            font-size: 0.875rem;
+        }
+
+        .note-content {
+            flex: 1;
+            color: var(--text);
+        }
+
+        .note-time {
+            color: var(--text-muted);
+            font-size: 0.8125rem;
+            white-space: nowrap;
+            margin-left: 12px;
         }
 
         .setup-grid label {
@@ -681,6 +953,19 @@
             .expanded-stats-grid {
                 grid-template-columns: 1fr;
             }
+
+            .game-clock-container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .clock-time {
+                font-size: 2.5rem;
+            }
+
+            .notes-input-container {
+                flex-direction: column;
+            }
         }
 
         @media (max-width: 480px) {
@@ -715,10 +1000,38 @@
                 <div class="setup-grid">
                     <label for="game-date">Date</label>
                     <input type="date" id="game-date" class="input">
+                    <label>Half</label>
+                    <div class="half-selector">
+                        <button type="button" class="half-btn active" id="half-1-btn" onclick="setHalf(1)">1st Half</button>
+                        <button type="button" class="half-btn" id="half-2-btn" onclick="setHalf(2)">2nd Half</button>
+                    </div>
                     <label for="home-team-input">Home</label>
-                    <input type="text" id="home-team-input" class="input" placeholder="Home Team">
+                    <div class="color-picker-wrapper">
+                        <input type="text" id="home-team-input" class="input" placeholder="Home Team" style="flex: 1;">
+                        <input type="color" id="home-color" class="color-picker" value="#10b981" title="Home team color">
+                    </div>
                     <label for="away-team-input">Away</label>
-                    <input type="text" id="away-team-input" class="input" placeholder="Away Team">
+                    <div class="color-picker-wrapper">
+                        <input type="text" id="away-team-input" class="input" placeholder="Away Team" style="flex: 1;">
+                        <input type="color" id="away-color" class="color-picker" value="#3b82f6" title="Away team color">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Clock -->
+            <div class="game-clock-container">
+                <div class="clock-display">
+                    <div>
+                        <div class="clock-time" id="clock-display">00:00</div>
+                        <div class="clock-status">
+                            <span class="clock-status-dot" id="clock-status-dot"></span>
+                            <span id="clock-status-text">Stopped</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="clock-controls">
+                    <button class="btn-clock start" id="clock-start-btn">Start</button>
+                    <button class="btn-clock reset" id="clock-reset-btn">Reset</button>
                 </div>
             </div>
 
@@ -770,6 +1083,41 @@
                             <span class="stat-value" id="home-accuracy">0%</span>
                         </div>
                     </div>
+                    <div class="half-breakdown">
+                        <div class="half-breakdown-title">By Half</div>
+                        <div class="half-stats-grid">
+                            <div class="half-stats-column">
+                                <h4>1st Half</h4>
+                                <div class="half-stat-row">
+                                    <span class="half-stat-label">Goals</span>
+                                    <span class="half-stat-value" id="home-h1-goals">0</span>
+                                </div>
+                                <div class="half-stat-row">
+                                    <span class="half-stat-label">On Target</span>
+                                    <span class="half-stat-value" id="home-h1-on-target">0</span>
+                                </div>
+                                <div class="half-stat-row">
+                                    <span class="half-stat-label">Off Target</span>
+                                    <span class="half-stat-value" id="home-h1-off-target">0</span>
+                                </div>
+                            </div>
+                            <div class="half-stats-column">
+                                <h4>2nd Half</h4>
+                                <div class="half-stat-row">
+                                    <span class="half-stat-label">Goals</span>
+                                    <span class="half-stat-value" id="home-h2-goals">0</span>
+                                </div>
+                                <div class="half-stat-row">
+                                    <span class="half-stat-label">On Target</span>
+                                    <span class="half-stat-value" id="home-h2-on-target">0</span>
+                                </div>
+                                <div class="half-stat-row">
+                                    <span class="half-stat-label">Off Target</span>
+                                    <span class="half-stat-value" id="home-h2-off-target">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="team-panel away">
@@ -801,12 +1149,48 @@
                             <span class="stat-value" id="away-accuracy">0%</span>
                         </div>
                     </div>
+                    <div class="half-breakdown">
+                        <div class="half-breakdown-title">By Half</div>
+                        <div class="half-stats-grid">
+                            <div class="half-stats-column">
+                                <h4>1st Half</h4>
+                                <div class="half-stat-row">
+                                    <span class="half-stat-label">Goals</span>
+                                    <span class="half-stat-value" id="away-h1-goals">0</span>
+                                </div>
+                                <div class="half-stat-row">
+                                    <span class="half-stat-label">On Target</span>
+                                    <span class="half-stat-value" id="away-h1-on-target">0</span>
+                                </div>
+                                <div class="half-stat-row">
+                                    <span class="half-stat-label">Off Target</span>
+                                    <span class="half-stat-value" id="away-h1-off-target">0</span>
+                                </div>
+                            </div>
+                            <div class="half-stats-column">
+                                <h4>2nd Half</h4>
+                                <div class="half-stat-row">
+                                    <span class="half-stat-label">Goals</span>
+                                    <span class="half-stat-value" id="away-h2-goals">0</span>
+                                </div>
+                                <div class="half-stat-row">
+                                    <span class="half-stat-label">On Target</span>
+                                    <span class="half-stat-value" id="away-h2-on-target">0</span>
+                                </div>
+                                <div class="half-stat-row">
+                                    <span class="half-stat-label">Off Target</span>
+                                    <span class="half-stat-value" id="away-h2-off-target">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">Shot Log</h2>
+                    <button class="btn btn-outline btn-icon" id="undo-btn" onclick="undoLastShot()" disabled>Undo</button>
                 </div>
                 <div class="log-entries" id="log-entries">
                     <div class="empty-state">
@@ -816,8 +1200,26 @@
                 </div>
             </div>
 
+            <!-- Notes Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Game Notes</h2>
+                </div>
+                <div class="notes-input-container">
+                    <input type="text" id="note-input" class="notes-input" placeholder="Add a note..." onkeypress="if(event.key === 'Enter') addNote()">
+                    <button class="btn btn-primary" onclick="addNote()">Add Note</button>
+                </div>
+                <div class="log-entries" id="notes-entries">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">&#128221;</div>
+                        <p>No notes yet</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="saveGame()">Save Game</button>
+                <button class="btn btn-outline" onclick="exportToPDF()">Export PDF</button>
                 <button class="btn btn-secondary" onclick="confirmReset()">Reset Game</button>
             </div>
         </div>
@@ -873,33 +1275,259 @@
     <script>
         // Game state
         let gameState = {
-            home: { goals: 0, onTarget: 0, offTarget: 0 },
-            away: { goals: 0, onTarget: 0, offTarget: 0 },
-            log: []
+            home: {
+                goals: 0, onTarget: 0, offTarget: 0,
+                firstHalf: { goals: 0, onTarget: 0, offTarget: 0 },
+                secondHalf: { goals: 0, onTarget: 0, offTarget: 0 }
+            },
+            away: {
+                goals: 0, onTarget: 0, offTarget: 0,
+                firstHalf: { goals: 0, onTarget: 0, offTarget: 0 },
+                secondHalf: { goals: 0, onTarget: 0, offTarget: 0 }
+            },
+            log: [],
+            notes: [],
+            currentHalf: 1
+        };
+
+        // Clock state
+        let clockState = {
+            seconds: 0,
+            isRunning: false,
+            intervalId: null
         };
 
         // Saved games storage key
         const STORAGE_KEY = 'soccer-shot-tracker-games';
 
+        // Format seconds to MM:SS
+        function formatTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Toggle clock start/pause
+        function toggleClock() {
+            if (clockState.isRunning) {
+                pauseClock();
+            } else {
+                startClock();
+            }
+        }
+
+        // Start the clock
+        function startClock() {
+            clockState.isRunning = true;
+            clockState.intervalId = setInterval(() => {
+                clockState.seconds++;
+                updateClockDisplay();
+            }, 1000);
+            updateClockDisplay();
+        }
+
+        // Pause the clock
+        function pauseClock() {
+            clockState.isRunning = false;
+            if (clockState.intervalId) {
+                clearInterval(clockState.intervalId);
+                clockState.intervalId = null;
+            }
+            updateClockDisplay();
+        }
+
+        // Reset the clock
+        function resetClock() {
+            pauseClock();
+            clockState.seconds = 0;
+            updateClockDisplay();
+        }
+
+        // Update clock display
+        function updateClockDisplay() {
+            document.getElementById('clock-display').textContent = formatTime(clockState.seconds);
+
+            const startBtn = document.getElementById('clock-start-btn');
+            const statusDot = document.getElementById('clock-status-dot');
+            const statusText = document.getElementById('clock-status-text');
+
+            if (clockState.isRunning) {
+                startBtn.textContent = 'Pause';
+                startBtn.classList.remove('start');
+                startBtn.classList.add('pause');
+                statusDot.classList.add('running');
+                statusDot.classList.remove('paused');
+                statusText.textContent = 'Running';
+            } else {
+                startBtn.textContent = clockState.seconds > 0 ? 'Resume' : 'Start';
+                startBtn.classList.add('start');
+                startBtn.classList.remove('pause');
+                statusDot.classList.remove('running');
+                if (clockState.seconds > 0) {
+                    statusDot.classList.add('paused');
+                    statusText.textContent = 'Paused';
+                } else {
+                    statusDot.classList.remove('paused');
+                    statusText.textContent = 'Stopped';
+                }
+            }
+        }
+
+        // Get current game time string
+        function getGameTime() {
+            return formatTime(clockState.seconds);
+        }
+
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('game-date').valueAsDate = new Date();
-            loadHistoryView();
-            setupEventListeners();
+            try {
+                document.getElementById('game-date').valueAsDate = new Date();
+                loadHistoryView();
+                setupEventListeners();
+                updateClockDisplay();
+            } catch (e) {
+                console.error('Initialization error:', e);
+            }
         });
 
         function setupEventListeners() {
-            document.getElementById('home-team-input').addEventListener('input', function() {
-                const name = this.value || 'Home Team';
-                document.getElementById('home-name-display').textContent = name;
-                document.getElementById('home-panel-title').textContent = name;
+            console.log('Setting up event listeners...');
+
+            // Team name input listeners
+            const homeInput = document.getElementById('home-team-input');
+            const awayInput = document.getElementById('away-team-input');
+            const homeNameDisplay = document.getElementById('home-name-display');
+            const awayNameDisplay = document.getElementById('away-name-display');
+            const homePanelTitle = document.getElementById('home-panel-title');
+            const awayPanelTitle = document.getElementById('away-panel-title');
+
+            console.log('Elements found:', {
+                homeInput: !!homeInput,
+                awayInput: !!awayInput,
+                homeNameDisplay: !!homeNameDisplay,
+                awayNameDisplay: !!awayNameDisplay
             });
 
-            document.getElementById('away-team-input').addEventListener('input', function() {
-                const name = this.value || 'Away Team';
-                document.getElementById('away-name-display').textContent = name;
-                document.getElementById('away-panel-title').textContent = name;
+            if (homeInput && homeNameDisplay && homePanelTitle) {
+                homeInput.addEventListener('input', function(e) {
+                    const name = e.target.value || 'Home Team';
+                    console.log('Home team input changed:', name);
+                    homeNameDisplay.textContent = name;
+                    homePanelTitle.textContent = name;
+                });
+            }
+
+            if (awayInput && awayNameDisplay && awayPanelTitle) {
+                awayInput.addEventListener('input', function(e) {
+                    const name = e.target.value || 'Away Team';
+                    console.log('Away team input changed:', name);
+                    awayNameDisplay.textContent = name;
+                    awayPanelTitle.textContent = name;
+                });
+            }
+
+            // Color picker event listeners
+            const homeColor = document.getElementById('home-color');
+            const awayColor = document.getElementById('away-color');
+
+            if (homeColor) {
+                homeColor.addEventListener('input', applyTeamColors);
+            }
+            if (awayColor) {
+                awayColor.addEventListener('input', applyTeamColors);
+            }
+
+            // Clock button listeners
+            const clockStartBtn = document.getElementById('clock-start-btn');
+            const clockResetBtn = document.getElementById('clock-reset-btn');
+
+            console.log('Clock buttons found:', {
+                startBtn: !!clockStartBtn,
+                resetBtn: !!clockResetBtn
             });
+
+            if (clockStartBtn) {
+                clockStartBtn.addEventListener('click', function() {
+                    console.log('Start button clicked');
+                    toggleClock();
+                });
+            }
+            if (clockResetBtn) {
+                clockResetBtn.addEventListener('click', function() {
+                    console.log('Reset button clicked');
+                    resetClock();
+                });
+            }
+
+            // Apply initial colors
+            applyTeamColors();
+            console.log('Event listeners setup complete');
+        }
+
+        // Apply team colors to UI elements
+        function applyTeamColors() {
+            const homeColor = document.getElementById('home-color').value;
+            const awayColor = document.getElementById('away-color').value;
+
+            // Generate light variants for backgrounds
+            const homeLightColor = hexToRgba(homeColor, 0.15);
+            const awayLightColor = hexToRgba(awayColor, 0.15);
+
+            // Update CSS custom properties
+            document.documentElement.style.setProperty('--home-color', homeColor);
+            document.documentElement.style.setProperty('--home-color-light', homeLightColor);
+            document.documentElement.style.setProperty('--away-color', awayColor);
+            document.documentElement.style.setProperty('--away-color-light', awayLightColor);
+
+            // Update home team elements
+            document.querySelector('.team-panel.home').style.borderColor = homeColor;
+            document.querySelector('.team-panel.home h2').style.color = homeColor;
+            document.querySelector('.home-team .team-badge').style.background = homeLightColor;
+            document.querySelector('.home-team .team-badge').style.color = homeColor;
+            document.querySelector('.home-team .score').style.color = homeColor;
+
+            // Update away team elements
+            document.querySelector('.team-panel.away').style.borderColor = awayColor;
+            document.querySelector('.team-panel.away h2').style.color = awayColor;
+            document.querySelector('.away-team .team-badge').style.background = awayLightColor;
+            document.querySelector('.away-team .team-badge').style.color = awayColor;
+            document.querySelector('.away-team .score').style.color = awayColor;
+
+            // Update log entries
+            updateLogColors();
+        }
+
+        // Update log entry colors
+        function updateLogColors() {
+            const homeColor = document.getElementById('home-color').value;
+            const awayColor = document.getElementById('away-color').value;
+            const homeLightColor = hexToRgba(homeColor, 0.15);
+            const awayLightColor = hexToRgba(awayColor, 0.15);
+
+            document.querySelectorAll('.log-entry.home').forEach(entry => {
+                entry.style.background = homeLightColor;
+                entry.style.borderLeftColor = homeColor;
+            });
+
+            document.querySelectorAll('.log-entry.away').forEach(entry => {
+                entry.style.background = awayLightColor;
+                entry.style.borderLeftColor = awayColor;
+            });
+        }
+
+        // Convert hex color to rgba
+        function hexToRgba(hex, alpha) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // Set current half
+        function setHalf(half) {
+            gameState.currentHalf = half;
+            document.getElementById('half-1-btn').classList.toggle('active', half === 1);
+            document.getElementById('half-2-btn').classList.toggle('active', half === 2);
         }
 
         // View switching
@@ -920,17 +1548,22 @@
         // Shot recording
         function recordShot(team, type) {
             const teamState = gameState[team];
+            const halfState = gameState.currentHalf === 1 ? teamState.firstHalf : teamState.secondHalf;
 
             switch(type) {
                 case 'goal':
                     teamState.goals++;
                     teamState.onTarget++;
+                    halfState.goals++;
+                    halfState.onTarget++;
                     break;
                 case 'on-target':
                     teamState.onTarget++;
+                    halfState.onTarget++;
                     break;
                 case 'off-target':
                     teamState.offTarget++;
+                    halfState.offTarget++;
                     break;
             }
 
@@ -945,8 +1578,38 @@
                 team: team,
                 teamName: teamName,
                 type: shotTypeLabel,
-                time: new Date().toLocaleTimeString()
+                half: gameState.currentHalf,
+                gameTime: getGameTime(),
+                clockSeconds: clockState.seconds
             });
+
+            updateDisplay();
+        }
+
+        // Undo last shot
+        function undoLastShot() {
+            if (gameState.log.length === 0) return;
+
+            // Get the last entry
+            const lastEntry = gameState.log.shift();
+            const team = lastEntry.team;
+            const teamState = gameState[team];
+            const half = lastEntry.half;
+            const halfState = half === 1 ? teamState.firstHalf : teamState.secondHalf;
+
+            // Determine what type of shot it was and reverse it
+            if (lastEntry.type === 'GOAL!') {
+                teamState.goals--;
+                teamState.onTarget--;
+                halfState.goals--;
+                halfState.onTarget--;
+            } else if (lastEntry.type === 'Shot On Target') {
+                teamState.onTarget--;
+                halfState.onTarget--;
+            } else if (lastEntry.type === 'Shot Off Target') {
+                teamState.offTarget--;
+                halfState.offTarget--;
+            }
 
             updateDisplay();
         }
@@ -976,6 +1639,22 @@
             document.getElementById('away-total').textContent = awayTotalShots;
             document.getElementById('away-accuracy').textContent = awayAccuracy + '%';
 
+            // Update home half breakdown
+            document.getElementById('home-h1-goals').textContent = gameState.home.firstHalf.goals;
+            document.getElementById('home-h1-on-target').textContent = gameState.home.firstHalf.onTarget;
+            document.getElementById('home-h1-off-target').textContent = gameState.home.firstHalf.offTarget;
+            document.getElementById('home-h2-goals').textContent = gameState.home.secondHalf.goals;
+            document.getElementById('home-h2-on-target').textContent = gameState.home.secondHalf.onTarget;
+            document.getElementById('home-h2-off-target').textContent = gameState.home.secondHalf.offTarget;
+
+            // Update away half breakdown
+            document.getElementById('away-h1-goals').textContent = gameState.away.firstHalf.goals;
+            document.getElementById('away-h1-on-target').textContent = gameState.away.firstHalf.onTarget;
+            document.getElementById('away-h1-off-target').textContent = gameState.away.firstHalf.offTarget;
+            document.getElementById('away-h2-goals').textContent = gameState.away.secondHalf.goals;
+            document.getElementById('away-h2-on-target').textContent = gameState.away.secondHalf.onTarget;
+            document.getElementById('away-h2-off-target').textContent = gameState.away.secondHalf.offTarget;
+
             // Update log
             const logContainer = document.getElementById('log-entries');
             if (gameState.log.length === 0) {
@@ -989,10 +1668,57 @@
                 logContainer.innerHTML = gameState.log.map(entry => `
                     <div class="log-entry ${entry.team}">
                         <span><span class="team">${entry.teamName}</span> - <span class="type">${entry.type}</span></span>
-                        <span class="time">${entry.time}</span>
+                        <span class="time">${entry.half ? (entry.half === 1 ? '1st' : '2nd') + ' · ' : ''}${entry.gameTime || entry.time || ''}</span>
+                    </div>
+                `).join('');
+                // Apply colors to new log entries
+                updateLogColors();
+            }
+
+            // Update undo button state
+            const undoBtn = document.getElementById('undo-btn');
+            undoBtn.disabled = gameState.log.length === 0;
+
+            // Update notes display
+            updateNotesDisplay();
+        }
+
+        // Update notes display
+        function updateNotesDisplay() {
+            const notesContainer = document.getElementById('notes-entries');
+            if (gameState.notes.length === 0) {
+                notesContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">&#128221;</div>
+                        <p>No notes yet</p>
+                    </div>
+                `;
+            } else {
+                notesContainer.innerHTML = gameState.notes.map(note => `
+                    <div class="note-entry">
+                        <span class="note-content">${note.content}</span>
+                        <span class="note-time">${note.half ? (note.half === 1 ? '1st' : '2nd') + ' · ' : ''}${note.gameTime}</span>
                     </div>
                 `).join('');
             }
+        }
+
+        // Add a note
+        function addNote() {
+            const noteInput = document.getElementById('note-input');
+            const content = noteInput.value.trim();
+
+            if (!content) return;
+
+            gameState.notes.unshift({
+                content: content,
+                half: gameState.currentHalf,
+                gameTime: getGameTime(),
+                clockSeconds: clockState.seconds
+            });
+
+            noteInput.value = '';
+            updateNotesDisplay();
         }
 
         // Save game
@@ -1011,9 +1737,26 @@
                 date: gameDate,
                 homeTeam: homeTeam,
                 awayTeam: awayTeam,
-                home: { ...gameState.home },
-                away: { ...gameState.away },
-                log: [...gameState.log]
+                homeColor: document.getElementById('home-color').value,
+                awayColor: document.getElementById('away-color').value,
+                home: {
+                    goals: gameState.home.goals,
+                    onTarget: gameState.home.onTarget,
+                    offTarget: gameState.home.offTarget,
+                    firstHalf: { ...gameState.home.firstHalf },
+                    secondHalf: { ...gameState.home.secondHalf }
+                },
+                away: {
+                    goals: gameState.away.goals,
+                    onTarget: gameState.away.onTarget,
+                    offTarget: gameState.away.offTarget,
+                    firstHalf: { ...gameState.away.firstHalf },
+                    secondHalf: { ...gameState.away.secondHalf }
+                },
+                log: [...gameState.log],
+                notes: [...gameState.notes],
+                finalTime: getGameTime(),
+                finalClockSeconds: clockState.seconds
             };
 
             const games = getSavedGames();
@@ -1094,6 +1837,19 @@
                     day: 'numeric'
                 });
 
+                // Use saved colors or fallback to defaults
+                const homeColor = game.homeColor || '#10b981';
+                const awayColor = game.awayColor || '#3b82f6';
+
+                // Get half stats with fallback for older saved games
+                const homeH1 = game.home.firstHalf || { goals: 0, onTarget: 0, offTarget: 0 };
+                const homeH2 = game.home.secondHalf || { goals: 0, onTarget: 0, offTarget: 0 };
+                const awayH1 = game.away.firstHalf || { goals: 0, onTarget: 0, offTarget: 0 };
+                const awayH2 = game.away.secondHalf || { goals: 0, onTarget: 0, offTarget: 0 };
+
+                // Check if we have half data
+                const hasHalfData = game.home.firstHalf || game.home.secondHalf;
+
                 return `
                     <div class="game-item" id="game-${game.id}">
                         <div style="flex: 1;">
@@ -1103,9 +1859,9 @@
                                     <div class="game-teams">${game.homeTeam} vs ${game.awayTeam}</div>
                                 </div>
                                 <div class="game-score">
-                                    <span class="home-score">${game.home.goals}</span>
+                                    <span class="home-score" style="color: ${homeColor};">${game.home.goals}</span>
                                     <span style="color: var(--text-muted);"> - </span>
-                                    <span class="away-score">${game.away.goals}</span>
+                                    <span class="away-score" style="color: ${awayColor};">${game.away.goals}</span>
                                 </div>
                                 <div class="game-stats-mini">
                                     <span>Shots: ${homeTotalShots + awayTotalShots}</span>
@@ -1118,8 +1874,8 @@
                             </div>
                             <div class="expanded-stats">
                                 <div class="expanded-stats-grid">
-                                    <div class="team-stats-block home">
-                                        <h4>${game.homeTeam}</h4>
+                                    <div class="team-stats-block home" style="border-color: ${homeColor};">
+                                        <h4 style="color: ${homeColor}; border-color: ${homeColor};">${game.homeTeam}</h4>
                                         <div class="mini-stat">
                                             <span class="mini-stat-label">Goals</span>
                                             <span class="mini-stat-value">${game.home.goals}</span>
@@ -1140,9 +1896,46 @@
                                             <span class="mini-stat-label">Shot Accuracy</span>
                                             <span class="mini-stat-value">${homeAccuracy}%</span>
                                         </div>
+                                        ${hasHalfData ? `
+                                        <div class="half-breakdown" style="margin-top: 12px; padding-top: 12px;">
+                                            <div class="half-breakdown-title">By Half</div>
+                                            <div class="half-stats-grid">
+                                                <div class="half-stats-column">
+                                                    <h4>1st</h4>
+                                                    <div class="half-stat-row">
+                                                        <span class="half-stat-label">Goals</span>
+                                                        <span class="half-stat-value">${homeH1.goals}</span>
+                                                    </div>
+                                                    <div class="half-stat-row">
+                                                        <span class="half-stat-label">On Target</span>
+                                                        <span class="half-stat-value">${homeH1.onTarget}</span>
+                                                    </div>
+                                                    <div class="half-stat-row">
+                                                        <span class="half-stat-label">Off Target</span>
+                                                        <span class="half-stat-value">${homeH1.offTarget}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="half-stats-column">
+                                                    <h4>2nd</h4>
+                                                    <div class="half-stat-row">
+                                                        <span class="half-stat-label">Goals</span>
+                                                        <span class="half-stat-value">${homeH2.goals}</span>
+                                                    </div>
+                                                    <div class="half-stat-row">
+                                                        <span class="half-stat-label">On Target</span>
+                                                        <span class="half-stat-value">${homeH2.onTarget}</span>
+                                                    </div>
+                                                    <div class="half-stat-row">
+                                                        <span class="half-stat-label">Off Target</span>
+                                                        <span class="half-stat-value">${homeH2.offTarget}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        ` : ''}
                                     </div>
-                                    <div class="team-stats-block away">
-                                        <h4>${game.awayTeam}</h4>
+                                    <div class="team-stats-block away" style="border-color: ${awayColor};">
+                                        <h4 style="color: ${awayColor}; border-color: ${awayColor};">${game.awayTeam}</h4>
                                         <div class="mini-stat">
                                             <span class="mini-stat-label">Goals</span>
                                             <span class="mini-stat-value">${game.away.goals}</span>
@@ -1163,6 +1956,43 @@
                                             <span class="mini-stat-label">Shot Accuracy</span>
                                             <span class="mini-stat-value">${awayAccuracy}%</span>
                                         </div>
+                                        ${hasHalfData ? `
+                                        <div class="half-breakdown" style="margin-top: 12px; padding-top: 12px;">
+                                            <div class="half-breakdown-title">By Half</div>
+                                            <div class="half-stats-grid">
+                                                <div class="half-stats-column">
+                                                    <h4>1st</h4>
+                                                    <div class="half-stat-row">
+                                                        <span class="half-stat-label">Goals</span>
+                                                        <span class="half-stat-value">${awayH1.goals}</span>
+                                                    </div>
+                                                    <div class="half-stat-row">
+                                                        <span class="half-stat-label">On Target</span>
+                                                        <span class="half-stat-value">${awayH1.onTarget}</span>
+                                                    </div>
+                                                    <div class="half-stat-row">
+                                                        <span class="half-stat-label">Off Target</span>
+                                                        <span class="half-stat-value">${awayH1.offTarget}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="half-stats-column">
+                                                    <h4>2nd</h4>
+                                                    <div class="half-stat-row">
+                                                        <span class="half-stat-label">Goals</span>
+                                                        <span class="half-stat-value">${awayH2.goals}</span>
+                                                    </div>
+                                                    <div class="half-stat-row">
+                                                        <span class="half-stat-label">On Target</span>
+                                                        <span class="half-stat-value">${awayH2.onTarget}</span>
+                                                    </div>
+                                                    <div class="half-stat-row">
+                                                        <span class="half-stat-label">Off Target</span>
+                                                        <span class="half-stat-value">${awayH2.offTarget}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        ` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -1209,9 +2039,19 @@
 
         function resetGameState() {
             gameState = {
-                home: { goals: 0, onTarget: 0, offTarget: 0 },
-                away: { goals: 0, onTarget: 0, offTarget: 0 },
-                log: []
+                home: {
+                    goals: 0, onTarget: 0, offTarget: 0,
+                    firstHalf: { goals: 0, onTarget: 0, offTarget: 0 },
+                    secondHalf: { goals: 0, onTarget: 0, offTarget: 0 }
+                },
+                away: {
+                    goals: 0, onTarget: 0, offTarget: 0,
+                    firstHalf: { goals: 0, onTarget: 0, offTarget: 0 },
+                    secondHalf: { goals: 0, onTarget: 0, offTarget: 0 }
+                },
+                log: [],
+                notes: [],
+                currentHalf: 1
             };
 
             document.getElementById('home-team-input').value = '';
@@ -1221,6 +2061,306 @@
             document.getElementById('home-panel-title').textContent = 'Home Team';
             document.getElementById('away-panel-title').textContent = 'Away Team';
             document.getElementById('game-date').valueAsDate = new Date();
+            document.getElementById('note-input').value = '';
+
+            // Reset half selector
+            setHalf(1);
+
+            // Reset clock
+            resetClock();
+
+            // Reset colors to defaults
+            document.getElementById('home-color').value = '#10b981';
+            document.getElementById('away-color').value = '#3b82f6';
+            applyTeamColors();
+
+            // Reset notes display
+            updateNotesDisplay();
+        }
+
+        // Export to PDF
+        function exportToPDF() {
+            const homeTeam = document.getElementById('home-team-input').value || 'Home Team';
+            const awayTeam = document.getElementById('away-team-input').value || 'Away Team';
+            const gameDate = document.getElementById('game-date').value;
+            const homeColor = document.getElementById('home-color').value;
+            const awayColor = document.getElementById('away-color').value;
+
+            if (gameState.home.onTarget + gameState.home.offTarget + gameState.away.onTarget + gameState.away.offTarget === 0) {
+                showModal('No Data to Export', 'Please record at least one shot before exporting.', null);
+                return;
+            }
+
+            const formattedDate = new Date(gameDate).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            const homeTotalShots = gameState.home.onTarget + gameState.home.offTarget;
+            const awayTotalShots = gameState.away.onTarget + gameState.away.offTarget;
+            const homeAccuracy = homeTotalShots > 0 ? Math.round((gameState.home.onTarget / homeTotalShots) * 100) : 0;
+            const awayAccuracy = awayTotalShots > 0 ? Math.round((gameState.away.onTarget / awayTotalShots) * 100) : 0;
+
+            // Sort log and notes chronologically by clock time for the report
+            const sortedLog = [...gameState.log].sort((a, b) => (a.clockSeconds || 0) - (b.clockSeconds || 0));
+            const sortedNotes = [...gameState.notes].sort((a, b) => (a.clockSeconds || 0) - (b.clockSeconds || 0));
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Game Report - ${homeTeam} vs ${awayTeam}</title>
+                    <style>
+                        * { box-sizing: border-box; margin: 0; padding: 0; }
+                        body {
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                            padding: 40px;
+                            color: #111827;
+                            line-height: 1.6;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 30px;
+                            padding-bottom: 20px;
+                            border-bottom: 2px solid #e5e7eb;
+                        }
+                        .header h1 { font-size: 1.5rem; color: #6b7280; margin-bottom: 10px; }
+                        .header .date { color: #9ca3af; font-size: 0.9rem; }
+                        .scoreboard {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            gap: 40px;
+                            margin: 30px 0;
+                            padding: 30px;
+                            background: #f9fafb;
+                            border-radius: 12px;
+                        }
+                        .team-score { text-align: center; }
+                        .team-name { font-size: 1.25rem; font-weight: 600; margin-bottom: 10px; }
+                        .score { font-size: 3rem; font-weight: 800; }
+                        .vs { font-size: 1.25rem; color: #9ca3af; font-weight: 600; }
+                        .final-time { text-align: center; color: #6b7280; margin-bottom: 30px; }
+                        .stats-section { margin: 30px 0; }
+                        .stats-section h2 {
+                            font-size: 1.1rem;
+                            margin-bottom: 15px;
+                            padding-bottom: 10px;
+                            border-bottom: 1px solid #e5e7eb;
+                        }
+                        .stats-grid {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 30px;
+                        }
+                        .team-stats { padding: 20px; background: #f9fafb; border-radius: 8px; }
+                        .team-stats h3 {
+                            font-size: 1rem;
+                            margin-bottom: 15px;
+                            padding-bottom: 8px;
+                            border-bottom: 3px solid;
+                        }
+                        .stat-row {
+                            display: flex;
+                            justify-content: space-between;
+                            padding: 8px 0;
+                            border-bottom: 1px solid #e5e7eb;
+                        }
+                        .stat-row:last-child { border-bottom: none; }
+                        .stat-label { color: #6b7280; }
+                        .stat-value { font-weight: 600; }
+                        .half-stats { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e5e7eb; }
+                        .half-stats h4 { font-size: 0.85rem; color: #6b7280; margin-bottom: 10px; }
+                        .half-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+                        .half-column h5 { font-size: 0.8rem; color: #9ca3af; margin-bottom: 8px; }
+                        .half-stat { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 4px 0; }
+                        .log-section { margin: 30px 0; }
+                        .log-section h2 {
+                            font-size: 1.1rem;
+                            margin-bottom: 15px;
+                            padding-bottom: 10px;
+                            border-bottom: 1px solid #e5e7eb;
+                        }
+                        .log-entry {
+                            display: flex;
+                            justify-content: space-between;
+                            padding: 10px 15px;
+                            margin-bottom: 8px;
+                            border-radius: 6px;
+                            font-size: 0.9rem;
+                        }
+                        .log-entry.home { background: #d1fae5; border-left: 3px solid ${homeColor}; }
+                        .log-entry.away { background: #dbeafe; border-left: 3px solid ${awayColor}; }
+                        .log-time { color: #6b7280; }
+                        .note-entry {
+                            display: flex;
+                            justify-content: space-between;
+                            padding: 10px 15px;
+                            margin-bottom: 8px;
+                            border-radius: 6px;
+                            font-size: 0.9rem;
+                            background: #fef3c7;
+                            border-left: 3px solid #f59e0b;
+                        }
+                        .note-time { color: #6b7280; }
+                        .footer {
+                            margin-top: 40px;
+                            padding-top: 20px;
+                            border-top: 1px solid #e5e7eb;
+                            text-align: center;
+                            color: #9ca3af;
+                            font-size: 0.8rem;
+                        }
+                        @media print {
+                            body { padding: 20px; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Game Report</h1>
+                        <div class="date">${formattedDate}</div>
+                    </div>
+
+                    <div class="scoreboard">
+                        <div class="team-score">
+                            <div class="team-name" style="color: ${homeColor}">${homeTeam}</div>
+                            <div class="score" style="color: ${homeColor}">${gameState.home.goals}</div>
+                        </div>
+                        <div class="vs">VS</div>
+                        <div class="team-score">
+                            <div class="team-name" style="color: ${awayColor}">${awayTeam}</div>
+                            <div class="score" style="color: ${awayColor}">${gameState.away.goals}</div>
+                        </div>
+                    </div>
+
+                    <div class="final-time">Game Duration: ${getGameTime()}</div>
+
+                    <div class="stats-section">
+                        <h2>Statistics</h2>
+                        <div class="stats-grid">
+                            <div class="team-stats">
+                                <h3 style="border-color: ${homeColor}; color: ${homeColor}">${homeTeam}</h3>
+                                <div class="stat-row">
+                                    <span class="stat-label">Goals</span>
+                                    <span class="stat-value">${gameState.home.goals}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Shots On Target</span>
+                                    <span class="stat-value">${gameState.home.onTarget}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Shots Off Target</span>
+                                    <span class="stat-value">${gameState.home.offTarget}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Total Shots</span>
+                                    <span class="stat-value">${homeTotalShots}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Shot Accuracy</span>
+                                    <span class="stat-value">${homeAccuracy}%</span>
+                                </div>
+                                <div class="half-stats">
+                                    <h4>By Half</h4>
+                                    <div class="half-grid">
+                                        <div class="half-column">
+                                            <h5>1st Half</h5>
+                                            <div class="half-stat"><span>Goals</span><span>${gameState.home.firstHalf.goals}</span></div>
+                                            <div class="half-stat"><span>On Target</span><span>${gameState.home.firstHalf.onTarget}</span></div>
+                                            <div class="half-stat"><span>Off Target</span><span>${gameState.home.firstHalf.offTarget}</span></div>
+                                        </div>
+                                        <div class="half-column">
+                                            <h5>2nd Half</h5>
+                                            <div class="half-stat"><span>Goals</span><span>${gameState.home.secondHalf.goals}</span></div>
+                                            <div class="half-stat"><span>On Target</span><span>${gameState.home.secondHalf.onTarget}</span></div>
+                                            <div class="half-stat"><span>Off Target</span><span>${gameState.home.secondHalf.offTarget}</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="team-stats">
+                                <h3 style="border-color: ${awayColor}; color: ${awayColor}">${awayTeam}</h3>
+                                <div class="stat-row">
+                                    <span class="stat-label">Goals</span>
+                                    <span class="stat-value">${gameState.away.goals}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Shots On Target</span>
+                                    <span class="stat-value">${gameState.away.onTarget}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Shots Off Target</span>
+                                    <span class="stat-value">${gameState.away.offTarget}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Total Shots</span>
+                                    <span class="stat-value">${awayTotalShots}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Shot Accuracy</span>
+                                    <span class="stat-value">${awayAccuracy}%</span>
+                                </div>
+                                <div class="half-stats">
+                                    <h4>By Half</h4>
+                                    <div class="half-grid">
+                                        <div class="half-column">
+                                            <h5>1st Half</h5>
+                                            <div class="half-stat"><span>Goals</span><span>${gameState.away.firstHalf.goals}</span></div>
+                                            <div class="half-stat"><span>On Target</span><span>${gameState.away.firstHalf.onTarget}</span></div>
+                                            <div class="half-stat"><span>Off Target</span><span>${gameState.away.firstHalf.offTarget}</span></div>
+                                        </div>
+                                        <div class="half-column">
+                                            <h5>2nd Half</h5>
+                                            <div class="half-stat"><span>Goals</span><span>${gameState.away.secondHalf.goals}</span></div>
+                                            <div class="half-stat"><span>On Target</span><span>${gameState.away.secondHalf.onTarget}</span></div>
+                                            <div class="half-stat"><span>Off Target</span><span>${gameState.away.secondHalf.offTarget}</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${sortedLog.length > 0 ? `
+                    <div class="log-section">
+                        <h2>Shot Timeline</h2>
+                        ${sortedLog.map(entry => `
+                            <div class="log-entry ${entry.team}">
+                                <span><strong>${entry.teamName}</strong> - ${entry.type}</span>
+                                <span class="log-time">${entry.half === 1 ? '1st' : '2nd'} · ${entry.gameTime || ''}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ` : ''}
+
+                    ${sortedNotes.length > 0 ? `
+                    <div class="log-section">
+                        <h2>Game Notes</h2>
+                        ${sortedNotes.map(note => `
+                            <div class="note-entry">
+                                <span>${note.content}</span>
+                                <span class="note-time">${note.half === 1 ? '1st' : '2nd'} · ${note.gameTime}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ` : ''}
+
+                    <div class="footer">
+                        Generated by Soccer Shot Tracker · ${new Date().toLocaleString()}
+                    </div>
+
+                    <script>
+                        window.onload = function() { window.print(); }
+                    </script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
         }
 
         // Modal functions
