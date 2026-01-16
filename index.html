@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soccer Shot Tracker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a5f2a 0%, #0d3d1a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .game-setup {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .setup-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .setup-row label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .setup-row input {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .setup-row input:focus {
+            outline: none;
+            border-color: #1a5f2a;
+        }
+
+        .scoreboard {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .score-display {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            color: white;
+        }
+
+        .team-score {
+            text-align: center;
+        }
+
+        .team-label {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .team-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .score {
+            font-size: 4rem;
+            font-weight: bold;
+        }
+
+        .home-team .score {
+            color: #4CAF50;
+        }
+
+        .away-team .score {
+            color: #2196F3;
+        }
+
+        .vs {
+            font-size: 1.5rem;
+            color: #666;
+        }
+
+        .teams-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .team-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .team-panel h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid;
+        }
+
+        .team-panel.home h2 {
+            border-color: #4CAF50;
+            color: #2e7d32;
+        }
+
+        .team-panel.away h2 {
+            border-color: #2196F3;
+            color: #1565c0;
+        }
+
+        .shot-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .shot-btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .shot-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .shot-btn:active {
+            transform: translateY(0);
+        }
+
+        .shot-btn.goal {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #333;
+        }
+
+        .shot-btn.on-target {
+            background: linear-gradient(135deg, #4CAF50, #2e7d32);
+            color: white;
+        }
+
+        .shot-btn.off-target {
+            background: linear-gradient(135deg, #f44336, #c62828);
+            color: white;
+        }
+
+        .stats {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .stat-label {
+            color: #666;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .shot-log {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .shot-log h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .log-entries {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .log-entry.home {
+            background: #e8f5e9;
+        }
+
+        .log-entry.away {
+            background: #e3f2fd;
+        }
+
+        .log-entry .time {
+            color: #666;
+        }
+
+        .reset-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .reset-btn:hover {
+            background: #444;
+        }
+
+        @media (max-width: 600px) {
+            .teams-container {
+                grid-template-columns: 1fr;
+            }
+
+            .score {
+                font-size: 3rem;
+            }
+
+            .setup-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .setup-row input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Soccer Shot Tracker</h1>
+
+        <div class="game-setup">
+            <div class="setup-row">
+                <label for="game-date">Date:</label>
+                <input type="date" id="game-date">
+                <label for="home-team-input">Home:</label>
+                <input type="text" id="home-team-input" placeholder="Home Team">
+                <label for="away-team-input">Away:</label>
+                <input type="text" id="away-team-input" placeholder="Away Team">
+            </div>
+        </div>
+
+        <div class="scoreboard">
+            <div class="score-display">
+                <div class="team-score home-team">
+                    <div class="team-label">HOME</div>
+                    <div class="team-name" id="home-name-display">Home Team</div>
+                    <div class="score" id="home-score">0</div>
+                </div>
+                <div class="vs">VS</div>
+                <div class="team-score away-team">
+                    <div class="team-label">AWAY</div>
+                    <div class="team-name" id="away-name-display">Away Team</div>
+                    <div class="score" id="away-score">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="teams-container">
+            <div class="team-panel home">
+                <h2 id="home-panel-title">Home Team</h2>
+                <div class="shot-buttons">
+                    <button class="shot-btn goal" onclick="recordShot('home', 'goal')">Goal</button>
+                    <button class="shot-btn on-target" onclick="recordShot('home', 'on-target')">Shot On Target</button>
+                    <button class="shot-btn off-target" onclick="recordShot('home', 'off-target')">Shot Off Target</button>
+                </div>
+                <div class="stats">
+                    <div class="stat-row">
+                        <span class="stat-label">Goals</span>
+                        <span class="stat-value" id="home-goals">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Shots On Target</span>
+                        <span class="stat-value" id="home-on-target">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Shots Off Target</span>
+                        <span class="stat-value" id="home-off-target">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Total Shots</span>
+                        <span class="stat-value" id="home-total">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="team-panel away">
+                <h2 id="away-panel-title">Away Team</h2>
+                <div class="shot-buttons">
+                    <button class="shot-btn goal" onclick="recordShot('away', 'goal')">Goal</button>
+                    <button class="shot-btn on-target" onclick="recordShot('away', 'on-target')">Shot On Target</button>
+                    <button class="shot-btn off-target" onclick="recordShot('away', 'off-target')">Shot Off Target</button>
+                </div>
+                <div class="stats">
+                    <div class="stat-row">
+                        <span class="stat-label">Goals</span>
+                        <span class="stat-value" id="away-goals">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Shots On Target</span>
+                        <span class="stat-value" id="away-on-target">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Shots Off Target</span>
+                        <span class="stat-value" id="away-off-target">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Total Shots</span>
+                        <span class="stat-value" id="away-total">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="shot-log">
+            <h3>Shot Log</h3>
+            <div class="log-entries" id="log-entries">
+                <p style="color: #999; text-align: center;">No shots recorded yet</p>
+            </div>
+        </div>
+
+        <button class="reset-btn" onclick="resetGame()">Reset Game</button>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            home: {
+                goals: 0,
+                onTarget: 0,
+                offTarget: 0
+            },
+            away: {
+                goals: 0,
+                onTarget: 0,
+                offTarget: 0
+            },
+            log: []
+        };
+
+        // Set today's date as default
+        document.getElementById('game-date').valueAsDate = new Date();
+
+        // Update team names in real-time
+        document.getElementById('home-team-input').addEventListener('input', function() {
+            const name = this.value || 'Home Team';
+            document.getElementById('home-name-display').textContent = name;
+            document.getElementById('home-panel-title').textContent = name;
+        });
+
+        document.getElementById('away-team-input').addEventListener('input', function() {
+            const name = this.value || 'Away Team';
+            document.getElementById('away-name-display').textContent = name;
+            document.getElementById('away-panel-title').textContent = name;
+        });
+
+        function recordShot(team, type) {
+            const teamState = gameState[team];
+
+            switch(type) {
+                case 'goal':
+                    teamState.goals++;
+                    teamState.onTarget++; // Goals count as on-target shots
+                    break;
+                case 'on-target':
+                    teamState.onTarget++;
+                    break;
+                case 'off-target':
+                    teamState.offTarget++;
+                    break;
+            }
+
+            // Log the shot
+            const teamName = team === 'home'
+                ? (document.getElementById('home-team-input').value || 'Home Team')
+                : (document.getElementById('away-team-input').value || 'Away Team');
+
+            const shotTypeLabel = type === 'goal' ? 'GOAL!' :
+                                  type === 'on-target' ? 'Shot On Target' : 'Shot Off Target';
+
+            gameState.log.unshift({
+                team: team,
+                teamName: teamName,
+                type: shotTypeLabel,
+                time: new Date().toLocaleTimeString()
+            });
+
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            // Update scores
+            document.getElementById('home-score').textContent = gameState.home.goals;
+            document.getElementById('away-score').textContent = gameState.away.goals;
+
+            // Update home stats
+            document.getElementById('home-goals').textContent = gameState.home.goals;
+            document.getElementById('home-on-target').textContent = gameState.home.onTarget;
+            document.getElementById('home-off-target').textContent = gameState.home.offTarget;
+            document.getElementById('home-total').textContent = gameState.home.onTarget + gameState.home.offTarget;
+
+            // Update away stats
+            document.getElementById('away-goals').textContent = gameState.away.goals;
+            document.getElementById('away-on-target').textContent = gameState.away.onTarget;
+            document.getElementById('away-off-target').textContent = gameState.away.offTarget;
+            document.getElementById('away-total').textContent = gameState.away.onTarget + gameState.away.offTarget;
+
+            // Update log
+            const logContainer = document.getElementById('log-entries');
+            if (gameState.log.length === 0) {
+                logContainer.innerHTML = '<p style="color: #999; text-align: center;">No shots recorded yet</p>';
+            } else {
+                logContainer.innerHTML = gameState.log.map(entry => `
+                    <div class="log-entry ${entry.team}">
+                        <span><strong>${entry.teamName}</strong> - ${entry.type}</span>
+                        <span class="time">${entry.time}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function resetGame() {
+            if (confirm('Are you sure you want to reset the game? All data will be lost.')) {
+                gameState.home = { goals: 0, onTarget: 0, offTarget: 0 };
+                gameState.away = { goals: 0, onTarget: 0, offTarget: 0 };
+                gameState.log = [];
+
+                document.getElementById('home-team-input').value = '';
+                document.getElementById('away-team-input').value = '';
+                document.getElementById('home-name-display').textContent = 'Home Team';
+                document.getElementById('away-name-display').textContent = 'Away Team';
+                document.getElementById('home-panel-title').textContent = 'Home Team';
+                document.getElementById('away-panel-title').textContent = 'Away Team';
+                document.getElementById('game-date').valueAsDate = new Date();
+
+                updateDisplay();
+            }
+        }
+    </script>
+</body>
+</html>
