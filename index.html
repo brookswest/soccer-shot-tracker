@@ -5,6 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Soccer Shot Tracker</title>
     <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #d1fae5;
+            --secondary: #3b82f6;
+            --secondary-dark: #2563eb;
+            --secondary-light: #dbeafe;
+            --accent: #f59e0b;
+            --accent-dark: #d97706;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --surface: #ffffff;
+            --surface-hover: #f9fafb;
+            --background: #f3f4f6;
+            --text: #111827;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --border: #e5e7eb;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -12,135 +37,236 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a5f2a 0%, #0d3d1a 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: var(--background);
             min-height: 100vh;
-            padding: 20px;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 24px 20px 80px;
+            text-align: center;
+        }
+
+        .app-header h1 {
+            color: white;
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .app-header p {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.875rem;
+            margin-top: 4px;
         }
 
         .container {
-            max-width: 900px;
-            margin: 0 auto;
+            max-width: 960px;
+            margin: -60px auto 40px;
+            padding: 0 16px;
         }
 
-        h1 {
-            text-align: center;
-            color: white;
-            margin-bottom: 20px;
-            font-size: 2rem;
-        }
-
-        .game-setup {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-        }
-
-        .setup-row {
+        /* Navigation Tabs */
+        .nav-tabs {
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 6px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: var(--radius);
+            transition: all 0.2s ease;
+        }
+
+        .nav-tab:hover {
+            color: var(--text);
+            background: var(--surface-hover);
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* Game Setup */
+        .setup-grid {
+            display: grid;
+            grid-template-columns: auto 1fr auto 1fr auto 1fr;
+            gap: 12px;
             align-items: center;
         }
 
-        .setup-row label {
-            font-weight: 600;
-            color: #333;
+        .setup-grid label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
         }
 
-        .setup-row input {
-            padding: 10px 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            flex: 1;
-            min-width: 150px;
+        .input {
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.9375rem;
+            transition: all 0.2s ease;
+            background: var(--surface);
         }
 
-        .setup-row input:focus {
+        .input:focus {
             outline: none;
-            border-color: #1a5f2a;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
         }
 
+        /* Scoreboard */
         .scoreboard {
-            background: #1a1a2e;
-            border-radius: 12px;
-            padding: 30px;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border-radius: var(--radius-lg);
+            padding: 32px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            box-shadow: var(--shadow-lg);
         }
 
         .score-display {
             display: flex;
             justify-content: space-around;
             align-items: center;
-            color: white;
         }
 
         .team-score {
             text-align: center;
+            flex: 1;
         }
 
-        .team-label {
-            font-size: 0.9rem;
-            color: #888;
-            margin-bottom: 5px;
+        .team-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .home-team .team-badge {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .away-team .team-badge {
+            background: var(--secondary-light);
+            color: var(--secondary-dark);
         }
 
         .team-name {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 10px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 12px;
         }
 
         .score {
             font-size: 4rem;
-            font-weight: bold;
+            font-weight: 800;
+            line-height: 1;
         }
 
         .home-team .score {
-            color: #4CAF50;
+            color: var(--primary);
         }
 
         .away-team .score {
-            color: #2196F3;
+            color: var(--secondary);
         }
 
-        .vs {
-            font-size: 1.5rem;
-            color: #666;
+        .vs-divider {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 20px;
         }
 
-        .teams-container {
+        .vs-text {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        /* Team Panels */
+        .teams-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
 
         .team-panel {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border-top: 4px solid;
+        }
+
+        .team-panel.home {
+            border-color: var(--primary);
+        }
+
+        .team-panel.away {
+            border-color: var(--secondary);
         }
 
         .team-panel h2 {
-            text-align: center;
+            font-size: 1.125rem;
+            font-weight: 600;
             margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .team-panel.home h2 {
-            border-color: #4CAF50;
-            color: #2e7d32;
+            color: var(--primary-dark);
         }
 
         .team-panel.away h2 {
-            border-color: #2196F3;
-            color: #1565c0;
+            color: var(--secondary-dark);
         }
 
         .shot-buttons {
@@ -149,275 +275,656 @@
             gap: 10px;
         }
 
-        .shot-btn {
-            padding: 15px 20px;
+        .btn {
+            padding: 14px 20px;
             border: none;
-            border-radius: 8px;
-            font-size: 1rem;
+            border-radius: var(--radius);
+            font-size: 0.9375rem;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.1s, box-shadow 0.1s;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .shot-btn:hover {
+        .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow);
         }
 
-        .shot-btn:active {
+        .btn:active {
             transform: translateY(0);
         }
 
-        .shot-btn.goal {
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            color: #333;
-        }
-
-        .shot-btn.on-target {
-            background: linear-gradient(135deg, #4CAF50, #2e7d32);
+        .btn-goal {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
             color: white;
         }
 
-        .shot-btn.off-target {
-            background: linear-gradient(135deg, #f44336, #c62828);
+        .btn-on-target {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
         }
 
-        .stats {
+        .btn-off-target {
+            background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
+            color: white;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        /* Stats */
+        .stats-grid {
             margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
         }
 
         .stat-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            font-size: 0.95rem;
+            padding: 10px 0;
+        }
+
+        .stat-row:not(:last-child) {
+            border-bottom: 1px solid var(--border);
         }
 
         .stat-label {
-            color: #666;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
         }
 
         .stat-value {
             font-weight: 600;
-            color: #333;
+            color: var(--text);
+            font-size: 0.9375rem;
         }
 
-        .shot-log {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-        }
-
-        .shot-log h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
+        /* Shot Log */
         .log-entries {
-            max-height: 200px;
+            max-height: 240px;
             overflow-y: auto;
         }
 
         .log-entry {
             display: flex;
             justify-content: space-between;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+            font-size: 0.875rem;
         }
 
         .log-entry.home {
-            background: #e8f5e9;
+            background: var(--primary-light);
+            border-left: 3px solid var(--primary);
         }
 
         .log-entry.away {
-            background: #e3f2fd;
+            background: var(--secondary-light);
+            border-left: 3px solid var(--secondary);
+        }
+
+        .log-entry .team {
+            font-weight: 600;
+        }
+
+        .log-entry .type {
+            color: var(--text-secondary);
         }
 
         .log-entry .time {
-            color: #666;
+            color: var(--text-muted);
+            font-size: 0.8125rem;
         }
 
-        .reset-btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
             margin-top: 20px;
-            background: #666;
-            color: white;
-            border: none;
-            border-radius: 8px;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+        }
+
+        /* History View */
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Stats Dashboard */
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+
+        .stat-card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .stat-card-label {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* Game History List */
+        .game-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .game-item {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .game-item:hover {
+            box-shadow: var(--shadow);
+            border-color: var(--primary-light);
+        }
+
+        .game-info {
+            flex: 1;
+        }
+
+        .game-date {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .game-teams {
             font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.2s;
+            font-weight: 600;
+            color: var(--text);
         }
 
-        .reset-btn:hover {
-            background: #444;
+        .game-score {
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 0 24px;
         }
 
-        @media (max-width: 600px) {
-            .teams-container {
+        .game-score .home-score {
+            color: var(--primary);
+        }
+
+        .game-score .away-score {
+            color: var(--secondary);
+        }
+
+        .game-stats-mini {
+            display: flex;
+            gap: 16px;
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            padding: 8px 12px;
+            font-size: 0.875rem;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: var(--danger-dark);
+        }
+
+        /* Expanded Stats */
+        .expanded-stats {
+            display: none;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .game-item.expanded .expanded-stats {
+            display: block;
+        }
+
+        .expanded-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .team-stats-block h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid;
+        }
+
+        .team-stats-block.home h4 {
+            color: var(--primary-dark);
+            border-color: var(--primary);
+        }
+
+        .team-stats-block.away h4 {
+            color: var(--secondary-dark);
+            border-color: var(--secondary);
+        }
+
+        .mini-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.8125rem;
+        }
+
+        .mini-stat-label {
+            color: var(--text-secondary);
+        }
+
+        .mini-stat-value {
+            font-weight: 600;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal h3 {
+            margin-bottom: 12px;
+        }
+
+        .modal p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .setup-grid {
                 grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .setup-grid label {
+                margin-top: 8px;
+            }
+
+            .teams-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-dashboard {
+                grid-template-columns: repeat(2, 1fr);
             }
 
             .score {
                 font-size: 3rem;
             }
 
-            .setup-row {
+            .game-item {
                 flex-direction: column;
-                align-items: stretch;
+                text-align: center;
+                gap: 16px;
             }
 
-            .setup-row input {
-                width: 100%;
+            .game-stats-mini {
+                justify-content: center;
+            }
+
+            .expanded-stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-dashboard {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <header class="app-header">
         <h1>Soccer Shot Tracker</h1>
+        <p>Track shots and save game statistics</p>
+    </header>
 
-        <div class="game-setup">
-            <div class="setup-row">
-                <label for="game-date">Date:</label>
-                <input type="date" id="game-date">
-                <label for="home-team-input">Home:</label>
-                <input type="text" id="home-team-input" placeholder="Home Team">
-                <label for="away-team-input">Away:</label>
-                <input type="text" id="away-team-input" placeholder="Away Team">
+    <div class="container">
+        <nav class="nav-tabs">
+            <button class="nav-tab active" onclick="switchView('game')">Current Game</button>
+            <button class="nav-tab" onclick="switchView('history')">Game History</button>
+        </nav>
+
+        <!-- Current Game View -->
+        <div id="game-view" class="view active">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Game Setup</h2>
+                </div>
+                <div class="setup-grid">
+                    <label for="game-date">Date</label>
+                    <input type="date" id="game-date" class="input">
+                    <label for="home-team-input">Home</label>
+                    <input type="text" id="home-team-input" class="input" placeholder="Home Team">
+                    <label for="away-team-input">Away</label>
+                    <input type="text" id="away-team-input" class="input" placeholder="Away Team">
+                </div>
+            </div>
+
+            <div class="scoreboard">
+                <div class="score-display">
+                    <div class="team-score home-team">
+                        <span class="team-badge">Home</span>
+                        <div class="team-name" id="home-name-display">Home Team</div>
+                        <div class="score" id="home-score">0</div>
+                    </div>
+                    <div class="vs-divider">
+                        <span class="vs-text">VS</span>
+                    </div>
+                    <div class="team-score away-team">
+                        <span class="team-badge">Away</span>
+                        <div class="team-name" id="away-name-display">Away Team</div>
+                        <div class="score" id="away-score">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="teams-grid">
+                <div class="team-panel home">
+                    <h2 id="home-panel-title">Home Team</h2>
+                    <div class="shot-buttons">
+                        <button class="btn btn-goal" onclick="recordShot('home', 'goal')">Goal</button>
+                        <button class="btn btn-on-target" onclick="recordShot('home', 'on-target')">Shot On Target</button>
+                        <button class="btn btn-off-target" onclick="recordShot('home', 'off-target')">Shot Off Target</button>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-row">
+                            <span class="stat-label">Goals</span>
+                            <span class="stat-value" id="home-goals">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Shots On Target</span>
+                            <span class="stat-value" id="home-on-target">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Shots Off Target</span>
+                            <span class="stat-value" id="home-off-target">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Total Shots</span>
+                            <span class="stat-value" id="home-total">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Shot Accuracy</span>
+                            <span class="stat-value" id="home-accuracy">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-panel away">
+                    <h2 id="away-panel-title">Away Team</h2>
+                    <div class="shot-buttons">
+                        <button class="btn btn-goal" onclick="recordShot('away', 'goal')">Goal</button>
+                        <button class="btn btn-on-target" onclick="recordShot('away', 'on-target')">Shot On Target</button>
+                        <button class="btn btn-off-target" onclick="recordShot('away', 'off-target')">Shot Off Target</button>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-row">
+                            <span class="stat-label">Goals</span>
+                            <span class="stat-value" id="away-goals">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Shots On Target</span>
+                            <span class="stat-value" id="away-on-target">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Shots Off Target</span>
+                            <span class="stat-value" id="away-off-target">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Total Shots</span>
+                            <span class="stat-value" id="away-total">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Shot Accuracy</span>
+                            <span class="stat-value" id="away-accuracy">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Shot Log</h2>
+                </div>
+                <div class="log-entries" id="log-entries">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">&#9917;</div>
+                        <p>No shots recorded yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="saveGame()">Save Game</button>
+                <button class="btn btn-secondary" onclick="confirmReset()">Reset Game</button>
             </div>
         </div>
 
-        <div class="scoreboard">
-            <div class="score-display">
-                <div class="team-score home-team">
-                    <div class="team-label">HOME</div>
-                    <div class="team-name" id="home-name-display">Home Team</div>
-                    <div class="score" id="home-score">0</div>
+        <!-- History View -->
+        <div id="history-view" class="view">
+            <div class="stats-dashboard" id="stats-dashboard">
+                <div class="stat-card">
+                    <div class="stat-card-value" id="total-games">0</div>
+                    <div class="stat-card-label">Games Played</div>
                 </div>
-                <div class="vs">VS</div>
-                <div class="team-score away-team">
-                    <div class="team-label">AWAY</div>
-                    <div class="team-name" id="away-name-display">Away Team</div>
-                    <div class="score" id="away-score">0</div>
+                <div class="stat-card">
+                    <div class="stat-card-value" id="avg-goals">0</div>
+                    <div class="stat-card-label">Avg Goals/Game</div>
                 </div>
-            </div>
-        </div>
-
-        <div class="teams-container">
-            <div class="team-panel home">
-                <h2 id="home-panel-title">Home Team</h2>
-                <div class="shot-buttons">
-                    <button class="shot-btn goal" onclick="recordShot('home', 'goal')">Goal</button>
-                    <button class="shot-btn on-target" onclick="recordShot('home', 'on-target')">Shot On Target</button>
-                    <button class="shot-btn off-target" onclick="recordShot('home', 'off-target')">Shot Off Target</button>
+                <div class="stat-card">
+                    <div class="stat-card-value" id="total-shots">0</div>
+                    <div class="stat-card-label">Total Shots</div>
                 </div>
-                <div class="stats">
-                    <div class="stat-row">
-                        <span class="stat-label">Goals</span>
-                        <span class="stat-value" id="home-goals">0</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label">Shots On Target</span>
-                        <span class="stat-value" id="home-on-target">0</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label">Shots Off Target</span>
-                        <span class="stat-value" id="home-off-target">0</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label">Total Shots</span>
-                        <span class="stat-value" id="home-total">0</span>
-                    </div>
+                <div class="stat-card">
+                    <div class="stat-card-value" id="avg-accuracy">0%</div>
+                    <div class="stat-card-label">Avg Accuracy</div>
                 </div>
             </div>
 
-            <div class="team-panel away">
-                <h2 id="away-panel-title">Away Team</h2>
-                <div class="shot-buttons">
-                    <button class="shot-btn goal" onclick="recordShot('away', 'goal')">Goal</button>
-                    <button class="shot-btn on-target" onclick="recordShot('away', 'on-target')">Shot On Target</button>
-                    <button class="shot-btn off-target" onclick="recordShot('away', 'off-target')">Shot Off Target</button>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Saved Games</h2>
                 </div>
-                <div class="stats">
-                    <div class="stat-row">
-                        <span class="stat-label">Goals</span>
-                        <span class="stat-value" id="away-goals">0</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label">Shots On Target</span>
-                        <span class="stat-value" id="away-on-target">0</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label">Shots Off Target</span>
-                        <span class="stat-value" id="away-off-target">0</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label">Total Shots</span>
-                        <span class="stat-value" id="away-total">0</span>
+                <div class="game-list" id="game-list">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">&#128202;</div>
+                        <p>No saved games yet</p>
+                        <p style="font-size: 0.8125rem; margin-top: 8px;">Save your first game to see it here!</p>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="shot-log">
-            <h3>Shot Log</h3>
-            <div class="log-entries" id="log-entries">
-                <p style="color: #999; text-align: center;">No shots recorded yet</p>
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <h3 id="modal-title">Confirm Action</h3>
+            <p id="modal-message">Are you sure you want to proceed?</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-danger" id="modal-confirm">Confirm</button>
             </div>
         </div>
-
-        <button class="reset-btn" onclick="resetGame()">Reset Game</button>
     </div>
 
     <script>
         // Game state
-        const gameState = {
-            home: {
-                goals: 0,
-                onTarget: 0,
-                offTarget: 0
-            },
-            away: {
-                goals: 0,
-                onTarget: 0,
-                offTarget: 0
-            },
+        let gameState = {
+            home: { goals: 0, onTarget: 0, offTarget: 0 },
+            away: { goals: 0, onTarget: 0, offTarget: 0 },
             log: []
         };
 
-        // Set today's date as default
-        document.getElementById('game-date').valueAsDate = new Date();
+        // Saved games storage key
+        const STORAGE_KEY = 'soccer-shot-tracker-games';
 
-        // Update team names in real-time
-        document.getElementById('home-team-input').addEventListener('input', function() {
-            const name = this.value || 'Home Team';
-            document.getElementById('home-name-display').textContent = name;
-            document.getElementById('home-panel-title').textContent = name;
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('game-date').valueAsDate = new Date();
+            loadHistoryView();
+            setupEventListeners();
         });
 
-        document.getElementById('away-team-input').addEventListener('input', function() {
-            const name = this.value || 'Away Team';
-            document.getElementById('away-name-display').textContent = name;
-            document.getElementById('away-panel-title').textContent = name;
-        });
+        function setupEventListeners() {
+            document.getElementById('home-team-input').addEventListener('input', function() {
+                const name = this.value || 'Home Team';
+                document.getElementById('home-name-display').textContent = name;
+                document.getElementById('home-panel-title').textContent = name;
+            });
 
+            document.getElementById('away-team-input').addEventListener('input', function() {
+                const name = this.value || 'Away Team';
+                document.getElementById('away-name-display').textContent = name;
+                document.getElementById('away-panel-title').textContent = name;
+            });
+        }
+
+        // View switching
+        function switchView(view) {
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+
+            if (view === 'game') {
+                document.querySelector('.nav-tab:first-child').classList.add('active');
+                document.getElementById('game-view').classList.add('active');
+            } else {
+                document.querySelector('.nav-tab:last-child').classList.add('active');
+                document.getElementById('history-view').classList.add('active');
+                loadHistoryView();
+            }
+        }
+
+        // Shot recording
         function recordShot(team, type) {
             const teamState = gameState[team];
 
             switch(type) {
                 case 'goal':
                     teamState.goals++;
-                    teamState.onTarget++; // Goals count as on-target shots
+                    teamState.onTarget++;
                     break;
                 case 'on-target':
                     teamState.onTarget++;
@@ -427,7 +934,6 @@
                     break;
             }
 
-            // Log the shot
             const teamName = team === 'home'
                 ? (document.getElementById('home-team-input').value || 'Home Team')
                 : (document.getElementById('away-team-input').value || 'Away Team');
@@ -451,48 +957,302 @@
             document.getElementById('away-score').textContent = gameState.away.goals;
 
             // Update home stats
+            const homeTotalShots = gameState.home.onTarget + gameState.home.offTarget;
+            const homeAccuracy = homeTotalShots > 0 ? Math.round((gameState.home.onTarget / homeTotalShots) * 100) : 0;
+
             document.getElementById('home-goals').textContent = gameState.home.goals;
             document.getElementById('home-on-target').textContent = gameState.home.onTarget;
             document.getElementById('home-off-target').textContent = gameState.home.offTarget;
-            document.getElementById('home-total').textContent = gameState.home.onTarget + gameState.home.offTarget;
+            document.getElementById('home-total').textContent = homeTotalShots;
+            document.getElementById('home-accuracy').textContent = homeAccuracy + '%';
 
             // Update away stats
+            const awayTotalShots = gameState.away.onTarget + gameState.away.offTarget;
+            const awayAccuracy = awayTotalShots > 0 ? Math.round((gameState.away.onTarget / awayTotalShots) * 100) : 0;
+
             document.getElementById('away-goals').textContent = gameState.away.goals;
             document.getElementById('away-on-target').textContent = gameState.away.onTarget;
             document.getElementById('away-off-target').textContent = gameState.away.offTarget;
-            document.getElementById('away-total').textContent = gameState.away.onTarget + gameState.away.offTarget;
+            document.getElementById('away-total').textContent = awayTotalShots;
+            document.getElementById('away-accuracy').textContent = awayAccuracy + '%';
 
             // Update log
             const logContainer = document.getElementById('log-entries');
             if (gameState.log.length === 0) {
-                logContainer.innerHTML = '<p style="color: #999; text-align: center;">No shots recorded yet</p>';
+                logContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">&#9917;</div>
+                        <p>No shots recorded yet</p>
+                    </div>
+                `;
             } else {
                 logContainer.innerHTML = gameState.log.map(entry => `
                     <div class="log-entry ${entry.team}">
-                        <span><strong>${entry.teamName}</strong> - ${entry.type}</span>
+                        <span><span class="team">${entry.teamName}</span> - <span class="type">${entry.type}</span></span>
                         <span class="time">${entry.time}</span>
                     </div>
                 `).join('');
             }
         }
 
-        function resetGame() {
-            if (confirm('Are you sure you want to reset the game? All data will be lost.')) {
-                gameState.home = { goals: 0, onTarget: 0, offTarget: 0 };
-                gameState.away = { goals: 0, onTarget: 0, offTarget: 0 };
-                gameState.log = [];
+        // Save game
+        function saveGame() {
+            const homeTeam = document.getElementById('home-team-input').value || 'Home Team';
+            const awayTeam = document.getElementById('away-team-input').value || 'Away Team';
+            const gameDate = document.getElementById('game-date').value;
 
-                document.getElementById('home-team-input').value = '';
-                document.getElementById('away-team-input').value = '';
-                document.getElementById('home-name-display').textContent = 'Home Team';
-                document.getElementById('away-name-display').textContent = 'Away Team';
-                document.getElementById('home-panel-title').textContent = 'Home Team';
-                document.getElementById('away-panel-title').textContent = 'Away Team';
-                document.getElementById('game-date').valueAsDate = new Date();
+            if (gameState.home.onTarget + gameState.home.offTarget + gameState.away.onTarget + gameState.away.offTarget === 0) {
+                showModal('No Data to Save', 'Please record at least one shot before saving the game.', null);
+                return;
+            }
 
-                updateDisplay();
+            const game = {
+                id: Date.now(),
+                date: gameDate,
+                homeTeam: homeTeam,
+                awayTeam: awayTeam,
+                home: { ...gameState.home },
+                away: { ...gameState.away },
+                log: [...gameState.log]
+            };
+
+            const games = getSavedGames();
+            games.unshift(game);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+
+            // Reset after saving
+            resetGameState();
+            updateDisplay();
+
+            showModal('Game Saved!', `${homeTeam} ${game.home.goals} - ${game.away.goals} ${awayTeam} has been saved to your history.`, null);
+        }
+
+        function getSavedGames() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        }
+
+        // Load history view
+        function loadHistoryView() {
+            const games = getSavedGames();
+            updateStatsDisplay(games);
+            updateGameList(games);
+        }
+
+        function updateStatsDisplay(games) {
+            if (games.length === 0) {
+                document.getElementById('total-games').textContent = '0';
+                document.getElementById('avg-goals').textContent = '0';
+                document.getElementById('total-shots').textContent = '0';
+                document.getElementById('avg-accuracy').textContent = '0%';
+                return;
+            }
+
+            let totalGoals = 0;
+            let totalShots = 0;
+            let totalOnTarget = 0;
+
+            games.forEach(game => {
+                totalGoals += game.home.goals + game.away.goals;
+                totalShots += game.home.onTarget + game.home.offTarget + game.away.onTarget + game.away.offTarget;
+                totalOnTarget += game.home.onTarget + game.away.onTarget;
+            });
+
+            const avgGoals = (totalGoals / games.length).toFixed(1);
+            const avgAccuracy = totalShots > 0 ? Math.round((totalOnTarget / totalShots) * 100) : 0;
+
+            document.getElementById('total-games').textContent = games.length;
+            document.getElementById('avg-goals').textContent = avgGoals;
+            document.getElementById('total-shots').textContent = totalShots;
+            document.getElementById('avg-accuracy').textContent = avgAccuracy + '%';
+        }
+
+        function updateGameList(games) {
+            const container = document.getElementById('game-list');
+
+            if (games.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">&#128202;</div>
+                        <p>No saved games yet</p>
+                        <p style="font-size: 0.8125rem; margin-top: 8px;">Save your first game to see it here!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = games.map(game => {
+                const homeTotalShots = game.home.onTarget + game.home.offTarget;
+                const awayTotalShots = game.away.onTarget + game.away.offTarget;
+                const homeAccuracy = homeTotalShots > 0 ? Math.round((game.home.onTarget / homeTotalShots) * 100) : 0;
+                const awayAccuracy = awayTotalShots > 0 ? Math.round((game.away.onTarget / awayTotalShots) * 100) : 0;
+
+                const formattedDate = new Date(game.date).toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                return `
+                    <div class="game-item" id="game-${game.id}">
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+                                <div class="game-info">
+                                    <div class="game-date">${formattedDate}</div>
+                                    <div class="game-teams">${game.homeTeam} vs ${game.awayTeam}</div>
+                                </div>
+                                <div class="game-score">
+                                    <span class="home-score">${game.home.goals}</span>
+                                    <span style="color: var(--text-muted);"> - </span>
+                                    <span class="away-score">${game.away.goals}</span>
+                                </div>
+                                <div class="game-stats-mini">
+                                    <span>Shots: ${homeTotalShots + awayTotalShots}</span>
+                                    <span>On Target: ${game.home.onTarget + game.away.onTarget}</span>
+                                </div>
+                                <div class="game-actions">
+                                    <button class="btn btn-outline btn-icon" onclick="toggleGameDetails(${game.id})">Details</button>
+                                    <button class="btn btn-danger btn-icon" onclick="confirmDeleteGame(${game.id})">Delete</button>
+                                </div>
+                            </div>
+                            <div class="expanded-stats">
+                                <div class="expanded-stats-grid">
+                                    <div class="team-stats-block home">
+                                        <h4>${game.homeTeam}</h4>
+                                        <div class="mini-stat">
+                                            <span class="mini-stat-label">Goals</span>
+                                            <span class="mini-stat-value">${game.home.goals}</span>
+                                        </div>
+                                        <div class="mini-stat">
+                                            <span class="mini-stat-label">Shots On Target</span>
+                                            <span class="mini-stat-value">${game.home.onTarget}</span>
+                                        </div>
+                                        <div class="mini-stat">
+                                            <span class="mini-stat-label">Shots Off Target</span>
+                                            <span class="mini-stat-value">${game.home.offTarget}</span>
+                                        </div>
+                                        <div class="mini-stat">
+                                            <span class="mini-stat-label">Total Shots</span>
+                                            <span class="mini-stat-value">${homeTotalShots}</span>
+                                        </div>
+                                        <div class="mini-stat">
+                                            <span class="mini-stat-label">Shot Accuracy</span>
+                                            <span class="mini-stat-value">${homeAccuracy}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="team-stats-block away">
+                                        <h4>${game.awayTeam}</h4>
+                                        <div class="mini-stat">
+                                            <span class="mini-stat-label">Goals</span>
+                                            <span class="mini-stat-value">${game.away.goals}</span>
+                                        </div>
+                                        <div class="mini-stat">
+                                            <span class="mini-stat-label">Shots On Target</span>
+                                            <span class="mini-stat-value">${game.away.onTarget}</span>
+                                        </div>
+                                        <div class="mini-stat">
+                                            <span class="mini-stat-label">Shots Off Target</span>
+                                            <span class="mini-stat-value">${game.away.offTarget}</span>
+                                        </div>
+                                        <div class="mini-stat">
+                                            <span class="mini-stat-label">Total Shots</span>
+                                            <span class="mini-stat-value">${awayTotalShots}</span>
+                                        </div>
+                                        <div class="mini-stat">
+                                            <span class="mini-stat-label">Shot Accuracy</span>
+                                            <span class="mini-stat-value">${awayAccuracy}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleGameDetails(gameId) {
+            const gameItem = document.getElementById(`game-${gameId}`);
+            gameItem.classList.toggle('expanded');
+        }
+
+        // Delete game
+        function confirmDeleteGame(gameId) {
+            showModal(
+                'Delete Game',
+                'Are you sure you want to delete this game? This action cannot be undone.',
+                () => deleteGame(gameId)
+            );
+        }
+
+        function deleteGame(gameId) {
+            let games = getSavedGames();
+            games = games.filter(g => g.id !== gameId);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+            loadHistoryView();
+            closeModal();
+        }
+
+        // Reset game
+        function confirmReset() {
+            showModal(
+                'Reset Game',
+                'Are you sure you want to reset? All current game data will be lost.',
+                () => {
+                    resetGameState();
+                    updateDisplay();
+                    closeModal();
+                }
+            );
+        }
+
+        function resetGameState() {
+            gameState = {
+                home: { goals: 0, onTarget: 0, offTarget: 0 },
+                away: { goals: 0, onTarget: 0, offTarget: 0 },
+                log: []
+            };
+
+            document.getElementById('home-team-input').value = '';
+            document.getElementById('away-team-input').value = '';
+            document.getElementById('home-name-display').textContent = 'Home Team';
+            document.getElementById('away-name-display').textContent = 'Away Team';
+            document.getElementById('home-panel-title').textContent = 'Home Team';
+            document.getElementById('away-panel-title').textContent = 'Away Team';
+            document.getElementById('game-date').valueAsDate = new Date();
+        }
+
+        // Modal functions
+        let modalCallback = null;
+
+        function showModal(title, message, onConfirm) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('modal-overlay').classList.add('active');
+
+            const confirmBtn = document.getElementById('modal-confirm');
+            if (onConfirm) {
+                confirmBtn.style.display = 'block';
+                modalCallback = onConfirm;
+            } else {
+                confirmBtn.style.display = 'none';
+                modalCallback = null;
             }
         }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+            modalCallback = null;
+        }
+
+        document.getElementById('modal-confirm').addEventListener('click', function() {
+            if (modalCallback) modalCallback();
+        });
+
+        document.getElementById('modal-overlay').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
     </script>
 </body>
 </html>
