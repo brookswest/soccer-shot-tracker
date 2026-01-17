@@ -1557,7 +1557,7 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_k1YD9txQsrT-XsoqW3g1Zw_Wy0frWpq';
 
         // Initialize Supabase client
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Current authenticated user
         let currentUser = null;
@@ -1628,7 +1628,7 @@
 
             try {
                 // Attempt to sign in with Supabase
-                const { data, error } = await supabase.auth.signInWithPassword({
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
                     email: email,
                     password: password
                 });
@@ -1673,7 +1673,7 @@
 
             try {
                 // Attempt to sign up with Supabase
-                const { data, error } = await supabase.auth.signUp({
+                const { data, error } = await supabaseClient.auth.signUp({
                     email: email,
                     password: password
                 });
@@ -1717,7 +1717,7 @@
         // Handle logout
         window.handleLogout = async function() {
             try {
-                const { error } = await supabase.auth.signOut();
+                const { error } = await supabaseClient.auth.signOut();
                 if (error) {
                     console.error('Logout error:', error);
                     showModal('Error', 'Failed to log out. Please try again.', null);
@@ -1771,7 +1771,7 @@
         async function checkAuthState() {
             try {
                 // Get current session
-                const { data: { session }, error } = await supabase.auth.getSession();
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
 
                 if (error) {
                     console.error('Auth check error:', error);
@@ -1793,7 +1793,7 @@
         }
 
         // Listen for auth state changes (login/logout)
-        supabase.auth.onAuthStateChange((event, session) => {
+        supabaseClient.auth.onAuthStateChange((event, session) => {
             console.log('Auth state changed:', event);
 
             if (event === 'SIGNED_IN' && session) {
@@ -2344,7 +2344,7 @@
 
             try {
                 // Insert game into Supabase
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('games')
                     .insert([gameData])
                     .select();
@@ -2379,7 +2379,7 @@
 
             try {
                 // Query games for the current user, ordered by creation date (newest first)
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('games')
                     .select('*')
                     .eq('user_id', currentUser.id)
@@ -2657,7 +2657,7 @@
         // Delete game from Supabase
         async function deleteGame(gameId) {
             try {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('games')
                     .delete()
                     .eq('id', gameId)
