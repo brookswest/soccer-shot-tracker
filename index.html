@@ -6,1542 +6,390 @@
     <title>Soccer Shot Tracker</title>
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['SF Mono', 'Monaco', 'Consolas', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --primary: #10b981;
-            --primary-dark: #059669;
-            --primary-light: #d1fae5;
-            --secondary: #3b82f6;
-            --secondary-dark: #2563eb;
-            --secondary-light: #dbeafe;
-            --accent: #f59e0b;
-            --accent-dark: #d97706;
-            --danger: #ef4444;
-            --danger-dark: #dc2626;
-            --surface: #ffffff;
-            --surface-hover: #f9fafb;
-            --background: #f3f4f6;
-            --text: #111827;
-            --text-secondary: #6b7280;
-            --text-muted: #9ca3af;
-            --border: #e5e7eb;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
-            --radius: 12px;
-            --radius-lg: 16px;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
-            background: var(--background);
-            min-height: 100vh;
-            color: var(--text);
-            line-height: 1.5;
-        }
-
-        .app-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            padding: 24px 20px 80px;
-            text-align: center;
-        }
-
-        .app-header h1 {
-            color: white;
-            font-size: 1.75rem;
-            font-weight: 700;
-            letter-spacing: -0.025em;
-        }
-
-        .app-header p {
-            color: rgba(255,255,255,0.8);
-            font-size: 0.875rem;
-            margin-top: 4px;
-        }
-
-        .container {
-            max-width: 960px;
-            margin: -60px auto 40px;
-            padding: 0 16px;
-        }
-
-        /* Navigation Tabs */
-        .nav-tabs {
-            display: flex;
-            background: var(--surface);
-            border-radius: var(--radius-lg);
-            padding: 6px;
-            margin-bottom: 24px;
-            box-shadow: var(--shadow);
-        }
-
-        .nav-tab {
-            flex: 1;
-            padding: 12px 20px;
-            border: none;
-            background: transparent;
-            font-size: 0.9375rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            cursor: pointer;
-            border-radius: var(--radius);
-            transition: all 0.2s ease;
-        }
-
-        .nav-tab:hover {
-            color: var(--text);
-            background: var(--surface-hover);
-        }
-
-        .nav-tab.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: var(--shadow-sm);
-        }
-
-        /* Cards */
-        .card {
-            background: var(--surface);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .card-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--text);
-        }
-
-        /* Game Setup */
-        .setup-grid {
-            display: grid;
-            grid-template-columns: auto 1fr auto 1fr;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .setup-row {
-            display: contents;
-        }
-
-        /* Color Picker */
-        .color-picker-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .color-picker {
-            width: 40px;
-            height: 40px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius);
-            cursor: pointer;
-            padding: 2px;
-            background: var(--surface);
-        }
-
-        .color-picker::-webkit-color-swatch-wrapper {
-            padding: 0;
-        }
-
-        .color-picker::-webkit-color-swatch {
-            border: none;
-            border-radius: 6px;
-        }
-
-        .color-picker::-moz-color-swatch {
-            border: none;
-            border-radius: 6px;
-        }
-
-        /* Half Selector */
-        .half-selector {
-            display: flex;
-            gap: 8px;
-        }
-
-        .half-btn {
-            flex: 1;
-            padding: 10px 16px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius);
-            background: var(--surface);
-            font-size: 0.9375rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .half-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .half-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-        }
-
-        /* Half Breakdown Stats */
-        .half-breakdown {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-        }
-
-        .half-breakdown-title {
-            font-size: 0.8125rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .half-stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .half-stats-column {
-            background: var(--surface-hover);
-            border-radius: var(--radius);
-            padding: 12px;
-        }
-
-        .half-stats-column h4 {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .half-stat-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-            font-size: 0.8125rem;
-        }
-
-        .half-stat-label {
-            color: var(--text-muted);
-        }
-
-        .half-stat-value {
-            font-weight: 600;
-            color: var(--text);
-        }
-
-        /* Game Clock */
-        .game-clock-container {
-            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-            border-radius: var(--radius-lg);
-            padding: 20px 24px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-        }
-
-        .clock-display {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .clock-time {
-            font-size: 3rem;
-            font-weight: 700;
-            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
-            color: white;
-            min-width: 140px;
-            text-align: center;
-        }
-
-        .clock-label {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .clock-controls {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-clock {
-            padding: 12px 24px;
-            border: none;
-            border-radius: var(--radius);
-            font-size: 0.9375rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-clock.start {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-clock.start:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-clock.pause {
-            background: var(--accent);
-            color: white;
-        }
-
-        .btn-clock.pause:hover {
-            background: var(--accent-dark);
-        }
-
-        .btn-clock.reset {
-            background: var(--border);
-            color: var(--text);
-        }
-
-        .btn-clock.reset:hover {
-            background: #d1d5db;
-        }
-
-        .clock-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-        }
-
-        .clock-status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--text-muted);
-        }
-
-        .clock-status-dot.running {
-            background: var(--primary);
-            animation: pulse 1.5s infinite;
-        }
-
-        .clock-status-dot.paused {
-            background: var(--accent);
-        }
-
-        @keyframes pulse {
+        /* Custom styles that Tailwind can't handle */
+        @keyframes pulse-dot {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-
-        /* Notes Section */
-        .notes-input-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
+        .animate-pulse-dot {
+            animation: pulse-dot 1.5s infinite;
         }
-
-        .notes-input {
-            flex: 1;
-            padding: 12px 14px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius);
-            font-size: 0.9375rem;
-            transition: all 0.2s ease;
-            background: var(--surface);
-            resize: none;
-        }
-
-        .notes-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-light);
-        }
-
-        .note-entry {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 12px 16px;
-            border-radius: var(--radius);
-            margin-bottom: 8px;
-            background: #fef3c7;
-            border-left: 3px solid var(--accent);
-            font-size: 0.875rem;
-        }
-
-        .note-content {
-            flex: 1;
-            color: var(--text);
-        }
-
-        .note-time {
-            color: var(--text-muted);
-            font-size: 0.8125rem;
-            white-space: nowrap;
-            margin-left: 12px;
-        }
-
-        .setup-grid label {
-            font-weight: 500;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-        }
-
-        .input {
-            padding: 10px 14px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius);
-            font-size: 0.9375rem;
-            transition: all 0.2s ease;
-            background: var(--surface);
-        }
-
-        .input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-light);
-        }
-
-        /* Scoreboard */
-        .scoreboard {
-            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-            border-radius: var(--radius-lg);
-            padding: 32px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-lg);
-        }
-
-        .score-display {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-        }
-
-        .team-score {
-            text-align: center;
-            flex: 1;
-        }
-
-        .team-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-        }
-
-        .home-team .team-badge {
-            background: var(--primary-light);
-            color: var(--primary-dark);
-        }
-
-        .away-team .team-badge {
-            background: var(--secondary-light);
-            color: var(--secondary-dark);
-        }
-
-        .team-name {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: white;
-            margin-bottom: 12px;
-        }
-
-        .score {
-            font-size: 4rem;
-            font-weight: 800;
-            line-height: 1;
-        }
-
-        .home-team .score {
-            color: var(--primary);
-        }
-
-        .away-team .score {
-            color: var(--secondary);
-        }
-
-        .vs-divider {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 0 20px;
-        }
-
-        .vs-text {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-muted);
-        }
-
-        /* Team Panels */
-        .teams-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .team-panel {
-            background: var(--surface);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            box-shadow: var(--shadow);
-            border-top: 4px solid;
-        }
-
-        .team-panel.home {
-            border-color: var(--primary);
-        }
-
-        .team-panel.away {
-            border-color: var(--secondary);
-        }
-
-        .team-panel h2 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .team-panel.home h2 {
-            color: var(--primary-dark);
-        }
-
-        .team-panel.away h2 {
-            color: var(--secondary-dark);
-        }
-
-        .shot-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 14px 20px;
-            border: none;
-            border-radius: var(--radius);
-            font-size: 0.9375rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn-goal {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-            color: white;
-        }
-
-        .btn-on-target {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-        }
-
-        .btn-off-target {
-            background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
-            color: white;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-secondary {
-            background: var(--border);
-            color: var(--text);
-        }
-
-        .btn-secondary:hover {
-            background: #d1d5db;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--border);
-            color: var(--text-secondary);
-        }
-
-        .btn-outline:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: var(--primary-light);
-        }
-
-        /* Stats */
-        .stats-grid {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border);
-        }
-
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-        }
-
-        .stat-row:not(:last-child) {
-            border-bottom: 1px solid var(--border);
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-        }
-
-        .stat-value {
-            font-weight: 600;
-            color: var(--text);
-            font-size: 0.9375rem;
-        }
-
-        /* Shot Log */
-        .log-entries {
-            max-height: 240px;
-            overflow-y: auto;
-        }
-
-        .log-entry {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            border-radius: var(--radius);
-            margin-bottom: 8px;
-            font-size: 0.875rem;
-        }
-
-        .log-entry.home {
-            background: var(--primary-light);
-            border-left: 3px solid var(--primary);
-        }
-
-        .log-entry.away {
-            background: var(--secondary-light);
-            border-left: 3px solid var(--secondary);
-        }
-
-        .log-entry .team {
-            font-weight: 600;
-        }
-
-        .log-entry .type {
-            color: var(--text-secondary);
-        }
-
-        .log-entry .time {
-            color: var(--text-muted);
-            font-size: 0.8125rem;
-        }
-
-        .log-entry .entry-info {
-            flex: 1;
-        }
-
-        .log-entry .entry-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .log-entry .delete-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            transition: all 0.2s;
-        }
-
-        .log-entry .delete-btn:hover {
-            background: var(--danger);
-            color: white;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-muted);
-        }
-
-        .empty-state-icon {
-            font-size: 3rem;
-            margin-bottom: 12px;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .action-buttons .btn {
-            flex: 1;
-        }
-
-        /* App Footer */
-        .app-footer {
-            text-align: center;
-            padding: 20px;
-            margin-top: 30px;
-            color: var(--text-muted);
-            font-size: 0.8125rem;
-            font-style: italic;
-        }
-
-        /* History View */
-        .view {
-            display: none;
-        }
-
-        .view.active {
-            display: block;
-        }
-
-        /* Stats Dashboard */
-        .stats-dashboard {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            background: var(--surface);
-            border-radius: var(--radius);
-            padding: 20px;
-            text-align: center;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border);
-        }
-
-        .stat-card-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary);
-            line-height: 1;
-        }
-
-        .stat-card-label {
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-            margin-top: 8px;
-            font-weight: 500;
-        }
-
-        /* Game History List */
-        .game-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .game-item {
-            background: var(--surface);
-            border-radius: var(--radius);
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border);
-            transition: all 0.2s ease;
-        }
-
-        .game-item:hover {
-            box-shadow: var(--shadow);
-            border-color: var(--primary-light);
-        }
-
-        .game-info {
-            flex: 1;
-        }
-
-        .game-date {
-            font-size: 0.8125rem;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-        }
-
-        .game-teams {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text);
-        }
-
-        .game-score {
-            font-size: 1.5rem;
-            font-weight: 700;
-            padding: 0 24px;
-        }
-
-        .game-score .home-score {
-            color: var(--primary);
-        }
-
-        .game-score .away-score {
-            color: var(--secondary);
-        }
-
-        .game-stats-mini {
-            display: flex;
-            gap: 16px;
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-        }
-
-        .game-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-icon {
-            padding: 8px 12px;
-            font-size: 0.875rem;
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: var(--danger-dark);
-        }
-
-        /* Expanded Stats */
-        .expanded-stats {
-            display: none;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-        }
-
-        .game-item.expanded .expanded-stats {
-            display: block;
-        }
-
-        .expanded-stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .team-stats-block h4 {
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid;
-        }
-
-        .team-stats-block.home h4 {
-            color: var(--primary-dark);
-            border-color: var(--primary);
-        }
-
-        .team-stats-block.away h4 {
-            color: var(--secondary-dark);
-            border-color: var(--secondary);
-        }
-
-        .mini-stat {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            font-size: 0.8125rem;
-        }
-
-        .mini-stat-label {
-            color: var(--text-secondary);
-        }
-
-        .mini-stat-value {
-            font-weight: 600;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal {
-            background: var(--surface);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: var(--shadow-lg);
-        }
-
-        .modal h3 {
-            margin-bottom: 12px;
-        }
-
-        .modal p {
-            color: var(--text-secondary);
-            margin-bottom: 20px;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .setup-grid {
-                grid-template-columns: 1fr;
-                gap: 8px;
-            }
-
-            .setup-grid label {
-                margin-top: 8px;
-            }
-
-            .teams-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-dashboard {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .score {
-                font-size: 3rem;
-            }
-
-            .game-item {
-                flex-direction: column;
-                text-align: center;
-                gap: 16px;
-            }
-
-            .game-stats-mini {
-                justify-content: center;
-            }
-
-            .expanded-stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .game-clock-container {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .clock-time {
-                font-size: 2.5rem;
-            }
-
-            .notes-input-container {
-                flex-direction: column;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .stats-dashboard {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-        }
-
-        /* ===== Authentication Styles ===== */
-
-        /* Auth container - centered login/signup form */
-        .auth-container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            background: var(--background);
-        }
-
-        .auth-card {
-            background: var(--surface);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .auth-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .auth-header h1 {
-            color: var(--primary);
-            font-size: 1.75rem;
-            margin-bottom: 8px;
-        }
-
-        .auth-header p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .auth-form .input {
-            padding: 14px 16px;
-            font-size: 1rem;
-        }
-
-        .auth-tabs {
-            display: flex;
-            margin-bottom: 24px;
-            border-radius: var(--radius);
-            background: var(--background);
-            padding: 4px;
-        }
-
-        .auth-tab {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            background: transparent;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-
-        .auth-tab.active {
-            background: var(--surface);
-            color: var(--primary);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .auth-error {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #dc2626;
-            padding: 12px 16px;
-            border-radius: var(--radius);
-            font-size: 0.875rem;
-            display: none;
-        }
-
-        .auth-error.show {
-            display: block;
-        }
-
-        .auth-success {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #16a34a;
-            padding: 12px 16px;
-            border-radius: var(--radius);
-            font-size: 0.875rem;
-            display: none;
-        }
-
-        .auth-success.show {
-            display: block;
-        }
-
-        .auth-footer {
-            text-align: center;
-            margin-top: 24px;
-            padding-top: 24px;
-            border-top: 1px solid var(--border);
-            color: var(--text-muted);
-            font-size: 0.8125rem;
-            font-style: italic;
-        }
-
-        /* User info bar in header */
-        .user-bar {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 12px;
-            padding: 8px 20px;
-            background: rgba(0, 0, 0, 0.1);
-            font-size: 0.875rem;
-        }
-
-        .user-email {
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.8125rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* Loading spinner */
-        .auth-loading {
-            display: none;
-            text-align: center;
-            padding: 40px;
-        }
-
-        .auth-loading.show {
-            display: block;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--border);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
-        }
-
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-
-        /* Hide main app when not authenticated */
-        .app-wrapper {
-            display: none;
+        .animate-spin-slow {
+            animation: spin 1s linear infinite;
         }
-
-        .app-wrapper.authenticated {
-            display: block;
-        }
+        /* Color picker styling */
+        .color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+        .color-picker::-webkit-color-swatch { border: none; border-radius: 6px; }
+        .color-picker::-moz-color-swatch { border: none; border-radius: 6px; }
+        /* Scrollbar styling */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body>
+<body class="bg-slate-100 min-h-screen font-sans text-slate-800 antialiased">
     <!-- ===== Authentication Screen ===== -->
-    <div id="auth-container" class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h1>Soccer Shot Tracker</h1>
-                <p>Track shots and save game statistics</p>
+    <div id="auth-container" class="min-h-screen flex flex-col items-center justify-center p-5 bg-gradient-to-br from-slate-100 to-slate-200">
+        <div class="bg-white rounded-2xl shadow-xl p-8 sm:p-10 w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <span class="text-3xl">&#9917;</span>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-800">Soccer Shot Tracker</h1>
+                <p class="text-slate-500 mt-2">Track shots and save game statistics</p>
             </div>
 
             <!-- Loading state while checking auth -->
-            <div id="auth-loading" class="auth-loading show">
-                <div class="spinner"></div>
-                <p>Loading...</p>
+            <div id="auth-loading" class="show text-center py-10">
+                <div class="w-10 h-10 border-3 border-slate-200 border-t-emerald-500 rounded-full animate-spin-slow mx-auto mb-4" style="border-width: 3px;"></div>
+                <p class="text-slate-500">Loading...</p>
             </div>
 
             <!-- Auth form (hidden while loading) -->
             <div id="auth-form-container" style="display: none;">
                 <!-- Login/Signup tabs -->
-                <div class="auth-tabs">
-                    <button class="auth-tab active" id="login-tab" onclick="switchAuthTab('login')">Log In</button>
-                    <button class="auth-tab" id="signup-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+                <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
+                    <button class="auth-tab active flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 bg-white text-emerald-600 shadow-sm" id="login-tab" onclick="switchAuthTab('login')">Log In</button>
+                    <button class="auth-tab flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 text-slate-500 hover:text-slate-700" id="signup-tab" onclick="switchAuthTab('signup')">Sign Up</button>
                 </div>
 
                 <!-- Error/Success messages -->
-                <div id="auth-error" class="auth-error"></div>
-                <div id="auth-success" class="auth-success"></div>
+                <div id="auth-error" class="hidden bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-4"></div>
+                <div id="auth-success" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-600 px-4 py-3 rounded-xl text-sm mb-4"></div>
 
                 <!-- Login Form -->
-                <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
-                    <input type="email" id="login-email" class="input" placeholder="Email address" required>
-                    <input type="password" id="login-password" class="input" placeholder="Password" required>
-                    <button type="submit" class="btn btn-primary" id="login-btn">Log In</button>
+                <form id="login-form" class="flex flex-col gap-4" onsubmit="handleLogin(event)">
+                    <input type="email" id="login-email" class="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Email address" required>
+                    <input type="password" id="login-password" class="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Password" required>
+                    <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 active:scale-[0.98]" id="login-btn">Log In</button>
                 </form>
 
                 <!-- Signup Form (hidden by default) -->
-                <form id="signup-form" class="auth-form" style="display: none;" onsubmit="handleSignup(event)">
-                    <input type="email" id="signup-email" class="input" placeholder="Email address" required>
-                    <input type="password" id="signup-password" class="input" placeholder="Password (min 6 characters)" minlength="6" required>
-                    <input type="password" id="signup-confirm" class="input" placeholder="Confirm password" minlength="6" required>
-                    <button type="submit" class="btn btn-primary" id="signup-btn">Create Account</button>
+                <form id="signup-form" class="flex flex-col gap-4" style="display: none;" onsubmit="handleSignup(event)">
+                    <input type="email" id="signup-email" class="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Email address" required>
+                    <input type="password" id="signup-password" class="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Password (min 6 characters)" minlength="6" required>
+                    <input type="password" id="signup-confirm" class="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Confirm password" minlength="6" required>
+                    <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 active:scale-[0.98]" id="signup-btn">Create Account</button>
                 </form>
             </div>
 
-            <div class="auth-footer">
-                This app was inspired by Coach Adolpho
+            <div class="text-center mt-8 pt-6 border-t border-slate-200 text-slate-400 text-sm italic">
+                This app inspired by Coach Adolpho
             </div>
         </div>
     </div>
 
     <!-- ===== Main App (hidden until authenticated) ===== -->
-    <div id="app-wrapper" class="app-wrapper">
-        <header class="app-header">
+    <div id="app-wrapper" class="hidden">
+        <header class="bg-gradient-to-br from-emerald-500 to-emerald-600 pb-20">
             <!-- User bar with email and logout -->
-            <div class="user-bar">
-                <span class="user-email" id="user-email"></span>
-                <button class="logout-btn" onclick="handleLogout()">Log Out</button>
+            <div class="flex items-center justify-end gap-3 px-5 py-2 bg-black/10">
+                <span class="text-white/90 text-sm" id="user-email"></span>
+                <button class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors" onclick="handleLogout()">Log Out</button>
             </div>
-            <h1>Soccer Shot Tracker</h1>
-            <p>Track shots and save game statistics</p>
+            <div class="text-center pt-6 px-5">
+                <h1 class="text-white text-2xl font-bold tracking-tight">Soccer Shot Tracker</h1>
+                <p class="text-white/80 text-sm mt-1">Track shots and save game statistics</p>
+            </div>
         </header>
 
-        <div class="container">
-        <nav class="nav-tabs">
-            <button class="nav-tab active" onclick="switchView('game')">Current Game</button>
-            <button class="nav-tab" onclick="switchView('history')">Game History</button>
-        </nav>
+        <div class="max-w-4xl mx-auto px-4 -mt-14 pb-10">
+            <nav class="flex bg-white rounded-2xl p-1.5 mb-6 shadow-lg">
+                <button class="nav-tab active flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 bg-emerald-500 text-white shadow-sm" onclick="switchView('game')">Current Game</button>
+                <button class="nav-tab flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50" onclick="switchView('history')">Game History</button>
+            </nav>
 
-        <!-- Current Game View -->
-        <div id="game-view" class="view active">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Game Setup</h2>
-                </div>
-                <div class="setup-grid">
-                    <label for="game-date">Date</label>
-                    <input type="date" id="game-date" class="input">
-                    <label>Half</label>
-                    <div class="half-selector">
-                        <button type="button" class="half-btn active" id="half-1-btn" onclick="setHalf(1)">1st Half</button>
-                        <button type="button" class="half-btn" id="half-2-btn" onclick="setHalf(2)">2nd Half</button>
-                    </div>
-                    <label for="home-team-input">Home</label>
-                    <div class="color-picker-wrapper">
-                        <input type="text" id="home-team-input" class="input" placeholder="Home Team" style="flex: 1;">
-                        <input type="color" id="home-color" class="color-picker" value="#10b981" title="Home team color">
-                    </div>
-                    <label for="away-team-input">Away</label>
-                    <div class="color-picker-wrapper">
-                        <input type="text" id="away-team-input" class="input" placeholder="Away Team" style="flex: 1;">
-                        <input type="color" id="away-color" class="color-picker" value="#3b82f6" title="Away team color">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Game Clock -->
-            <div class="game-clock-container">
-                <div class="clock-display">
-                    <div>
-                        <div class="clock-time" id="clock-display">00:00</div>
-                        <div class="clock-status">
-                            <span class="clock-status-dot" id="clock-status-dot"></span>
-                            <span id="clock-status-text">Stopped</span>
+            <!-- Current Game View -->
+            <div id="game-view" class="view active">
+                <!-- Game Setup Card -->
+                <div class="bg-white rounded-2xl p-6 mb-5 shadow-lg">
+                    <h2 class="text-lg font-semibold text-slate-800 mb-5">Game Setup</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label for="game-date" class="text-sm font-medium text-slate-500">Date</label>
+                            <input type="date" id="game-date" class="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10">
                         </div>
-                    </div>
-                </div>
-                <div class="clock-controls">
-                    <button class="btn-clock start" id="clock-start-btn">Start</button>
-                    <button class="btn-clock reset" id="clock-reset-btn">Reset</button>
-                </div>
-            </div>
-
-            <div class="scoreboard">
-                <div class="score-display">
-                    <div class="team-score home-team">
-                        <span class="team-badge">Home</span>
-                        <div class="team-name" id="home-name-display">Home Team</div>
-                        <div class="score" id="home-score">0</div>
-                    </div>
-                    <div class="vs-divider">
-                        <span class="vs-text">VS</span>
-                    </div>
-                    <div class="team-score away-team">
-                        <span class="team-badge">Away</span>
-                        <div class="team-name" id="away-name-display">Away Team</div>
-                        <div class="score" id="away-score">0</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="teams-grid">
-                <div class="team-panel home">
-                    <h2 id="home-panel-title">Home Team</h2>
-                    <div class="shot-buttons">
-                        <button class="btn btn-goal" onclick="recordShot('home', 'goal')">Goal</button>
-                        <button class="btn btn-on-target" onclick="recordShot('home', 'on-target')">Shot On Target</button>
-                        <button class="btn btn-off-target" onclick="recordShot('home', 'off-target')">Shot Off Target</button>
-                    </div>
-                    <div class="stats-grid">
-                        <div class="stat-row">
-                            <span class="stat-label">Goals</span>
-                            <span class="stat-value" id="home-goals">0</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Shots On Target</span>
-                            <span class="stat-value" id="home-on-target">0</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Shots Off Target</span>
-                            <span class="stat-value" id="home-off-target">0</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Total Shots</span>
-                            <span class="stat-value" id="home-total">0</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Shot Accuracy</span>
-                            <span class="stat-value" id="home-accuracy">0%</span>
-                        </div>
-                    </div>
-                    <div class="half-breakdown">
-                        <div class="half-breakdown-title">By Half</div>
-                        <div class="half-stats-grid">
-                            <div class="half-stats-column">
-                                <h4>1st Half</h4>
-                                <div class="half-stat-row">
-                                    <span class="half-stat-label">Goals</span>
-                                    <span class="half-stat-value" id="home-h1-goals">0</span>
-                                </div>
-                                <div class="half-stat-row">
-                                    <span class="half-stat-label">On Target</span>
-                                    <span class="half-stat-value" id="home-h1-on-target">0</span>
-                                </div>
-                                <div class="half-stat-row">
-                                    <span class="half-stat-label">Off Target</span>
-                                    <span class="half-stat-value" id="home-h1-off-target">0</span>
-                                </div>
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-medium text-slate-500">Half</label>
+                            <div class="flex gap-2">
+                                <button type="button" class="half-btn active flex-1 py-2.5 px-4 border-2 border-emerald-500 bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-all duration-200" id="half-1-btn" onclick="setHalf(1)">1st Half</button>
+                                <button type="button" class="half-btn flex-1 py-2.5 px-4 border-2 border-slate-200 bg-white text-slate-500 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500" id="half-2-btn" onclick="setHalf(2)">2nd Half</button>
                             </div>
-                            <div class="half-stats-column">
-                                <h4>2nd Half</h4>
-                                <div class="half-stat-row">
-                                    <span class="half-stat-label">Goals</span>
-                                    <span class="half-stat-value" id="home-h2-goals">0</span>
-                                </div>
-                                <div class="half-stat-row">
-                                    <span class="half-stat-label">On Target</span>
-                                    <span class="half-stat-value" id="home-h2-on-target">0</span>
-                                </div>
-                                <div class="half-stat-row">
-                                    <span class="half-stat-label">Off Target</span>
-                                    <span class="half-stat-value" id="home-h2-off-target">0</span>
-                                </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label for="home-team-input" class="text-sm font-medium text-slate-500">Home Team</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="home-team-input" class="flex-1 px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Home Team">
+                                <input type="color" id="home-color" class="color-picker w-11 h-11 border-2 border-slate-200 rounded-xl cursor-pointer p-1 bg-white" value="#10b981" title="Home team color">
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label for="away-team-input" class="text-sm font-medium text-slate-500">Away Team</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="away-team-input" class="flex-1 px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Away Team">
+                                <input type="color" id="away-color" class="color-picker w-11 h-11 border-2 border-slate-200 rounded-xl cursor-pointer p-1 bg-white" value="#3b82f6" title="Away team color">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="team-panel away">
-                    <h2 id="away-panel-title">Away Team</h2>
-                    <div class="shot-buttons">
-                        <button class="btn btn-goal" onclick="recordShot('away', 'goal')">Goal</button>
-                        <button class="btn btn-on-target" onclick="recordShot('away', 'on-target')">Shot On Target</button>
-                        <button class="btn btn-off-target" onclick="recordShot('away', 'off-target')">Shot Off Target</button>
-                    </div>
-                    <div class="stats-grid">
-                        <div class="stat-row">
-                            <span class="stat-label">Goals</span>
-                            <span class="stat-value" id="away-goals">0</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Shots On Target</span>
-                            <span class="stat-value" id="away-on-target">0</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Shots Off Target</span>
-                            <span class="stat-value" id="away-off-target">0</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Total Shots</span>
-                            <span class="stat-value" id="away-total">0</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Shot Accuracy</span>
-                            <span class="stat-value" id="away-accuracy">0%</span>
-                        </div>
-                    </div>
-                    <div class="half-breakdown">
-                        <div class="half-breakdown-title">By Half</div>
-                        <div class="half-stats-grid">
-                            <div class="half-stats-column">
-                                <h4>1st Half</h4>
-                                <div class="half-stat-row">
-                                    <span class="half-stat-label">Goals</span>
-                                    <span class="half-stat-value" id="away-h1-goals">0</span>
-                                </div>
-                                <div class="half-stat-row">
-                                    <span class="half-stat-label">On Target</span>
-                                    <span class="half-stat-value" id="away-h1-on-target">0</span>
-                                </div>
-                                <div class="half-stat-row">
-                                    <span class="half-stat-label">Off Target</span>
-                                    <span class="half-stat-value" id="away-h1-off-target">0</span>
-                                </div>
-                            </div>
-                            <div class="half-stats-column">
-                                <h4>2nd Half</h4>
-                                <div class="half-stat-row">
-                                    <span class="half-stat-label">Goals</span>
-                                    <span class="half-stat-value" id="away-h2-goals">0</span>
-                                </div>
-                                <div class="half-stat-row">
-                                    <span class="half-stat-label">On Target</span>
-                                    <span class="half-stat-value" id="away-h2-on-target">0</span>
-                                </div>
-                                <div class="half-stat-row">
-                                    <span class="half-stat-label">Off Target</span>
-                                    <span class="half-stat-value" id="away-h2-off-target">0</span>
-                                </div>
+                <!-- Game Clock -->
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 mb-5 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-5">
+                    <div class="flex items-center gap-4">
+                        <div class="text-center">
+                            <div class="text-5xl sm:text-6xl font-bold font-mono text-white tracking-tight" id="clock-display">00:00</div>
+                            <div class="flex items-center justify-center gap-2 mt-2 text-slate-400 text-sm">
+                                <span class="w-2 h-2 rounded-full bg-slate-500" id="clock-status-dot"></span>
+                                <span id="clock-status-text">Stopped</span>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Shot Log</h2>
-                    <button class="btn btn-outline btn-icon" id="undo-btn" onclick="undoLastShot()" disabled>Undo</button>
-                </div>
-                <div class="log-entries" id="log-entries">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">&#9917;</div>
-                        <p>No shots recorded yet</p>
+                    <div class="flex gap-3">
+                        <button class="btn-clock start px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg" id="clock-start-btn">Start</button>
+                        <button class="btn-clock reset px-6 py-3 bg-slate-600 hover:bg-slate-500 text-white font-semibold rounded-xl transition-all duration-200" id="clock-reset-btn">Reset</button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Notes Section -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Game Notes</h2>
-                </div>
-                <div class="notes-input-container">
-                    <input type="text" id="note-input" class="notes-input" placeholder="Add a note..." onkeypress="if(event.key === 'Enter') addNote()">
-                    <button class="btn btn-primary" onclick="addNote()">Add Note</button>
-                </div>
-                <div class="log-entries" id="notes-entries">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">&#128221;</div>
-                        <p>No notes yet</p>
+                <!-- Scoreboard -->
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 sm:p-8 mb-5 shadow-xl">
+                    <div class="flex justify-around items-center">
+                        <div class="team-score home-team text-center flex-1">
+                            <span class="team-badge inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-emerald-500/20 text-emerald-400 mb-2">Home</span>
+                            <div class="team-name text-lg sm:text-xl font-semibold text-white mb-3" id="home-name-display">Home Team</div>
+                            <div class="score text-5xl sm:text-6xl font-extrabold text-emerald-400" id="home-score">0</div>
+                        </div>
+                        <div class="px-4 sm:px-6">
+                            <span class="text-slate-500 font-semibold">VS</span>
+                        </div>
+                        <div class="team-score away-team text-center flex-1">
+                            <span class="team-badge inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-blue-500/20 text-blue-400 mb-2">Away</span>
+                            <div class="team-name text-lg sm:text-xl font-semibold text-white mb-3" id="away-name-display">Away Team</div>
+                            <div class="score text-5xl sm:text-6xl font-extrabold text-blue-400" id="away-score">0</div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Team Panels -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                    <!-- Home Team Panel -->
+                    <div class="team-panel home bg-white rounded-2xl p-6 shadow-lg border-t-4 border-emerald-500">
+                        <h2 id="home-panel-title" class="text-lg font-semibold text-emerald-600 mb-5 flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                            Home Team
+                        </h2>
+                        <div class="flex flex-col gap-3">
+                            <button class="btn btn-goal w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0" onclick="recordShot('home', 'goal')">Goal</button>
+                            <button class="btn btn-on-target w-full py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0" onclick="recordShot('home', 'on-target')">Shot On Target</button>
+                            <button class="btn btn-off-target w-full py-3.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0" onclick="recordShot('home', 'off-target')">Shot Off Target</button>
+                        </div>
+                        <div class="mt-5 pt-5 border-t border-slate-200">
+                            <div class="flex justify-between py-2.5 border-b border-slate-100">
+                                <span class="text-slate-500 text-sm">Goals</span>
+                                <span class="font-semibold text-slate-800" id="home-goals">0</span>
+                            </div>
+                            <div class="flex justify-between py-2.5 border-b border-slate-100">
+                                <span class="text-slate-500 text-sm">Shots On Target</span>
+                                <span class="font-semibold text-slate-800" id="home-on-target">0</span>
+                            </div>
+                            <div class="flex justify-between py-2.5 border-b border-slate-100">
+                                <span class="text-slate-500 text-sm">Shots Off Target</span>
+                                <span class="font-semibold text-slate-800" id="home-off-target">0</span>
+                            </div>
+                            <div class="flex justify-between py-2.5 border-b border-slate-100">
+                                <span class="text-slate-500 text-sm">Total Shots</span>
+                                <span class="font-semibold text-slate-800" id="home-total">0</span>
+                            </div>
+                            <div class="flex justify-between py-2.5">
+                                <span class="text-slate-500 text-sm">Shot Accuracy</span>
+                                <span class="font-semibold text-emerald-600" id="home-accuracy">0%</span>
+                            </div>
+                        </div>
+                        <div class="half-breakdown mt-4 pt-4 border-t border-slate-200">
+                            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">By Half</div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-slate-50 rounded-xl p-3">
+                                    <h4 class="text-xs font-semibold text-slate-400 uppercase mb-2">1st Half</h4>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Goals</span><span class="font-semibold text-slate-700" id="home-h1-goals">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">On Target</span><span class="font-semibold text-slate-700" id="home-h1-on-target">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Off Target</span><span class="font-semibold text-slate-700" id="home-h1-off-target">0</span></div>
+                                </div>
+                                <div class="bg-slate-50 rounded-xl p-3">
+                                    <h4 class="text-xs font-semibold text-slate-400 uppercase mb-2">2nd Half</h4>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Goals</span><span class="font-semibold text-slate-700" id="home-h2-goals">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">On Target</span><span class="font-semibold text-slate-700" id="home-h2-on-target">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Off Target</span><span class="font-semibold text-slate-700" id="home-h2-off-target">0</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Away Team Panel -->
+                    <div class="team-panel away bg-white rounded-2xl p-6 shadow-lg border-t-4 border-blue-500">
+                        <h2 id="away-panel-title" class="text-lg font-semibold text-blue-600 mb-5 flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                            Away Team
+                        </h2>
+                        <div class="flex flex-col gap-3">
+                            <button class="btn btn-goal w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0" onclick="recordShot('away', 'goal')">Goal</button>
+                            <button class="btn btn-on-target w-full py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0" onclick="recordShot('away', 'on-target')">Shot On Target</button>
+                            <button class="btn btn-off-target w-full py-3.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0" onclick="recordShot('away', 'off-target')">Shot Off Target</button>
+                        </div>
+                        <div class="mt-5 pt-5 border-t border-slate-200">
+                            <div class="flex justify-between py-2.5 border-b border-slate-100">
+                                <span class="text-slate-500 text-sm">Goals</span>
+                                <span class="font-semibold text-slate-800" id="away-goals">0</span>
+                            </div>
+                            <div class="flex justify-between py-2.5 border-b border-slate-100">
+                                <span class="text-slate-500 text-sm">Shots On Target</span>
+                                <span class="font-semibold text-slate-800" id="away-on-target">0</span>
+                            </div>
+                            <div class="flex justify-between py-2.5 border-b border-slate-100">
+                                <span class="text-slate-500 text-sm">Shots Off Target</span>
+                                <span class="font-semibold text-slate-800" id="away-off-target">0</span>
+                            </div>
+                            <div class="flex justify-between py-2.5 border-b border-slate-100">
+                                <span class="text-slate-500 text-sm">Total Shots</span>
+                                <span class="font-semibold text-slate-800" id="away-total">0</span>
+                            </div>
+                            <div class="flex justify-between py-2.5">
+                                <span class="text-slate-500 text-sm">Shot Accuracy</span>
+                                <span class="font-semibold text-blue-600" id="away-accuracy">0%</span>
+                            </div>
+                        </div>
+                        <div class="half-breakdown mt-4 pt-4 border-t border-slate-200">
+                            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">By Half</div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-slate-50 rounded-xl p-3">
+                                    <h4 class="text-xs font-semibold text-slate-400 uppercase mb-2">1st Half</h4>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Goals</span><span class="font-semibold text-slate-700" id="away-h1-goals">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">On Target</span><span class="font-semibold text-slate-700" id="away-h1-on-target">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Off Target</span><span class="font-semibold text-slate-700" id="away-h1-off-target">0</span></div>
+                                </div>
+                                <div class="bg-slate-50 rounded-xl p-3">
+                                    <h4 class="text-xs font-semibold text-slate-400 uppercase mb-2">2nd Half</h4>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Goals</span><span class="font-semibold text-slate-700" id="away-h2-goals">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">On Target</span><span class="font-semibold text-slate-700" id="away-h2-on-target">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Off Target</span><span class="font-semibold text-slate-700" id="away-h2-off-target">0</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shot Log -->
+                <div class="bg-white rounded-2xl p-6 mb-5 shadow-lg">
+                    <div class="flex justify-between items-center mb-5">
+                        <h2 class="text-lg font-semibold text-slate-800">Shot Log</h2>
+                        <button class="btn btn-outline px-4 py-2 border-2 border-slate-200 text-slate-500 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed" id="undo-btn" onclick="undoLastShot()" disabled>Undo</button>
+                    </div>
+                    <div class="log-entries max-h-60 overflow-y-auto custom-scrollbar" id="log-entries">
+                        <div class="empty-state text-center py-10 text-slate-400">
+                            <div class="text-5xl mb-3">&#9917;</div>
+                            <p>No shots recorded yet</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes Section -->
+                <div class="bg-white rounded-2xl p-6 mb-5 shadow-lg">
+                    <h2 class="text-lg font-semibold text-slate-800 mb-5">Game Notes</h2>
+                    <div class="flex flex-col sm:flex-row gap-3 mb-4">
+                        <input type="text" id="note-input" class="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Add a note..." onkeypress="if(event.key === 'Enter') addNote()">
+                        <button class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg" onclick="addNote()">Add Note</button>
+                    </div>
+                    <div class="log-entries max-h-60 overflow-y-auto custom-scrollbar" id="notes-entries">
+                        <div class="empty-state text-center py-10 text-slate-400">
+                            <div class="text-5xl mb-3">&#128221;</div>
+                            <p>No notes yet</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button class="flex-1 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl" onclick="saveGame()">Save Game</button>
+                    <button class="flex-1 py-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl transition-all duration-200" onclick="confirmReset()">Reset Game</button>
+                </div>
             </div>
 
-            <div class="action-buttons">
-                <button class="btn btn-primary" onclick="saveGame()">Save Game</button>
-                <button class="btn btn-secondary" onclick="confirmReset()">Reset Game</button>
-            </div>
-        </div>
+            <!-- History View -->
+            <div id="history-view" class="view hidden">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="stats-dashboard">
+                    <div class="bg-white rounded-2xl p-5 text-center shadow-lg border border-slate-100">
+                        <div class="text-3xl font-bold text-emerald-500" id="total-games">0</div>
+                        <div class="text-xs font-medium text-slate-500 mt-2">Games Played</div>
+                    </div>
+                    <div class="bg-white rounded-2xl p-5 text-center shadow-lg border border-slate-100">
+                        <div class="text-3xl font-bold text-emerald-500" id="avg-goals">0</div>
+                        <div class="text-xs font-medium text-slate-500 mt-2">Avg Goals/Game</div>
+                    </div>
+                    <div class="bg-white rounded-2xl p-5 text-center shadow-lg border border-slate-100">
+                        <div class="text-3xl font-bold text-emerald-500" id="total-shots">0</div>
+                        <div class="text-xs font-medium text-slate-500 mt-2">Total Shots</div>
+                    </div>
+                    <div class="bg-white rounded-2xl p-5 text-center shadow-lg border border-slate-100">
+                        <div class="text-3xl font-bold text-emerald-500" id="avg-accuracy">0%</div>
+                        <div class="text-xs font-medium text-slate-500 mt-2">Avg Accuracy</div>
+                    </div>
+                </div>
 
-        <!-- History View -->
-        <div id="history-view" class="view">
-            <div class="stats-dashboard" id="stats-dashboard">
-                <div class="stat-card">
-                    <div class="stat-card-value" id="total-games">0</div>
-                    <div class="stat-card-label">Games Played</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-value" id="avg-goals">0</div>
-                    <div class="stat-card-label">Avg Goals/Game</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-value" id="total-shots">0</div>
-                    <div class="stat-card-label">Total Shots</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-value" id="avg-accuracy">0%</div>
-                    <div class="stat-card-label">Avg Accuracy</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Saved Games</h2>
-                </div>
-                <div class="game-list" id="game-list">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">&#128202;</div>
-                        <p>No saved games yet</p>
-                        <p style="font-size: 0.8125rem; margin-top: 8px;">Save your first game to see it here!</p>
+                <div class="bg-white rounded-2xl p-6 shadow-lg">
+                    <h2 class="text-lg font-semibold text-slate-800 mb-5">Saved Games</h2>
+                    <div class="game-list flex flex-col gap-3" id="game-list">
+                        <div class="empty-state text-center py-10 text-slate-400">
+                            <div class="text-5xl mb-3">&#128202;</div>
+                            <p>No saved games yet</p>
+                            <p class="text-sm mt-2">Save your first game to see it here!</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-        <footer class="app-footer">
-            This app was inspired by Coach Adolpho
+        <footer class="text-center py-5 text-slate-400 text-sm italic">
+            This app inspired by Coach Adolpho
         </footer>
 
         <!-- Confirmation Modal -->
-        <div class="modal-overlay" id="modal-overlay">
-            <div class="modal">
-                <h3 id="modal-title">Confirm Action</h3>
-                <p id="modal-message">Are you sure you want to proceed?</p>
-                <div class="modal-actions">
-                    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button class="btn btn-danger" id="modal-confirm">Confirm</button>
+        <div class="modal-overlay fixed inset-0 bg-black/50 z-50 hidden items-center justify-center" id="modal-overlay">
+            <div class="bg-white rounded-2xl p-6 max-w-sm w-11/12 shadow-2xl">
+                <h3 class="text-lg font-semibold text-slate-800 mb-3" id="modal-title">Confirm Action</h3>
+                <p class="text-slate-500 mb-6" id="modal-message">Are you sure you want to proceed?</p>
+                <div class="flex gap-3 justify-end">
+                    <button class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl transition-all duration-200" onclick="closeModal()">Cancel</button>
+                    <button class="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl transition-all duration-200" id="modal-confirm">Confirm</button>
                 </div>
             </div>
         </div>
@@ -1577,13 +425,17 @@
             hideAuthMessages();
 
             if (tab === 'login') {
-                loginTab.classList.add('active');
-                signupTab.classList.remove('active');
+                loginTab.classList.add('bg-white', 'text-emerald-600', 'shadow-sm');
+                loginTab.classList.remove('text-slate-500');
+                signupTab.classList.remove('bg-white', 'text-emerald-600', 'shadow-sm');
+                signupTab.classList.add('text-slate-500');
                 loginForm.style.display = 'flex';
                 signupForm.style.display = 'none';
             } else {
-                loginTab.classList.remove('active');
-                signupTab.classList.add('active');
+                loginTab.classList.remove('bg-white', 'text-emerald-600', 'shadow-sm');
+                loginTab.classList.add('text-slate-500');
+                signupTab.classList.add('bg-white', 'text-emerald-600', 'shadow-sm');
+                signupTab.classList.remove('text-slate-500');
                 loginForm.style.display = 'none';
                 signupForm.style.display = 'flex';
             }
@@ -1594,8 +446,8 @@
             const errorEl = document.getElementById('auth-error');
             const successEl = document.getElementById('auth-success');
             errorEl.textContent = message;
-            errorEl.classList.add('show');
-            successEl.classList.remove('show');
+            errorEl.classList.remove('hidden');
+            successEl.classList.add('hidden');
         }
 
         // Show success message on auth form
@@ -1603,14 +455,14 @@
             const errorEl = document.getElementById('auth-error');
             const successEl = document.getElementById('auth-success');
             successEl.textContent = message;
-            successEl.classList.add('show');
-            errorEl.classList.remove('show');
+            successEl.classList.remove('hidden');
+            errorEl.classList.add('hidden');
         }
 
         // Hide all auth messages
         function hideAuthMessages() {
-            document.getElementById('auth-error').classList.remove('show');
-            document.getElementById('auth-success').classList.remove('show');
+            document.getElementById('auth-error').classList.add('hidden');
+            document.getElementById('auth-success').classList.add('hidden');
         }
 
         // Handle login form submission
@@ -1734,7 +586,7 @@
 
             // Hide auth container, show app
             document.getElementById('auth-container').style.display = 'none';
-            document.getElementById('app-wrapper').classList.add('authenticated');
+            document.getElementById('app-wrapper').classList.remove('hidden');
 
             // Display user email
             document.getElementById('user-email').textContent = user.email;
@@ -1752,10 +604,10 @@
 
             // Show auth container, hide app
             document.getElementById('auth-container').style.display = 'flex';
-            document.getElementById('app-wrapper').classList.remove('authenticated');
+            document.getElementById('app-wrapper').classList.add('hidden');
 
             // Hide loading, show form
-            document.getElementById('auth-loading').classList.remove('show');
+            document.getElementById('auth-loading').classList.add('hidden');
             document.getElementById('auth-form-container').style.display = 'block';
 
             // Clear form fields
@@ -1887,21 +739,23 @@
 
             if (clockState.isRunning) {
                 startBtn.textContent = 'Pause';
-                startBtn.classList.remove('start');
-                startBtn.classList.add('pause');
-                statusDot.classList.add('running');
-                statusDot.classList.remove('paused');
+                startBtn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600');
+                startBtn.classList.add('bg-amber-500', 'hover:bg-amber-600');
+                statusDot.classList.add('bg-emerald-500', 'animate-pulse-dot');
+                statusDot.classList.remove('bg-slate-500', 'bg-amber-500');
                 statusText.textContent = 'Running';
             } else {
                 startBtn.textContent = clockState.seconds > 0 ? 'Resume' : 'Start';
-                startBtn.classList.add('start');
-                startBtn.classList.remove('pause');
-                statusDot.classList.remove('running');
+                startBtn.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
+                startBtn.classList.remove('bg-amber-500', 'hover:bg-amber-600');
+                statusDot.classList.remove('bg-emerald-500', 'animate-pulse-dot');
                 if (clockState.seconds > 0) {
-                    statusDot.classList.add('paused');
+                    statusDot.classList.add('bg-amber-500');
+                    statusDot.classList.remove('bg-slate-500');
                     statusText.textContent = 'Paused';
                 } else {
-                    statusDot.classList.remove('paused');
+                    statusDot.classList.add('bg-slate-500');
+                    statusDot.classList.remove('bg-amber-500');
                     statusText.textContent = 'Stopped';
                 }
             }
@@ -1954,7 +808,7 @@
                     const name = e.target.value || 'Home Team';
                     console.log('Home team input changed:', name);
                     homeNameDisplay.textContent = name;
-                    homePanelTitle.textContent = name;
+                    homePanelTitle.innerHTML = `<span class="w-3 h-3 rounded-full bg-emerald-500 inline-block mr-2"></span>${name}`;
                 });
             }
 
@@ -1963,7 +817,7 @@
                     const name = e.target.value || 'Away Team';
                     console.log('Away team input changed:', name);
                     awayNameDisplay.textContent = name;
-                    awayPanelTitle.textContent = name;
+                    awayPanelTitle.innerHTML = `<span class="w-3 h-3 rounded-full bg-blue-500 inline-block mr-2"></span>${name}`;
                 });
             }
 
@@ -2010,29 +864,33 @@
             const homeColor = document.getElementById('home-color').value;
             const awayColor = document.getElementById('away-color').value;
 
-            // Generate light variants for backgrounds
-            const homeLightColor = hexToRgba(homeColor, 0.15);
-            const awayLightColor = hexToRgba(awayColor, 0.15);
-
-            // Update CSS custom properties
-            document.documentElement.style.setProperty('--home-color', homeColor);
-            document.documentElement.style.setProperty('--home-color-light', homeLightColor);
-            document.documentElement.style.setProperty('--away-color', awayColor);
-            document.documentElement.style.setProperty('--away-color-light', awayLightColor);
-
             // Update home team elements
-            document.querySelector('.team-panel.home').style.borderColor = homeColor;
-            document.querySelector('.team-panel.home h2').style.color = homeColor;
-            document.querySelector('.home-team .team-badge').style.background = homeLightColor;
-            document.querySelector('.home-team .team-badge').style.color = homeColor;
-            document.querySelector('.home-team .score').style.color = homeColor;
+            const homePanel = document.querySelector('.team-panel.home');
+            const homePanelTitle = document.getElementById('home-panel-title');
+            const homeBadge = document.querySelector('.home-team .team-badge');
+            const homeScore = document.querySelector('.home-team .score');
+
+            if (homePanel) homePanel.style.borderTopColor = homeColor;
+            if (homePanelTitle) homePanelTitle.style.color = homeColor;
+            if (homeBadge) {
+                homeBadge.style.backgroundColor = hexToRgba(homeColor, 0.2);
+                homeBadge.style.color = homeColor;
+            }
+            if (homeScore) homeScore.style.color = homeColor;
 
             // Update away team elements
-            document.querySelector('.team-panel.away').style.borderColor = awayColor;
-            document.querySelector('.team-panel.away h2').style.color = awayColor;
-            document.querySelector('.away-team .team-badge').style.background = awayLightColor;
-            document.querySelector('.away-team .team-badge').style.color = awayColor;
-            document.querySelector('.away-team .score').style.color = awayColor;
+            const awayPanel = document.querySelector('.team-panel.away');
+            const awayPanelTitle = document.getElementById('away-panel-title');
+            const awayBadge = document.querySelector('.away-team .team-badge');
+            const awayScore = document.querySelector('.away-team .score');
+
+            if (awayPanel) awayPanel.style.borderTopColor = awayColor;
+            if (awayPanelTitle) awayPanelTitle.style.color = awayColor;
+            if (awayBadge) {
+                awayBadge.style.backgroundColor = hexToRgba(awayColor, 0.2);
+                awayBadge.style.color = awayColor;
+            }
+            if (awayScore) awayScore.style.color = awayColor;
 
             // Update log entries
             updateLogColors();
@@ -2042,16 +900,14 @@
         function updateLogColors() {
             const homeColor = document.getElementById('home-color').value;
             const awayColor = document.getElementById('away-color').value;
-            const homeLightColor = hexToRgba(homeColor, 0.15);
-            const awayLightColor = hexToRgba(awayColor, 0.15);
 
             document.querySelectorAll('.log-entry.home').forEach(entry => {
-                entry.style.background = homeLightColor;
+                entry.style.background = hexToRgba(homeColor, 0.1);
                 entry.style.borderLeftColor = homeColor;
             });
 
             document.querySelectorAll('.log-entry.away').forEach(entry => {
-                entry.style.background = awayLightColor;
+                entry.style.background = hexToRgba(awayColor, 0.1);
                 entry.style.borderLeftColor = awayColor;
             });
         }
@@ -2067,21 +923,41 @@
         // Set current half
         window.setHalf = function(half) {
             gameState.currentHalf = half;
-            document.getElementById('half-1-btn').classList.toggle('active', half === 1);
-            document.getElementById('half-2-btn').classList.toggle('active', half === 2);
+            const half1Btn = document.getElementById('half-1-btn');
+            const half2Btn = document.getElementById('half-2-btn');
+
+            if (half === 1) {
+                half1Btn.classList.add('border-emerald-500', 'bg-emerald-500', 'text-white');
+                half1Btn.classList.remove('border-slate-200', 'bg-white', 'text-slate-500');
+                half2Btn.classList.remove('border-emerald-500', 'bg-emerald-500', 'text-white');
+                half2Btn.classList.add('border-slate-200', 'bg-white', 'text-slate-500');
+            } else {
+                half2Btn.classList.add('border-emerald-500', 'bg-emerald-500', 'text-white');
+                half2Btn.classList.remove('border-slate-200', 'bg-white', 'text-slate-500');
+                half1Btn.classList.remove('border-emerald-500', 'bg-emerald-500', 'text-white');
+                half1Btn.classList.add('border-slate-200', 'bg-white', 'text-slate-500');
+            }
         }
 
         // View switching
         window.switchView = function(view) {
-            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            const navTabs = document.querySelectorAll('.nav-tab');
+            const views = document.querySelectorAll('.view');
+
+            navTabs.forEach(tab => {
+                tab.classList.remove('bg-emerald-500', 'text-white', 'shadow-sm');
+                tab.classList.add('text-slate-500');
+            });
+            views.forEach(v => v.classList.add('hidden'));
 
             if (view === 'game') {
-                document.querySelector('.nav-tab:first-child').classList.add('active');
-                document.getElementById('game-view').classList.add('active');
+                navTabs[0].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
+                navTabs[0].classList.remove('text-slate-500');
+                document.getElementById('game-view').classList.remove('hidden');
             } else {
-                document.querySelector('.nav-tab:last-child').classList.add('active');
-                document.getElementById('history-view').classList.add('active');
+                navTabs[1].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
+                navTabs[1].classList.remove('text-slate-500');
+                document.getElementById('history-view').classList.remove('hidden');
                 loadHistoryView();
             }
         }
@@ -2231,23 +1107,21 @@
             const logContainer = document.getElementById('log-entries');
             if (gameState.log.length === 0) {
                 logContainer.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">&#9917;</div>
+                    <div class="empty-state text-center py-10 text-slate-400">
+                        <div class="text-5xl mb-3">&#9917;</div>
                         <p>No shots recorded yet</p>
                     </div>
                 `;
             } else {
                 logContainer.innerHTML = gameState.log.map((entry, index) => `
-                    <div class="log-entry ${entry.team}">
-                        <span class="entry-info"><span class="team">${entry.teamName}</span> - <span class="type">${entry.type}</span></span>
-                        <div class="entry-actions">
-                            <span class="time">${entry.half ? (entry.half === 1 ? '1st' : '2nd') + ' · ' : ''}${entry.gameTime || entry.time || ''}</span>
-                            <button class="delete-btn" onclick="deleteLogEntry(${index})">Delete</button>
+                    <div class="log-entry ${entry.team} flex justify-between items-center p-3 rounded-xl mb-2 border-l-4" style="background: ${entry.team === 'home' ? hexToRgba(document.getElementById('home-color').value, 0.1) : hexToRgba(document.getElementById('away-color').value, 0.1)}; border-left-color: ${entry.team === 'home' ? document.getElementById('home-color').value : document.getElementById('away-color').value};">
+                        <span class="flex-1"><span class="font-semibold">${entry.teamName}</span> <span class="text-slate-500">- ${entry.type}</span></span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-slate-400 text-sm">${entry.half ? (entry.half === 1 ? '1st' : '2nd') + ' · ' : ''}${entry.gameTime || entry.time || ''}</span>
+                            <button class="text-slate-400 hover:text-red-500 hover:bg-red-50 px-2 py-1 rounded text-xs transition-colors" onclick="deleteLogEntry(${index})">Delete</button>
                         </div>
                     </div>
                 `).join('');
-                // Apply colors to new log entries
-                updateLogColors();
             }
 
             // Update undo button state
@@ -2263,16 +1137,16 @@
             const notesContainer = document.getElementById('notes-entries');
             if (gameState.notes.length === 0) {
                 notesContainer.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">&#128221;</div>
+                    <div class="empty-state text-center py-10 text-slate-400">
+                        <div class="text-5xl mb-3">&#128221;</div>
                         <p>No notes yet</p>
                     </div>
                 `;
             } else {
                 notesContainer.innerHTML = gameState.notes.map(note => `
-                    <div class="note-entry">
-                        <span class="note-content">${note.content}</span>
-                        <span class="note-time">${note.half ? (note.half === 1 ? '1st' : '2nd') + ' · ' : ''}${note.gameTime}</span>
+                    <div class="note-entry flex justify-between items-start p-3 rounded-xl mb-2 bg-amber-50 border-l-4 border-amber-400">
+                        <span class="flex-1 text-slate-700">${note.content}</span>
+                        <span class="text-slate-400 text-sm ml-3 whitespace-nowrap">${note.half ? (note.half === 1 ? '1st' : '2nd') + ' · ' : ''}${note.gameTime}</span>
                     </div>
                 `).join('');
             }
@@ -2452,10 +1326,10 @@
 
             if (games.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">&#128202;</div>
+                    <div class="empty-state text-center py-10 text-slate-400">
+                        <div class="text-5xl mb-3">&#128202;</div>
                         <p>No saved games yet</p>
-                        <p style="font-size: 0.8125rem; margin-top: 8px;">Save your first game to see it here!</p>
+                        <p class="text-sm mt-2">Save your first game to see it here!</p>
                     </div>
                 `;
                 return;
@@ -2488,150 +1362,86 @@
                 const hasHalfData = game.home.firstHalf || game.home.secondHalf;
 
                 return `
-                    <div class="game-item" id="game-${game.id}">
-                        <div style="flex: 1;">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
-                                <div class="game-info">
-                                    <div class="game-date">${formattedDate}</div>
-                                    <div class="game-teams">${game.homeTeam} vs ${game.awayTeam}</div>
-                                </div>
-                                <div class="game-score">
-                                    <span class="home-score" style="color: ${homeColor};">${game.home.goals}</span>
-                                    <span style="color: var(--text-muted);"> - </span>
-                                    <span class="away-score" style="color: ${awayColor};">${game.away.goals}</span>
-                                </div>
-                                <div class="game-stats-mini">
-                                    <span>Shots: ${homeTotalShots + awayTotalShots}</span>
-                                    <span>On Target: ${game.home.onTarget + game.away.onTarget}</span>
-                                </div>
-                                <div class="game-actions">
-                                    <button class="btn btn-outline btn-icon" onclick="toggleGameDetails('${game.id}')">Details</button>
-                                    <button class="btn btn-outline btn-icon" onclick="exportGameToPDF('${game.id}')">Export PDF</button>
-                                    <button class="btn btn-danger btn-icon" onclick="confirmDeleteGame('${game.id}')">Delete</button>
-                                </div>
+                    <div class="game-item bg-slate-50 rounded-xl p-5 border border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all duration-200" id="game-${game.id}">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="flex-1">
+                                <div class="text-sm text-slate-400 mb-1">${formattedDate}</div>
+                                <div class="font-semibold text-slate-800">${game.homeTeam} vs ${game.awayTeam}</div>
                             </div>
-                            <div class="expanded-stats">
-                                <div class="expanded-stats-grid">
-                                    <div class="team-stats-block home" style="border-color: ${homeColor};">
-                                        <h4 style="color: ${homeColor}; border-color: ${homeColor};">${game.homeTeam}</h4>
-                                        <div class="mini-stat">
-                                            <span class="mini-stat-label">Goals</span>
-                                            <span class="mini-stat-value">${game.home.goals}</span>
-                                        </div>
-                                        <div class="mini-stat">
-                                            <span class="mini-stat-label">Shots On Target</span>
-                                            <span class="mini-stat-value">${game.home.onTarget}</span>
-                                        </div>
-                                        <div class="mini-stat">
-                                            <span class="mini-stat-label">Shots Off Target</span>
-                                            <span class="mini-stat-value">${game.home.offTarget}</span>
-                                        </div>
-                                        <div class="mini-stat">
-                                            <span class="mini-stat-label">Total Shots</span>
-                                            <span class="mini-stat-value">${homeTotalShots}</span>
-                                        </div>
-                                        <div class="mini-stat">
-                                            <span class="mini-stat-label">Shot Accuracy</span>
-                                            <span class="mini-stat-value">${homeAccuracy}%</span>
-                                        </div>
-                                        ${hasHalfData ? `
-                                        <div class="half-breakdown" style="margin-top: 12px; padding-top: 12px;">
-                                            <div class="half-breakdown-title">By Half</div>
-                                            <div class="half-stats-grid">
-                                                <div class="half-stats-column">
-                                                    <h4>1st</h4>
-                                                    <div class="half-stat-row">
-                                                        <span class="half-stat-label">Goals</span>
-                                                        <span class="half-stat-value">${homeH1.goals}</span>
-                                                    </div>
-                                                    <div class="half-stat-row">
-                                                        <span class="half-stat-label">On Target</span>
-                                                        <span class="half-stat-value">${homeH1.onTarget}</span>
-                                                    </div>
-                                                    <div class="half-stat-row">
-                                                        <span class="half-stat-label">Off Target</span>
-                                                        <span class="half-stat-value">${homeH1.offTarget}</span>
-                                                    </div>
-                                                </div>
-                                                <div class="half-stats-column">
-                                                    <h4>2nd</h4>
-                                                    <div class="half-stat-row">
-                                                        <span class="half-stat-label">Goals</span>
-                                                        <span class="half-stat-value">${homeH2.goals}</span>
-                                                    </div>
-                                                    <div class="half-stat-row">
-                                                        <span class="half-stat-label">On Target</span>
-                                                        <span class="half-stat-value">${homeH2.onTarget}</span>
-                                                    </div>
-                                                    <div class="half-stat-row">
-                                                        <span class="half-stat-label">Off Target</span>
-                                                        <span class="half-stat-value">${homeH2.offTarget}</span>
-                                                    </div>
-                                                </div>
+                            <div class="text-2xl font-bold px-4">
+                                <span style="color: ${homeColor};">${game.home.goals}</span>
+                                <span class="text-slate-300 mx-1">-</span>
+                                <span style="color: ${awayColor};">${game.away.goals}</span>
+                            </div>
+                            <div class="flex gap-4 text-sm text-slate-500">
+                                <span>Shots: ${homeTotalShots + awayTotalShots}</span>
+                                <span>On Target: ${game.home.onTarget + game.away.onTarget}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="px-4 py-2 border-2 border-slate-200 text-slate-500 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50" onclick="toggleGameDetails('${game.id}')">Details</button>
+                                <button class="px-4 py-2 border-2 border-slate-200 text-slate-500 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50" onclick="exportGameToPDF('${game.id}')">Export</button>
+                                <button class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition-all duration-200" onclick="confirmDeleteGame('${game.id}')">Delete</button>
+                            </div>
+                        </div>
+                        <div class="expanded-stats hidden mt-5 pt-5 border-t border-slate-200">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div class="team-stats-block home p-4 bg-white rounded-xl border-t-4" style="border-color: ${homeColor};">
+                                    <h4 class="font-semibold mb-3 pb-2 border-b-2" style="color: ${homeColor}; border-color: ${homeColor};">${game.homeTeam}</h4>
+                                    <div class="space-y-1 text-sm">
+                                        <div class="flex justify-between py-1"><span class="text-slate-500">Goals</span><span class="font-semibold">${game.home.goals}</span></div>
+                                        <div class="flex justify-between py-1"><span class="text-slate-500">Shots On Target</span><span class="font-semibold">${game.home.onTarget}</span></div>
+                                        <div class="flex justify-between py-1"><span class="text-slate-500">Shots Off Target</span><span class="font-semibold">${game.home.offTarget}</span></div>
+                                        <div class="flex justify-between py-1"><span class="text-slate-500">Total Shots</span><span class="font-semibold">${homeTotalShots}</span></div>
+                                        <div class="flex justify-between py-1"><span class="text-slate-500">Shot Accuracy</span><span class="font-semibold">${homeAccuracy}%</span></div>
+                                    </div>
+                                    ${hasHalfData ? `
+                                    <div class="mt-3 pt-3 border-t border-slate-200">
+                                        <div class="text-xs font-semibold text-slate-400 uppercase mb-2">By Half</div>
+                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                            <div class="bg-slate-50 rounded-lg p-2">
+                                                <div class="font-semibold text-slate-400 mb-1">1st</div>
+                                                <div class="flex justify-between"><span>Goals</span><span class="font-semibold">${homeH1.goals}</span></div>
+                                                <div class="flex justify-between"><span>On Target</span><span class="font-semibold">${homeH1.onTarget}</span></div>
+                                                <div class="flex justify-between"><span>Off Target</span><span class="font-semibold">${homeH1.offTarget}</span></div>
+                                            </div>
+                                            <div class="bg-slate-50 rounded-lg p-2">
+                                                <div class="font-semibold text-slate-400 mb-1">2nd</div>
+                                                <div class="flex justify-between"><span>Goals</span><span class="font-semibold">${homeH2.goals}</span></div>
+                                                <div class="flex justify-between"><span>On Target</span><span class="font-semibold">${homeH2.onTarget}</span></div>
+                                                <div class="flex justify-between"><span>Off Target</span><span class="font-semibold">${homeH2.offTarget}</span></div>
                                             </div>
                                         </div>
-                                        ` : ''}
                                     </div>
-                                    <div class="team-stats-block away" style="border-color: ${awayColor};">
-                                        <h4 style="color: ${awayColor}; border-color: ${awayColor};">${game.awayTeam}</h4>
-                                        <div class="mini-stat">
-                                            <span class="mini-stat-label">Goals</span>
-                                            <span class="mini-stat-value">${game.away.goals}</span>
-                                        </div>
-                                        <div class="mini-stat">
-                                            <span class="mini-stat-label">Shots On Target</span>
-                                            <span class="mini-stat-value">${game.away.onTarget}</span>
-                                        </div>
-                                        <div class="mini-stat">
-                                            <span class="mini-stat-label">Shots Off Target</span>
-                                            <span class="mini-stat-value">${game.away.offTarget}</span>
-                                        </div>
-                                        <div class="mini-stat">
-                                            <span class="mini-stat-label">Total Shots</span>
-                                            <span class="mini-stat-value">${awayTotalShots}</span>
-                                        </div>
-                                        <div class="mini-stat">
-                                            <span class="mini-stat-label">Shot Accuracy</span>
-                                            <span class="mini-stat-value">${awayAccuracy}%</span>
-                                        </div>
-                                        ${hasHalfData ? `
-                                        <div class="half-breakdown" style="margin-top: 12px; padding-top: 12px;">
-                                            <div class="half-breakdown-title">By Half</div>
-                                            <div class="half-stats-grid">
-                                                <div class="half-stats-column">
-                                                    <h4>1st</h4>
-                                                    <div class="half-stat-row">
-                                                        <span class="half-stat-label">Goals</span>
-                                                        <span class="half-stat-value">${awayH1.goals}</span>
-                                                    </div>
-                                                    <div class="half-stat-row">
-                                                        <span class="half-stat-label">On Target</span>
-                                                        <span class="half-stat-value">${awayH1.onTarget}</span>
-                                                    </div>
-                                                    <div class="half-stat-row">
-                                                        <span class="half-stat-label">Off Target</span>
-                                                        <span class="half-stat-value">${awayH1.offTarget}</span>
-                                                    </div>
-                                                </div>
-                                                <div class="half-stats-column">
-                                                    <h4>2nd</h4>
-                                                    <div class="half-stat-row">
-                                                        <span class="half-stat-label">Goals</span>
-                                                        <span class="half-stat-value">${awayH2.goals}</span>
-                                                    </div>
-                                                    <div class="half-stat-row">
-                                                        <span class="half-stat-label">On Target</span>
-                                                        <span class="half-stat-value">${awayH2.onTarget}</span>
-                                                    </div>
-                                                    <div class="half-stat-row">
-                                                        <span class="half-stat-label">Off Target</span>
-                                                        <span class="half-stat-value">${awayH2.offTarget}</span>
-                                                    </div>
-                                                </div>
+                                    ` : ''}
+                                </div>
+                                <div class="team-stats-block away p-4 bg-white rounded-xl border-t-4" style="border-color: ${awayColor};">
+                                    <h4 class="font-semibold mb-3 pb-2 border-b-2" style="color: ${awayColor}; border-color: ${awayColor};">${game.awayTeam}</h4>
+                                    <div class="space-y-1 text-sm">
+                                        <div class="flex justify-between py-1"><span class="text-slate-500">Goals</span><span class="font-semibold">${game.away.goals}</span></div>
+                                        <div class="flex justify-between py-1"><span class="text-slate-500">Shots On Target</span><span class="font-semibold">${game.away.onTarget}</span></div>
+                                        <div class="flex justify-between py-1"><span class="text-slate-500">Shots Off Target</span><span class="font-semibold">${game.away.offTarget}</span></div>
+                                        <div class="flex justify-between py-1"><span class="text-slate-500">Total Shots</span><span class="font-semibold">${awayTotalShots}</span></div>
+                                        <div class="flex justify-between py-1"><span class="text-slate-500">Shot Accuracy</span><span class="font-semibold">${awayAccuracy}%</span></div>
+                                    </div>
+                                    ${hasHalfData ? `
+                                    <div class="mt-3 pt-3 border-t border-slate-200">
+                                        <div class="text-xs font-semibold text-slate-400 uppercase mb-2">By Half</div>
+                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                            <div class="bg-slate-50 rounded-lg p-2">
+                                                <div class="font-semibold text-slate-400 mb-1">1st</div>
+                                                <div class="flex justify-between"><span>Goals</span><span class="font-semibold">${awayH1.goals}</span></div>
+                                                <div class="flex justify-between"><span>On Target</span><span class="font-semibold">${awayH1.onTarget}</span></div>
+                                                <div class="flex justify-between"><span>Off Target</span><span class="font-semibold">${awayH1.offTarget}</span></div>
+                                            </div>
+                                            <div class="bg-slate-50 rounded-lg p-2">
+                                                <div class="font-semibold text-slate-400 mb-1">2nd</div>
+                                                <div class="flex justify-between"><span>Goals</span><span class="font-semibold">${awayH2.goals}</span></div>
+                                                <div class="flex justify-between"><span>On Target</span><span class="font-semibold">${awayH2.onTarget}</span></div>
+                                                <div class="flex justify-between"><span>Off Target</span><span class="font-semibold">${awayH2.offTarget}</span></div>
                                             </div>
                                         </div>
-                                        ` : ''}
                                     </div>
+                                    ` : ''}
                                 </div>
                             </div>
                         </div>
@@ -2642,7 +1452,8 @@
 
         window.toggleGameDetails = function(gameId) {
             const gameItem = document.getElementById(`game-${gameId}`);
-            gameItem.classList.toggle('expanded');
+            const expandedStats = gameItem.querySelector('.expanded-stats');
+            expandedStats.classList.toggle('hidden');
         }
 
         // Delete game
@@ -2712,8 +1523,8 @@
             document.getElementById('away-team-input').value = '';
             document.getElementById('home-name-display').textContent = 'Home Team';
             document.getElementById('away-name-display').textContent = 'Away Team';
-            document.getElementById('home-panel-title').textContent = 'Home Team';
-            document.getElementById('away-panel-title').textContent = 'Away Team';
+            document.getElementById('home-panel-title').innerHTML = '<span class="w-3 h-3 rounded-full bg-emerald-500 inline-block mr-2"></span>Home Team';
+            document.getElementById('away-panel-title').innerHTML = '<span class="w-3 h-3 rounded-full bg-blue-500 inline-block mr-2"></span>Away Team';
             document.getElementById('game-date').valueAsDate = new Date();
             document.getElementById('note-input').value = '';
 
@@ -2968,7 +1779,7 @@
 
                     <div class="footer">
                         <div>Generated by Soccer Shot Tracker</div>
-                        <div class="inspiration">This app was inspired by Coach Adolpho</div>
+                        <div class="inspiration">This app inspired by Coach Adolpho</div>
                     </div>
 
                     <script>
@@ -2986,7 +1797,9 @@
         function showModal(title, message, onConfirm) {
             document.getElementById('modal-title').textContent = title;
             document.getElementById('modal-message').textContent = message;
-            document.getElementById('modal-overlay').classList.add('active');
+            const overlay = document.getElementById('modal-overlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
 
             const confirmBtn = document.getElementById('modal-confirm');
             if (onConfirm) {
@@ -2999,7 +1812,9 @@
         }
 
         window.closeModal = function() {
-            document.getElementById('modal-overlay').classList.remove('active');
+            const overlay = document.getElementById('modal-overlay');
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
             modalCallback = null;
         }
 
