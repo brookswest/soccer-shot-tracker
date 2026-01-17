@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Soccer Shot Tracker</title>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary: #10b981;
@@ -682,6 +684,32 @@
             font-size: 0.8125rem;
         }
 
+        .log-entry .entry-info {
+            flex: 1;
+        }
+
+        .log-entry .entry-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .log-entry .delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .log-entry .delete-btn:hover {
+            background: var(--danger);
+            color: white;
+        }
+
         .empty-state {
             text-align: center;
             padding: 40px 20px;
@@ -702,6 +730,16 @@
 
         .action-buttons .btn {
             flex: 1;
+        }
+
+        /* App Footer */
+        .app-footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: var(--text-muted);
+            font-size: 0.8125rem;
+            font-style: italic;
         }
 
         /* History View */
@@ -977,15 +1015,248 @@
                 flex-direction: column;
             }
         }
+
+        /* ===== Authentication Styles ===== */
+
+        /* Auth container - centered login/signup form */
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: var(--background);
+        }
+
+        .auth-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h1 {
+            color: var(--primary);
+            font-size: 1.75rem;
+            margin-bottom: 8px;
+        }
+
+        .auth-header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .auth-form .input {
+            padding: 14px 16px;
+            font-size: 1rem;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 24px;
+            border-radius: var(--radius);
+            background: var(--background);
+            padding: 4px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .auth-tab.active {
+            background: var(--surface);
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .auth-error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .auth-error.show {
+            display: block;
+        }
+
+        .auth-success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .auth-success.show {
+            display: block;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.8125rem;
+            font-style: italic;
+        }
+
+        /* User info bar in header */
+        .user-bar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 8px 20px;
+            background: rgba(0, 0, 0, 0.1);
+            font-size: 0.875rem;
+        }
+
+        .user-email {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Loading spinner */
+        .auth-loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .auth-loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hide main app when not authenticated */
+        .app-wrapper {
+            display: none;
+        }
+
+        .app-wrapper.authenticated {
+            display: block;
+        }
     </style>
 </head>
 <body>
-    <header class="app-header">
-        <h1>Soccer Shot Tracker</h1>
-        <p>Track shots and save game statistics</p>
-    </header>
+    <!-- ===== Authentication Screen ===== -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Soccer Shot Tracker</h1>
+                <p>Track shots and save game statistics</p>
+            </div>
 
-    <div class="container">
+            <!-- Loading state while checking auth -->
+            <div id="auth-loading" class="auth-loading show">
+                <div class="spinner"></div>
+                <p>Loading...</p>
+            </div>
+
+            <!-- Auth form (hidden while loading) -->
+            <div id="auth-form-container" style="display: none;">
+                <!-- Login/Signup tabs -->
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="login-tab" onclick="switchAuthTab('login')">Log In</button>
+                    <button class="auth-tab" id="signup-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+                </div>
+
+                <!-- Error/Success messages -->
+                <div id="auth-error" class="auth-error"></div>
+                <div id="auth-success" class="auth-success"></div>
+
+                <!-- Login Form -->
+                <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+                    <input type="email" id="login-email" class="input" placeholder="Email address" required>
+                    <input type="password" id="login-password" class="input" placeholder="Password" required>
+                    <button type="submit" class="btn btn-primary" id="login-btn">Log In</button>
+                </form>
+
+                <!-- Signup Form (hidden by default) -->
+                <form id="signup-form" class="auth-form" style="display: none;" onsubmit="handleSignup(event)">
+                    <input type="email" id="signup-email" class="input" placeholder="Email address" required>
+                    <input type="password" id="signup-password" class="input" placeholder="Password (min 6 characters)" minlength="6" required>
+                    <input type="password" id="signup-confirm" class="input" placeholder="Confirm password" minlength="6" required>
+                    <button type="submit" class="btn btn-primary" id="signup-btn">Create Account</button>
+                </form>
+            </div>
+
+            <div class="auth-footer">
+                This app was inspired by Coach Adolpho
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Main App (hidden until authenticated) ===== -->
+    <div id="app-wrapper" class="app-wrapper">
+        <header class="app-header">
+            <!-- User bar with email and logout -->
+            <div class="user-bar">
+                <span class="user-email" id="user-email"></span>
+                <button class="logout-btn" onclick="handleLogout()">Log Out</button>
+            </div>
+            <h1>Soccer Shot Tracker</h1>
+            <p>Track shots and save game statistics</p>
+        </header>
+
+        <div class="container">
         <nav class="nav-tabs">
             <button class="nav-tab active" onclick="switchView('game')">Current Game</button>
             <button class="nav-tab" onclick="switchView('history')">Game History</button>
@@ -1219,7 +1490,6 @@
 
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="saveGame()">Save Game</button>
-                <button class="btn btn-outline" onclick="exportToPDF()">Export PDF</button>
                 <button class="btn btn-secondary" onclick="confirmReset()">Reset Game</button>
             </div>
         </div>
@@ -1260,19 +1530,283 @@
         </div>
     </div>
 
-    <!-- Confirmation Modal -->
-    <div class="modal-overlay" id="modal-overlay">
-        <div class="modal">
-            <h3 id="modal-title">Confirm Action</h3>
-            <p id="modal-message">Are you sure you want to proceed?</p>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-danger" id="modal-confirm">Confirm</button>
+        <footer class="app-footer">
+            This app was inspired by Coach Adolpho
+        </footer>
+
+        <!-- Confirmation Modal -->
+        <div class="modal-overlay" id="modal-overlay">
+            <div class="modal">
+                <h3 id="modal-title">Confirm Action</h3>
+                <p id="modal-message">Are you sure you want to proceed?</p>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-danger" id="modal-confirm">Confirm</button>
+                </div>
             </div>
         </div>
-    </div>
+    </div><!-- End app-wrapper -->
 
     <script>
+        // =====================================================
+        // SUPABASE CONFIGURATION
+        // =====================================================
+
+        // Your Supabase project credentials
+        const SUPABASE_URL = 'https://dwjwtmvzhxuzhdihmwqp.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_k1YD9txQsrT-XsoqW3g1Zw_Wy0frWpq';
+
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Current authenticated user
+        let currentUser = null;
+
+        // =====================================================
+        // AUTHENTICATION FUNCTIONS
+        // =====================================================
+
+        // Switch between login and signup tabs
+        window.switchAuthTab = function(tab) {
+            const loginTab = document.getElementById('login-tab');
+            const signupTab = document.getElementById('signup-tab');
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+
+            // Clear any error/success messages
+            hideAuthMessages();
+
+            if (tab === 'login') {
+                loginTab.classList.add('active');
+                signupTab.classList.remove('active');
+                loginForm.style.display = 'flex';
+                signupForm.style.display = 'none';
+            } else {
+                loginTab.classList.remove('active');
+                signupTab.classList.add('active');
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'flex';
+            }
+        }
+
+        // Show error message on auth form
+        function showAuthError(message) {
+            const errorEl = document.getElementById('auth-error');
+            const successEl = document.getElementById('auth-success');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+            successEl.classList.remove('show');
+        }
+
+        // Show success message on auth form
+        function showAuthSuccess(message) {
+            const errorEl = document.getElementById('auth-error');
+            const successEl = document.getElementById('auth-success');
+            successEl.textContent = message;
+            successEl.classList.add('show');
+            errorEl.classList.remove('show');
+        }
+
+        // Hide all auth messages
+        function hideAuthMessages() {
+            document.getElementById('auth-error').classList.remove('show');
+            document.getElementById('auth-success').classList.remove('show');
+        }
+
+        // Handle login form submission
+        window.handleLogin = async function(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const loginBtn = document.getElementById('login-btn');
+
+            // Disable button while processing
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+            hideAuthMessages();
+
+            try {
+                // Attempt to sign in with Supabase
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    showAuthError(error.message);
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Log In';
+                    return;
+                }
+
+                // Success - the auth state change listener will handle the UI update
+                console.log('Login successful:', data.user.email);
+
+            } catch (err) {
+                showAuthError('An unexpected error occurred. Please try again.');
+                console.error('Login error:', err);
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Log In';
+            }
+        }
+
+        // Handle signup form submission
+        window.handleSignup = async function(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirm = document.getElementById('signup-confirm').value;
+            const signupBtn = document.getElementById('signup-btn');
+
+            // Validate passwords match
+            if (password !== confirm) {
+                showAuthError('Passwords do not match.');
+                return;
+            }
+
+            // Disable button while processing
+            signupBtn.disabled = true;
+            signupBtn.textContent = 'Creating account...';
+            hideAuthMessages();
+
+            try {
+                // Attempt to sign up with Supabase
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    showAuthError(error.message);
+                    signupBtn.disabled = false;
+                    signupBtn.textContent = 'Create Account';
+                    return;
+                }
+
+                // Check if email confirmation is required
+                if (data.user && data.user.identities && data.user.identities.length === 0) {
+                    showAuthError('This email is already registered. Please log in instead.');
+                    signupBtn.disabled = false;
+                    signupBtn.textContent = 'Create Account';
+                    return;
+                }
+
+                // Success - show message about email confirmation (if enabled) or auto-login
+                if (data.session) {
+                    // Auto-confirmed - the auth state change listener will handle the UI update
+                    console.log('Signup successful, auto-logged in:', data.user.email);
+                } else {
+                    // Email confirmation required
+                    showAuthSuccess('Account created! Please check your email to confirm your account, then log in.');
+                    signupBtn.disabled = false;
+                    signupBtn.textContent = 'Create Account';
+                    // Switch to login tab
+                    setTimeout(() => switchAuthTab('login'), 2000);
+                }
+
+            } catch (err) {
+                showAuthError('An unexpected error occurred. Please try again.');
+                console.error('Signup error:', err);
+                signupBtn.disabled = false;
+                signupBtn.textContent = 'Create Account';
+            }
+        }
+
+        // Handle logout
+        window.handleLogout = async function() {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                    console.error('Logout error:', error);
+                    showModal('Error', 'Failed to log out. Please try again.', null);
+                }
+                // Auth state change listener will handle the UI update
+            } catch (err) {
+                console.error('Logout error:', err);
+            }
+        }
+
+        // Show the main app (after successful login)
+        function showApp(user) {
+            currentUser = user;
+
+            // Hide auth container, show app
+            document.getElementById('auth-container').style.display = 'none';
+            document.getElementById('app-wrapper').classList.add('authenticated');
+
+            // Display user email
+            document.getElementById('user-email').textContent = user.email;
+
+            // Initialize app UI (set date, clock display)
+            initializeApp();
+
+            // Load user's saved games from Supabase
+            loadHistoryView();
+        }
+
+        // Show the auth screen (after logout or initial load)
+        function showAuth() {
+            currentUser = null;
+
+            // Show auth container, hide app
+            document.getElementById('auth-container').style.display = 'flex';
+            document.getElementById('app-wrapper').classList.remove('authenticated');
+
+            // Hide loading, show form
+            document.getElementById('auth-loading').classList.remove('show');
+            document.getElementById('auth-form-container').style.display = 'block';
+
+            // Clear form fields
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-password').value = '';
+            document.getElementById('signup-email').value = '';
+            document.getElementById('signup-password').value = '';
+            document.getElementById('signup-confirm').value = '';
+            hideAuthMessages();
+        }
+
+        // Check authentication state on page load
+        async function checkAuthState() {
+            try {
+                // Get current session
+                const { data: { session }, error } = await supabase.auth.getSession();
+
+                if (error) {
+                    console.error('Auth check error:', error);
+                    showAuth();
+                    return;
+                }
+
+                if (session && session.user) {
+                    // User is logged in
+                    showApp(session.user);
+                } else {
+                    // No session, show login
+                    showAuth();
+                }
+            } catch (err) {
+                console.error('Auth check error:', err);
+                showAuth();
+            }
+        }
+
+        // Listen for auth state changes (login/logout)
+        supabase.auth.onAuthStateChange((event, session) => {
+            console.log('Auth state changed:', event);
+
+            if (event === 'SIGNED_IN' && session) {
+                showApp(session.user);
+            } else if (event === 'SIGNED_OUT') {
+                showAuth();
+            }
+        });
+
+        // =====================================================
+        // GAME STATE
+        // =====================================================
+
         // Game state
         let gameState = {
             home: {
@@ -1380,15 +1914,22 @@
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
+            // First, check if user is already logged in
+            checkAuthState();
+
+            // Set up event listeners (these work regardless of auth state)
+            setupEventListeners();
+        });
+
+        // Initialize the main app UI (called after successful login)
+        function initializeApp() {
             try {
                 document.getElementById('game-date').valueAsDate = new Date();
-                loadHistoryView();
-                setupEventListeners();
                 updateClockDisplay();
             } catch (e) {
                 console.error('Initialization error:', e);
             }
-        });
+        }
 
         function setupEventListeners() {
             console.log('Setting up event listeners...');
@@ -1614,6 +2155,37 @@
             updateDisplay();
         }
 
+        // Delete a specific log entry
+        window.deleteLogEntry = function(index) {
+            if (index < 0 || index >= gameState.log.length) return;
+
+            // Get the entry to delete
+            const entry = gameState.log[index];
+            const team = entry.team;
+            const teamState = gameState[team];
+            const half = entry.half;
+            const halfState = half === 1 ? teamState.firstHalf : teamState.secondHalf;
+
+            // Reverse the stats for this entry
+            if (entry.type === 'GOAL!') {
+                teamState.goals--;
+                teamState.onTarget--;
+                halfState.goals--;
+                halfState.onTarget--;
+            } else if (entry.type === 'Shot On Target') {
+                teamState.onTarget--;
+                halfState.onTarget--;
+            } else if (entry.type === 'Shot Off Target') {
+                teamState.offTarget--;
+                halfState.offTarget--;
+            }
+
+            // Remove the entry from the log
+            gameState.log.splice(index, 1);
+
+            updateDisplay();
+        }
+
         function updateDisplay() {
             // Update scores
             document.getElementById('home-score').textContent = gameState.home.goals;
@@ -1665,10 +2237,13 @@
                     </div>
                 `;
             } else {
-                logContainer.innerHTML = gameState.log.map(entry => `
+                logContainer.innerHTML = gameState.log.map((entry, index) => `
                     <div class="log-entry ${entry.team}">
-                        <span><span class="team">${entry.teamName}</span> - <span class="type">${entry.type}</span></span>
-                        <span class="time">${entry.half ? (entry.half === 1 ? '1st' : '2nd') + ' · ' : ''}${entry.gameTime || entry.time || ''}</span>
+                        <span class="entry-info"><span class="team">${entry.teamName}</span> - <span class="type">${entry.type}</span></span>
+                        <div class="entry-actions">
+                            <span class="time">${entry.half ? (entry.half === 1 ? '1st' : '2nd') + ' · ' : ''}${entry.gameTime || entry.time || ''}</span>
+                            <button class="delete-btn" onclick="deleteLogEntry(${index})">Delete</button>
+                        </div>
                     </div>
                 `).join('');
                 // Apply colors to new log entries
@@ -1721,8 +2296,14 @@
             updateNotesDisplay();
         }
 
-        // Save game
-        window.saveGame = function() {
+        // Save game to Supabase
+        window.saveGame = async function() {
+            // Check if user is logged in
+            if (!currentUser) {
+                showModal('Error', 'You must be logged in to save games.', null);
+                return;
+            }
+
             const homeTeam = document.getElementById('home-team-input').value || 'Home Team';
             const awayTeam = document.getElementById('away-team-input').value || 'Away Team';
             const gameDate = document.getElementById('game-date').value;
@@ -1732,52 +2313,108 @@
                 return;
             }
 
-            const game = {
-                id: Date.now(),
-                date: gameDate,
-                homeTeam: homeTeam,
-                awayTeam: awayTeam,
-                homeColor: document.getElementById('home-color').value,
-                awayColor: document.getElementById('away-color').value,
-                home: {
+            // Prepare game data for Supabase
+            // The 'id' will be auto-generated by Supabase (UUID)
+            const gameData = {
+                user_id: currentUser.id,  // Link game to current user
+                game_date: gameDate,
+                home_team: homeTeam,
+                away_team: awayTeam,
+                home_color: document.getElementById('home-color').value,
+                away_color: document.getElementById('away-color').value,
+                home_stats: {
                     goals: gameState.home.goals,
                     onTarget: gameState.home.onTarget,
                     offTarget: gameState.home.offTarget,
                     firstHalf: { ...gameState.home.firstHalf },
                     secondHalf: { ...gameState.home.secondHalf }
                 },
-                away: {
+                away_stats: {
                     goals: gameState.away.goals,
                     onTarget: gameState.away.onTarget,
                     offTarget: gameState.away.offTarget,
                     firstHalf: { ...gameState.away.firstHalf },
                     secondHalf: { ...gameState.away.secondHalf }
                 },
-                log: [...gameState.log],
-                notes: [...gameState.notes],
-                finalTime: getGameTime(),
-                finalClockSeconds: clockState.seconds
+                shot_log: [...gameState.log],
+                game_notes: [...gameState.notes],
+                final_time: getGameTime(),
+                final_clock_seconds: clockState.seconds
             };
 
-            const games = getSavedGames();
-            games.unshift(game);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+            try {
+                // Insert game into Supabase
+                const { data, error } = await supabase
+                    .from('games')
+                    .insert([gameData])
+                    .select();
 
-            // Reset after saving
-            resetGameState();
-            updateDisplay();
+                if (error) {
+                    console.error('Save error:', error);
+                    showModal('Save Failed', 'Failed to save game: ' + error.message, null);
+                    return;
+                }
 
-            showModal('Game Saved!', `${homeTeam} ${game.home.goals} - ${game.away.goals} ${awayTeam} has been saved to your history.`, null);
+                // Reset after saving
+                resetGameState();
+                updateDisplay();
+
+                // Refresh history view
+                loadHistoryView();
+
+                showModal('Game Saved!', `${homeTeam} ${gameData.home_stats.goals} - ${gameData.away_stats.goals} ${awayTeam} has been saved to your history.`, null);
+
+            } catch (err) {
+                console.error('Save error:', err);
+                showModal('Save Failed', 'An unexpected error occurred while saving.', null);
+            }
         }
 
-        function getSavedGames() {
-            const data = localStorage.getItem(STORAGE_KEY);
-            return data ? JSON.parse(data) : [];
+        // Get saved games from Supabase
+        // This is now an async function - callers need to await it
+        async function getSavedGames() {
+            if (!currentUser) {
+                return [];
+            }
+
+            try {
+                // Query games for the current user, ordered by creation date (newest first)
+                const { data, error } = await supabase
+                    .from('games')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('Load error:', error);
+                    return [];
+                }
+
+                // Transform Supabase data back to the format expected by the UI
+                return (data || []).map(game => ({
+                    id: game.id,
+                    date: game.game_date,
+                    homeTeam: game.home_team,
+                    awayTeam: game.away_team,
+                    homeColor: game.home_color,
+                    awayColor: game.away_color,
+                    home: game.home_stats,
+                    away: game.away_stats,
+                    log: game.shot_log || [],
+                    notes: game.game_notes || [],
+                    finalTime: game.final_time,
+                    finalClockSeconds: game.final_clock_seconds
+                }));
+
+            } catch (err) {
+                console.error('Load error:', err);
+                return [];
+            }
         }
 
-        // Load history view
-        function loadHistoryView() {
-            const games = getSavedGames();
+        // Load history view (async because getSavedGames is async)
+        async function loadHistoryView() {
+            const games = await getSavedGames();
             updateStatsDisplay(games);
             updateGameList(games);
         }
@@ -1868,8 +2505,9 @@
                                     <span>On Target: ${game.home.onTarget + game.away.onTarget}</span>
                                 </div>
                                 <div class="game-actions">
-                                    <button class="btn btn-outline btn-icon" onclick="toggleGameDetails(${game.id})">Details</button>
-                                    <button class="btn btn-danger btn-icon" onclick="confirmDeleteGame(${game.id})">Delete</button>
+                                    <button class="btn btn-outline btn-icon" onclick="toggleGameDetails('${game.id}')">Details</button>
+                                    <button class="btn btn-outline btn-icon" onclick="exportGameToPDF('${game.id}')">Export PDF</button>
+                                    <button class="btn btn-danger btn-icon" onclick="confirmDeleteGame('${game.id}')">Delete</button>
                                 </div>
                             </div>
                             <div class="expanded-stats">
@@ -2016,12 +2654,28 @@
             );
         }
 
-        function deleteGame(gameId) {
-            let games = getSavedGames();
-            games = games.filter(g => g.id !== gameId);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
-            loadHistoryView();
-            closeModal();
+        // Delete game from Supabase
+        async function deleteGame(gameId) {
+            try {
+                const { error } = await supabase
+                    .from('games')
+                    .delete()
+                    .eq('id', gameId)
+                    .eq('user_id', currentUser.id);  // Extra safety: only delete user's own games
+
+                if (error) {
+                    console.error('Delete error:', error);
+                    showModal('Delete Failed', 'Failed to delete game: ' + error.message, null);
+                    return;
+                }
+
+                loadHistoryView();
+                closeModal();
+
+            } catch (err) {
+                console.error('Delete error:', err);
+                showModal('Delete Failed', 'An unexpected error occurred while deleting.', null);
+            }
         }
 
         // Reset game
@@ -2078,34 +2732,39 @@
             updateNotesDisplay();
         }
 
-        // Export to PDF
-        window.exportToPDF = function() {
-            const homeTeam = document.getElementById('home-team-input').value || 'Home Team';
-            const awayTeam = document.getElementById('away-team-input').value || 'Away Team';
-            const gameDate = document.getElementById('game-date').value;
-            const homeColor = document.getElementById('home-color').value;
-            const awayColor = document.getElementById('away-color').value;
+        // Export saved game to PDF
+        window.exportGameToPDF = async function(gameId) {
+            const games = await getSavedGames();
+            const game = games.find(g => g.id === gameId);
 
-            if (gameState.home.onTarget + gameState.home.offTarget + gameState.away.onTarget + gameState.away.offTarget === 0) {
-                showModal('No Data to Export', 'Please record at least one shot before exporting.', null);
+            if (!game) {
+                showModal('Error', 'Game not found.', null);
                 return;
             }
 
-            const formattedDate = new Date(gameDate).toLocaleDateString('en-US', {
+            const homeTeam = game.homeTeam;
+            const awayTeam = game.awayTeam;
+            const homeColor = game.homeColor || '#10b981';
+            const awayColor = game.awayColor || '#3b82f6';
+
+            const formattedDate = new Date(game.date).toLocaleDateString('en-US', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
             });
 
-            const homeTotalShots = gameState.home.onTarget + gameState.home.offTarget;
-            const awayTotalShots = gameState.away.onTarget + gameState.away.offTarget;
-            const homeAccuracy = homeTotalShots > 0 ? Math.round((gameState.home.onTarget / homeTotalShots) * 100) : 0;
-            const awayAccuracy = awayTotalShots > 0 ? Math.round((gameState.away.onTarget / awayTotalShots) * 100) : 0;
+            const homeTotalShots = game.home.onTarget + game.home.offTarget;
+            const awayTotalShots = game.away.onTarget + game.away.offTarget;
+            const homeAccuracy = homeTotalShots > 0 ? Math.round((game.home.onTarget / homeTotalShots) * 100) : 0;
+            const awayAccuracy = awayTotalShots > 0 ? Math.round((game.away.onTarget / awayTotalShots) * 100) : 0;
 
-            // Sort log and notes chronologically by clock time for the report
-            const sortedLog = [...gameState.log].sort((a, b) => (a.clockSeconds || 0) - (b.clockSeconds || 0));
-            const sortedNotes = [...gameState.notes].sort((a, b) => (a.clockSeconds || 0) - (b.clockSeconds || 0));
+            // Get half stats with fallback for older saved games
+            const homeH1 = game.home.firstHalf || { goals: 0, onTarget: 0, offTarget: 0 };
+            const homeH2 = game.home.secondHalf || { goals: 0, onTarget: 0, offTarget: 0 };
+            const awayH1 = game.away.firstHalf || { goals: 0, onTarget: 0, offTarget: 0 };
+            const awayH2 = game.away.secondHalf || { goals: 0, onTarget: 0, offTarget: 0 };
+            const hasHalfData = game.home.firstHalf || game.home.secondHalf;
 
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
@@ -2114,109 +2773,88 @@
                 <head>
                     <title>Game Report - ${homeTeam} vs ${awayTeam}</title>
                     <style>
+                        @page {
+                            size: letter;
+                            margin: 0.5in;
+                        }
                         * { box-sizing: border-box; margin: 0; padding: 0; }
                         body {
                             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                            padding: 40px;
+                            padding: 20px;
                             color: #111827;
-                            line-height: 1.6;
+                            line-height: 1.4;
+                            max-width: 100%;
                         }
                         .header {
                             text-align: center;
-                            margin-bottom: 30px;
-                            padding-bottom: 20px;
+                            margin-bottom: 15px;
+                            padding-bottom: 10px;
                             border-bottom: 2px solid #e5e7eb;
                         }
-                        .header h1 { font-size: 1.5rem; color: #6b7280; margin-bottom: 10px; }
-                        .header .date { color: #9ca3af; font-size: 0.9rem; }
+                        .header h1 { font-size: 1.25rem; color: #6b7280; margin-bottom: 5px; }
+                        .header .date { color: #9ca3af; font-size: 0.85rem; }
                         .scoreboard {
                             display: flex;
                             justify-content: center;
                             align-items: center;
-                            gap: 40px;
-                            margin: 30px 0;
-                            padding: 30px;
+                            gap: 30px;
+                            margin: 15px 0;
+                            padding: 15px;
                             background: #f9fafb;
-                            border-radius: 12px;
+                            border-radius: 8px;
                         }
                         .team-score { text-align: center; }
-                        .team-name { font-size: 1.25rem; font-weight: 600; margin-bottom: 10px; }
-                        .score { font-size: 3rem; font-weight: 800; }
-                        .vs { font-size: 1.25rem; color: #9ca3af; font-weight: 600; }
-                        .final-time { text-align: center; color: #6b7280; margin-bottom: 30px; }
-                        .stats-section { margin: 30px 0; }
+                        .team-name { font-size: 1rem; font-weight: 600; margin-bottom: 5px; }
+                        .score { font-size: 2rem; font-weight: 800; }
+                        .vs { font-size: 1rem; color: #9ca3af; font-weight: 600; }
+                        .stats-section { margin: 15px 0; }
                         .stats-section h2 {
-                            font-size: 1.1rem;
-                            margin-bottom: 15px;
-                            padding-bottom: 10px;
+                            font-size: 0.95rem;
+                            margin-bottom: 10px;
+                            padding-bottom: 5px;
                             border-bottom: 1px solid #e5e7eb;
                         }
                         .stats-grid {
                             display: grid;
                             grid-template-columns: 1fr 1fr;
-                            gap: 30px;
+                            gap: 15px;
                         }
-                        .team-stats { padding: 20px; background: #f9fafb; border-radius: 8px; }
+                        .team-stats { padding: 12px; background: #f9fafb; border-radius: 6px; }
                         .team-stats h3 {
-                            font-size: 1rem;
-                            margin-bottom: 15px;
-                            padding-bottom: 8px;
-                            border-bottom: 3px solid;
+                            font-size: 0.9rem;
+                            margin-bottom: 8px;
+                            padding-bottom: 5px;
+                            border-bottom: 2px solid;
                         }
                         .stat-row {
                             display: flex;
                             justify-content: space-between;
-                            padding: 8px 0;
+                            padding: 4px 0;
+                            font-size: 0.8rem;
                             border-bottom: 1px solid #e5e7eb;
                         }
                         .stat-row:last-child { border-bottom: none; }
                         .stat-label { color: #6b7280; }
                         .stat-value { font-weight: 600; }
-                        .half-stats { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e5e7eb; }
-                        .half-stats h4 { font-size: 0.85rem; color: #6b7280; margin-bottom: 10px; }
-                        .half-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-                        .half-column h5 { font-size: 0.8rem; color: #9ca3af; margin-bottom: 8px; }
-                        .half-stat { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 4px 0; }
-                        .log-section { margin: 30px 0; }
-                        .log-section h2 {
-                            font-size: 1.1rem;
-                            margin-bottom: 15px;
-                            padding-bottom: 10px;
-                            border-bottom: 1px solid #e5e7eb;
-                        }
-                        .log-entry {
-                            display: flex;
-                            justify-content: space-between;
-                            padding: 10px 15px;
-                            margin-bottom: 8px;
-                            border-radius: 6px;
-                            font-size: 0.9rem;
-                        }
-                        .log-entry.home { background: #d1fae5; border-left: 3px solid ${homeColor}; }
-                        .log-entry.away { background: #dbeafe; border-left: 3px solid ${awayColor}; }
-                        .log-time { color: #6b7280; }
-                        .note-entry {
-                            display: flex;
-                            justify-content: space-between;
-                            padding: 10px 15px;
-                            margin-bottom: 8px;
-                            border-radius: 6px;
-                            font-size: 0.9rem;
-                            background: #fef3c7;
-                            border-left: 3px solid #f59e0b;
-                        }
-                        .note-time { color: #6b7280; }
+                        .half-stats { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e5e7eb; }
+                        .half-stats h4 { font-size: 0.75rem; color: #6b7280; margin-bottom: 6px; }
+                        .half-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+                        .half-column h5 { font-size: 0.7rem; color: #9ca3af; margin-bottom: 4px; }
+                        .half-stat { display: flex; justify-content: space-between; font-size: 0.75rem; padding: 2px 0; }
                         .footer {
-                            margin-top: 40px;
-                            padding-top: 20px;
+                            margin-top: 20px;
+                            padding-top: 10px;
                             border-top: 1px solid #e5e7eb;
                             text-align: center;
                             color: #9ca3af;
-                            font-size: 0.8rem;
+                            font-size: 0.7rem;
+                        }
+                        .inspiration {
+                            font-style: italic;
+                            margin-top: 5px;
                         }
                         @media print {
-                            body { padding: 20px; }
-                            .no-print { display: none; }
+                            body { padding: 0; }
                         }
                     </style>
                 </head>
@@ -2229,16 +2867,14 @@
                     <div class="scoreboard">
                         <div class="team-score">
                             <div class="team-name" style="color: ${homeColor}">${homeTeam}</div>
-                            <div class="score" style="color: ${homeColor}">${gameState.home.goals}</div>
+                            <div class="score" style="color: ${homeColor}">${game.home.goals}</div>
                         </div>
                         <div class="vs">VS</div>
                         <div class="team-score">
                             <div class="team-name" style="color: ${awayColor}">${awayTeam}</div>
-                            <div class="score" style="color: ${awayColor}">${gameState.away.goals}</div>
+                            <div class="score" style="color: ${awayColor}">${game.away.goals}</div>
                         </div>
                     </div>
-
-                    <div class="final-time">Game Duration: ${getGameTime()}</div>
 
                     <div class="stats-section">
                         <h2>Statistics</h2>
@@ -2247,15 +2883,15 @@
                                 <h3 style="border-color: ${homeColor}; color: ${homeColor}">${homeTeam}</h3>
                                 <div class="stat-row">
                                     <span class="stat-label">Goals</span>
-                                    <span class="stat-value">${gameState.home.goals}</span>
+                                    <span class="stat-value">${game.home.goals}</span>
                                 </div>
                                 <div class="stat-row">
                                     <span class="stat-label">Shots On Target</span>
-                                    <span class="stat-value">${gameState.home.onTarget}</span>
+                                    <span class="stat-value">${game.home.onTarget}</span>
                                 </div>
                                 <div class="stat-row">
                                     <span class="stat-label">Shots Off Target</span>
-                                    <span class="stat-value">${gameState.home.offTarget}</span>
+                                    <span class="stat-value">${game.home.offTarget}</span>
                                 </div>
                                 <div class="stat-row">
                                     <span class="stat-label">Total Shots</span>
@@ -2265,37 +2901,39 @@
                                     <span class="stat-label">Shot Accuracy</span>
                                     <span class="stat-value">${homeAccuracy}%</span>
                                 </div>
+                                ${hasHalfData ? `
                                 <div class="half-stats">
                                     <h4>By Half</h4>
                                     <div class="half-grid">
                                         <div class="half-column">
                                             <h5>1st Half</h5>
-                                            <div class="half-stat"><span>Goals</span><span>${gameState.home.firstHalf.goals}</span></div>
-                                            <div class="half-stat"><span>On Target</span><span>${gameState.home.firstHalf.onTarget}</span></div>
-                                            <div class="half-stat"><span>Off Target</span><span>${gameState.home.firstHalf.offTarget}</span></div>
+                                            <div class="half-stat"><span>Goals</span><span>${homeH1.goals}</span></div>
+                                            <div class="half-stat"><span>On Target</span><span>${homeH1.onTarget}</span></div>
+                                            <div class="half-stat"><span>Off Target</span><span>${homeH1.offTarget}</span></div>
                                         </div>
                                         <div class="half-column">
                                             <h5>2nd Half</h5>
-                                            <div class="half-stat"><span>Goals</span><span>${gameState.home.secondHalf.goals}</span></div>
-                                            <div class="half-stat"><span>On Target</span><span>${gameState.home.secondHalf.onTarget}</span></div>
-                                            <div class="half-stat"><span>Off Target</span><span>${gameState.home.secondHalf.offTarget}</span></div>
+                                            <div class="half-stat"><span>Goals</span><span>${homeH2.goals}</span></div>
+                                            <div class="half-stat"><span>On Target</span><span>${homeH2.onTarget}</span></div>
+                                            <div class="half-stat"><span>Off Target</span><span>${homeH2.offTarget}</span></div>
                                         </div>
                                     </div>
                                 </div>
+                                ` : ''}
                             </div>
                             <div class="team-stats">
                                 <h3 style="border-color: ${awayColor}; color: ${awayColor}">${awayTeam}</h3>
                                 <div class="stat-row">
                                     <span class="stat-label">Goals</span>
-                                    <span class="stat-value">${gameState.away.goals}</span>
+                                    <span class="stat-value">${game.away.goals}</span>
                                 </div>
                                 <div class="stat-row">
                                     <span class="stat-label">Shots On Target</span>
-                                    <span class="stat-value">${gameState.away.onTarget}</span>
+                                    <span class="stat-value">${game.away.onTarget}</span>
                                 </div>
                                 <div class="stat-row">
                                     <span class="stat-label">Shots Off Target</span>
-                                    <span class="stat-value">${gameState.away.offTarget}</span>
+                                    <span class="stat-value">${game.away.offTarget}</span>
                                 </div>
                                 <div class="stat-row">
                                     <span class="stat-label">Total Shots</span>
@@ -2305,58 +2943,37 @@
                                     <span class="stat-label">Shot Accuracy</span>
                                     <span class="stat-value">${awayAccuracy}%</span>
                                 </div>
+                                ${hasHalfData ? `
                                 <div class="half-stats">
                                     <h4>By Half</h4>
                                     <div class="half-grid">
                                         <div class="half-column">
                                             <h5>1st Half</h5>
-                                            <div class="half-stat"><span>Goals</span><span>${gameState.away.firstHalf.goals}</span></div>
-                                            <div class="half-stat"><span>On Target</span><span>${gameState.away.firstHalf.onTarget}</span></div>
-                                            <div class="half-stat"><span>Off Target</span><span>${gameState.away.firstHalf.offTarget}</span></div>
+                                            <div class="half-stat"><span>Goals</span><span>${awayH1.goals}</span></div>
+                                            <div class="half-stat"><span>On Target</span><span>${awayH1.onTarget}</span></div>
+                                            <div class="half-stat"><span>Off Target</span><span>${awayH1.offTarget}</span></div>
                                         </div>
                                         <div class="half-column">
                                             <h5>2nd Half</h5>
-                                            <div class="half-stat"><span>Goals</span><span>${gameState.away.secondHalf.goals}</span></div>
-                                            <div class="half-stat"><span>On Target</span><span>${gameState.away.secondHalf.onTarget}</span></div>
-                                            <div class="half-stat"><span>Off Target</span><span>${gameState.away.secondHalf.offTarget}</span></div>
+                                            <div class="half-stat"><span>Goals</span><span>${awayH2.goals}</span></div>
+                                            <div class="half-stat"><span>On Target</span><span>${awayH2.onTarget}</span></div>
+                                            <div class="half-stat"><span>Off Target</span><span>${awayH2.offTarget}</span></div>
                                         </div>
                                     </div>
                                 </div>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
 
-                    ${sortedLog.length > 0 ? `
-                    <div class="log-section">
-                        <h2>Shot Timeline</h2>
-                        ${sortedLog.map(entry => `
-                            <div class="log-entry ${entry.team}">
-                                <span><strong>${entry.teamName}</strong> - ${entry.type}</span>
-                                <span class="log-time">${entry.half === 1 ? '1st' : '2nd'} · ${entry.gameTime || ''}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                    ` : ''}
-
-                    ${sortedNotes.length > 0 ? `
-                    <div class="log-section">
-                        <h2>Game Notes</h2>
-                        ${sortedNotes.map(note => `
-                            <div class="note-entry">
-                                <span>${note.content}</span>
-                                <span class="note-time">${note.half === 1 ? '1st' : '2nd'} · ${note.gameTime}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                    ` : ''}
-
                     <div class="footer">
-                        Generated by Soccer Shot Tracker · ${new Date().toLocaleString()}
+                        <div>Generated by Soccer Shot Tracker</div>
+                        <div class="inspiration">This app was inspired by Coach Adolpho</div>
                     </div>
 
                     <script>
                         window.onload = function() { window.print(); }
-                    </script>
+                    <\/script>
                 </body>
                 </html>
             `);
