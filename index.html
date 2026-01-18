@@ -843,6 +843,20 @@
             fieldSidesFlipped = !fieldSidesFlipped;
             updateFieldSidesLabel();
             updateFieldTeamLabels();
+
+            // Redraw previous shots with transposed positions
+            drawPreviousShots();
+
+            // Transpose current marker position if one is selected
+            if (selectedShotPosition) {
+                selectedShotPosition.x = 105 - selectedShotPosition.x;
+                const marker = document.getElementById('shot-marker');
+                marker.setAttribute('transform', `translate(${selectedShotPosition.x}, ${selectedShotPosition.y})`);
+
+                // Update zone display
+                const zone = getFieldZone(selectedShotPosition.x, selectedShotPosition.y);
+                document.getElementById('shot-position-display').textContent = `Position: ${zone}`;
+            }
         }
 
         // Update the field sides label text
@@ -1256,9 +1270,14 @@
                 if (shot.position) {
                     const color = shot.team === 'home' ? homeColor : awayColor;
                     const isGoal = shot.type === 'GOAL!';
+
+                    // Transpose x coordinate if sides are flipped
+                    const displayX = fieldSidesFlipped ? (105 - shot.position.x) : shot.position.x;
+                    const displayY = shot.position.y;
+
                     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    circle.setAttribute('cx', shot.position.x);
-                    circle.setAttribute('cy', shot.position.y);
+                    circle.setAttribute('cx', displayX);
+                    circle.setAttribute('cy', displayY);
                     circle.setAttribute('r', isGoal ? '2' : '1.5');
                     circle.setAttribute('fill', color);
                     circle.setAttribute('opacity', '0.6');
@@ -1269,8 +1288,8 @@
                     if (isGoal) {
                         // Add a star or special marker for goals
                         const star = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                        star.setAttribute('x', shot.position.x);
-                        star.setAttribute('y', shot.position.y + 0.8);
+                        star.setAttribute('x', displayX);
+                        star.setAttribute('y', displayY + 0.8);
                         star.setAttribute('fill', 'white');
                         star.setAttribute('font-size', '2');
                         star.setAttribute('text-anchor', 'middle');
