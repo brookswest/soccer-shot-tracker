@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 120" width="450" height="120">
+  <defs>
+    <style>
+      .logo-text { 
+        font-family: 'Courier New', monospace; 
+        font-weight: bold;
+        letter-spacing: 8px;
+        fill: #00d4aa;
+      }
+    </style>
+  </defs>
+  
+  <!-- Text: INTENT SOCCER -->
+  <text x="225" y="55" class="logo-text" font-size="48" text-anchor="middle">INTENT</text>
+  <text x="225" y="100" class="logo-text" font-size="48" text-anchor="middle">SOCCER</text>
+</svg>

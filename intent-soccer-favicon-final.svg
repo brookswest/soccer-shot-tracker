@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <style>
+      .crest-bg-fav { fill: #1a1a1a; }
+      .crest-border-fav { fill: none; stroke: #00d4aa; }
+      .soccer-element-fav { fill: none; stroke: #00d4aa; stroke-width: 1.2; }
+    </style>
+  </defs>
+  
+  <!-- Outer shield border (perfectly symmetrical) -->
+  <path class="crest-border-fav" d="
+    M 16 31
+    Q 23 29 30 26
+    Q 30 20 30 20
+    L 30 6
+    Q 30 2 26 2
+    L 6 2
+    Q 2 2 2 6
+    L 2 20
+    Q 2 20 2 26
+    Q 9 29 16 31
+    Z" stroke-width="1.5"/>
+  
+  <!-- Inner shield border (perfectly symmetrical) -->
+  <path class="crest-border-fav" d="
+    M 16 29
+    Q 22.5 27 28 24
+    Q 28 19 28 19
+    L 28 7
+    Q 28 4 25 4
+    L 7 4
+    Q 4 4 4 7
+    L 4 19
+    Q 4 19 4 24
+    Q 9.5 27 16 29
+    Z" stroke-width="0.8"/>
+  
+  <!-- Shield background (perfectly symmetrical) -->
+  <path class="crest-bg-fav" d="
+    M 16 28.5
+    Q 22.5 26.5 27.5 23.5
+    Q 27.5 18.5 27.5 18.5
+    L 27.5 7.5
+    Q 27.5 4.5 24.5 4.5
+    L 7.5 4.5
+    Q 4.5 4.5 4.5 7.5
+    L 4.5 18.5
+    Q 4.5 18.5 4.5 23.5
+    Q 9 26.5 16 28.5
+    Z"/>
+  
+  <!-- Soccer ball (centered) -->
+  <g transform="translate(16, 15)">
+    <circle class="soccer-element-fav" cx="0" cy="0" r="7"/>
+    <polygon class="soccer-element-fav" points="0,-3.5 -3,1.5 3,1.5"/>
+    <line class="soccer-element-fav" x1="0" y1="-3.5" x2="0" y2="-7"/>
+    <line class="soccer-element-fav" x1="-3" y1="1.5" x2="-6" y2="4"/>
+    <line class="soccer-element-fav" x1="3" y1="1.5" x2="6" y2="4"/>
+  </g>
+</svg>

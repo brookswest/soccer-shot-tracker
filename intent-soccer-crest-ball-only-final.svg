@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 135" width="512" height="688">
+  <defs>
+    <style>
+      .crest-bg-large { fill: #1a1a1a; }
+      .crest-border-large { fill: none; stroke: #00d4aa; stroke-width: 2; }
+      .crest-detail-large { fill: #00d4aa; }
+      .soccer-element-large { fill: none; stroke: #00d4aa; stroke-width: 3; }
+    </style>
+  </defs>
+  
+  <!-- Outer shield border (perfectly symmetrical) -->
+  <path class="crest-border-large" d="
+    M 50 130
+    Q 72 118 97 100
+    Q 97 75 97 75
+    L 97 12
+    Q 97 5 90 5
+    L 10 5
+    Q 3 5 3 12
+    L 3 75
+    Q 3 75 3 100
+    Q 28 118 50 130
+    Z" stroke-width="4"/>
+  
+  <!-- Inner shield border (perfectly symmetrical) -->
+  <path class="crest-border-large" d="
+    M 50 121
+    Q 72 111 91 96
+    Q 91 76 91 76
+    L 91 13
+    Q 91 9 87 9
+    L 13 9
+    Q 9 9 9 13
+    L 9 76
+    Q 9 76 9 96
+    Q 28 111 50 121
+    Z" stroke-width="2"/>
+  
+  <!-- Shield background (perfectly symmetrical) -->
+  <path class="crest-bg-large" d="
+    M 50 119
+    Q 72 109 89 94
+    Q 89 74 89 74
+    L 89 15
+    Q 89 11 85 11
+    L 15 11
+    Q 11 11 11 15
+    L 11 74
+    Q 11 74 11 94
+    Q 28 109 50 119
+    Z"/>
+  
+  <!-- Soccer ball (centered and very large) -->
+  <g transform="translate(50, 55)">
+    <circle class="soccer-element-large" cx="0" cy="0" r="32"/>
+    <polygon class="soccer-element-large" points="0,-16 -14,7 14,7"/>
+    <line class="soccer-element-large" x1="0" y1="-16" x2="0" y2="-32"/>
+    <line class="soccer-element-large" x1="-14" y1="7" x2="-28" y2="18"/>
+    <line class="soccer-element-large" x1="14" y1="7" x2="28" y2="18"/>
+  </g>
+
+</svg>

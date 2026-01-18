@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Soccer Shot Tracker</title>
+    <title>Intent Soccer - Shot Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="intent-soccer-crest-ball-only-final.svg">
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Tailwind CSS -->
@@ -64,10 +65,8 @@
     <div id="auth-container" class="min-h-screen flex flex-col items-center justify-center p-5 bg-gradient-to-br from-slate-100 to-slate-200">
         <div class="bg-white rounded-2xl shadow-xl p-8 sm:p-10 w-full max-w-md">
             <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                    <span class="text-3xl">&#9917;</span>
-                </div>
-                <h1 class="text-2xl font-bold text-slate-800">Soccer Shot Tracker</h1>
+                <img src="intent-soccer-crest-ball-only-final.svg" alt="Intent Soccer" class="w-20 h-auto mx-auto mb-4">
+                <img src="intent-soccer-text-only-final.svg" alt="Intent Soccer" class="h-12 mx-auto mb-3">
                 <p class="text-slate-500 mt-2">Track shots and save game statistics</p>
             </div>
 
@@ -115,13 +114,16 @@
     <div id="app-wrapper" class="hidden">
         <header class="bg-gradient-to-br from-emerald-500 to-emerald-600 pb-20">
             <!-- User bar with email and logout -->
-            <div class="flex items-center justify-end gap-3 px-5 py-2 bg-black/10">
-                <span class="text-white/90 text-sm" id="user-email"></span>
-                <button class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors" onclick="handleLogout()">Log Out</button>
+            <div class="flex items-center justify-between gap-3 px-5 py-2 bg-black/10">
+                <img src="intent-soccer-crest-ball-only-final.svg" alt="Intent Soccer" class="h-8 w-auto">
+                <div class="flex items-center gap-3">
+                    <span class="text-white/90 text-sm" id="user-email"></span>
+                    <button class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors" onclick="handleLogout()">Log Out</button>
+                </div>
             </div>
-            <div class="text-center pt-6 px-5">
-                <h1 class="text-white text-2xl font-bold tracking-tight">Soccer Shot Tracker</h1>
-                <p class="text-white/80 text-sm mt-1">Track shots and save game statistics</p>
+            <div class="text-center pt-4 px-5">
+                <img src="intent-soccer-text-only-final.svg" alt="Intent Soccer" class="h-14 mx-auto mb-2 brightness-0 invert">
+                <p class="text-white/80 text-sm">Track shots and save game statistics</p>
             </div>
         </header>
 
