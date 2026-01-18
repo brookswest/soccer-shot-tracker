@@ -105,7 +105,7 @@
                 </form>
             </div>
 
-            <div class="text-center mt-8 pt-6 border-t border-slate-200 text-slate-400 text-sm italic">
+            <div class="text-center mt-8 pt-6 border-t border-slate-200 text-slate-500 text-lg italic font-medium">
                 This app inspired by Coach Adolpho
             </div>
         </div>
@@ -324,7 +324,10 @@
                 <div class="bg-white rounded-2xl p-6 mb-5 shadow-lg">
                     <div class="flex justify-between items-center mb-5">
                         <h2 class="text-lg font-semibold text-slate-800">Shot Log</h2>
-                        <button class="btn btn-outline px-4 py-2 border-2 border-slate-200 text-slate-500 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed" id="undo-btn" onclick="undoLastShot()" disabled>Undo</button>
+                        <div class="flex gap-2">
+                            <button class="btn btn-outline px-4 py-2 border-2 border-slate-200 text-slate-500 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed" id="view-shot-map-btn" onclick="viewShotMap()" disabled>View Shot Map</button>
+                            <button class="btn btn-outline px-4 py-2 border-2 border-slate-200 text-slate-500 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed" id="undo-btn" onclick="undoLastShot()" disabled>Undo</button>
+                        </div>
                     </div>
                     <div class="log-entries max-h-60 overflow-y-auto custom-scrollbar" id="log-entries">
                         <div class="empty-state text-center py-10 text-slate-400">
@@ -390,7 +393,7 @@
             </div>
         </div>
 
-        <footer class="text-center py-5 text-slate-400 text-sm italic">
+        <footer class="text-center py-6 text-slate-500 text-lg italic font-medium">
             This app inspired by Coach Adolpho
         </footer>
 
@@ -1012,7 +1015,12 @@
             const homeScore = document.querySelector('.home-team .score');
 
             if (homePanel) homePanel.style.borderTopColor = homeColor;
-            if (homePanelTitle) homePanelTitle.style.color = homeColor;
+            if (homePanelTitle) {
+                homePanelTitle.style.color = homeColor;
+                // Update the bullet/dot color
+                const homeBullet = homePanelTitle.querySelector('span');
+                if (homeBullet) homeBullet.style.backgroundColor = homeColor;
+            }
             if (homeBadge) {
                 homeBadge.style.backgroundColor = hexToRgba(homeColor, 0.2);
                 homeBadge.style.color = homeColor;
@@ -1026,7 +1034,12 @@
             const awayScore = document.querySelector('.away-team .score');
 
             if (awayPanel) awayPanel.style.borderTopColor = awayColor;
-            if (awayPanelTitle) awayPanelTitle.style.color = awayColor;
+            if (awayPanelTitle) {
+                awayPanelTitle.style.color = awayColor;
+                // Update the bullet/dot color
+                const awayBullet = awayPanelTitle.querySelector('span');
+                if (awayBullet) awayBullet.style.backgroundColor = awayColor;
+            }
             if (awayBadge) {
                 awayBadge.style.backgroundColor = hexToRgba(awayColor, 0.2);
                 awayBadge.style.color = awayColor;
@@ -1147,6 +1160,10 @@
             homeLabel.textContent = homeName.toUpperCase().slice(0, 10);
             awayLabel.textContent = awayName.toUpperCase().slice(0, 10);
 
+            // Reset modal header text (in case it was in view mode)
+            document.querySelector('#shot-map-modal h3').textContent = 'Mark Shot Location';
+            document.querySelector('#shot-map-modal h3 + p').textContent = 'Tap on the field where the shot was taken';
+
             // Set shot info with team color
             const teamColor = team === 'home'
                 ? document.getElementById('home-color').value
@@ -1159,7 +1176,9 @@
             selectedShotPosition = null;
             document.getElementById('shot-marker').style.display = 'none';
             document.getElementById('confirm-shot-location-btn').disabled = true;
+            document.getElementById('confirm-shot-location-btn').style.display = 'block';
             document.getElementById('shot-position-display').textContent = 'Click on the field to mark shot location';
+            document.querySelector('#shot-map-modal button[onclick="skipShotLocation()"]').textContent = 'Skip';
 
             // Draw previous shots from this game
             drawPreviousShots();
@@ -1342,6 +1361,64 @@
             updateDisplay();
         }
 
+        // View shot map (read-only mode to see all recorded positions)
+        window.viewShotMap = function() {
+            const modal = document.getElementById('shot-map-modal');
+            const teamDisplay = document.getElementById('shot-map-team');
+            const typeDisplay = document.getElementById('shot-map-type');
+            const homeLabel = document.getElementById('field-home-label');
+            const awayLabel = document.getElementById('field-away-label');
+
+            // Update labels with team names
+            const homeName = document.getElementById('home-team-input').value || 'HOME';
+            const awayName = document.getElementById('away-team-input').value || 'AWAY';
+            homeLabel.textContent = homeName.toUpperCase().slice(0, 10);
+            awayLabel.textContent = awayName.toUpperCase().slice(0, 10);
+
+            // Set header info for view mode
+            teamDisplay.textContent = 'Shot Map';
+            teamDisplay.style.color = '#334155';
+            typeDisplay.textContent = `${gameState.log.filter(s => s.position).length} shots recorded`;
+
+            // Update modal header text
+            document.querySelector('#shot-map-modal h3').textContent = 'Shot Map';
+            document.querySelector('#shot-map-modal h3 + p').textContent = 'All recorded shot positions for this game';
+
+            // Reset marker (not needed in view mode)
+            document.getElementById('shot-marker').style.display = 'none';
+
+            // Draw all shots
+            drawPreviousShots();
+
+            // Show modal
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            // Disable click handler in view mode (no shot to record)
+            const clickArea = document.getElementById('shot-map-click-area');
+            clickArea.onclick = null;
+
+            // Update buttons for view mode
+            document.getElementById('shot-position-display').innerHTML = `
+                <div class="flex items-center gap-4 text-xs">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full" style="background: ${document.getElementById('home-color').value};"></span>
+                        <span>${homeName}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full" style="background: ${document.getElementById('away-color').value};"></span>
+                        <span>${awayName}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span>★</span>
+                        <span>Goal</span>
+                    </div>
+                </div>
+            `;
+            document.getElementById('confirm-shot-location-btn').style.display = 'none';
+            document.querySelector('#shot-map-modal button[onclick="skipShotLocation()"]').textContent = 'Close';
+        }
+
         // Undo last shot
         window.undoLastShot = function() {
             if (gameState.log.length === 0) return;
@@ -1466,6 +1543,11 @@
             // Update undo button state
             const undoBtn = document.getElementById('undo-btn');
             undoBtn.disabled = gameState.log.length === 0;
+
+            // Update view shot map button state (enable if there are any shots with positions)
+            const viewShotMapBtn = document.getElementById('view-shot-map-btn');
+            const hasPositions = gameState.log.some(shot => shot.position);
+            viewShotMapBtn.disabled = !hasPositions;
 
             // Update notes display
             updateNotesDisplay();
@@ -1992,6 +2074,20 @@
             const awayH2 = game.away.secondHalf || { goals: 0, onTarget: 0, offTarget: 0 };
             const hasHalfData = game.home.firstHalf || game.home.secondHalf;
 
+            // Check for shot map data
+            const shotsWithPositions = (game.log || []).filter(shot => shot.position);
+            const hasShotMap = shotsWithPositions.length > 0;
+
+            // Generate shot markers for PDF
+            const pdfShotMarkers = shotsWithPositions.map(shot => {
+                const color = shot.team === 'home' ? homeColor : awayColor;
+                const isGoal = shot.type === 'GOAL!';
+                return `
+                    <circle cx="${shot.position.x}" cy="${shot.position.y}" r="${isGoal ? '2.5' : '2'}" fill="${color}" stroke="white" stroke-width="0.3" opacity="0.9"/>
+                    ${isGoal ? `<text x="${shot.position.x}" y="${shot.position.y + 1}" fill="white" font-size="2.5" text-anchor="middle" font-family="Arial">★</text>` : ''}
+                `;
+            }).join('');
+
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
                 <!DOCTYPE html>
@@ -2078,6 +2174,39 @@
                         .inspiration {
                             font-style: italic;
                             margin-top: 5px;
+                        }
+                        .shot-map-section {
+                            margin: 15px 0;
+                            page-break-inside: avoid;
+                        }
+                        .shot-map-section h2 {
+                            font-size: 0.95rem;
+                            margin-bottom: 10px;
+                            padding-bottom: 5px;
+                            border-bottom: 1px solid #e5e7eb;
+                        }
+                        .shot-map-container {
+                            border-radius: 8px;
+                            overflow: hidden;
+                            background: #2d8a4e;
+                        }
+                        .shot-map-legend {
+                            display: flex;
+                            justify-content: center;
+                            gap: 20px;
+                            margin-top: 8px;
+                            font-size: 0.7rem;
+                            color: #6b7280;
+                        }
+                        .legend-item {
+                            display: flex;
+                            align-items: center;
+                            gap: 4px;
+                        }
+                        .legend-dot {
+                            width: 10px;
+                            height: 10px;
+                            border-radius: 50%;
                         }
                         @media print {
                             body { padding: 0; }
@@ -2191,6 +2320,60 @@
                             </div>
                         </div>
                     </div>
+
+                    ${hasShotMap ? `
+                    <div class="shot-map-section">
+                        <h2>Shot Map</h2>
+                        <div class="shot-map-container">
+                            <svg viewBox="0 0 105 68" style="width: 100%; height: auto; display: block;">
+                                <!-- Field background -->
+                                <rect x="0" y="0" width="105" height="68" fill="#2d8a4e"/>
+                                <!-- Field stripes -->
+                                <g fill="#3d9a5e" opacity="0.5">
+                                    <rect x="0" y="0" width="10.5" height="68"/>
+                                    <rect x="21" y="0" width="10.5" height="68"/>
+                                    <rect x="42" y="0" width="10.5" height="68"/>
+                                    <rect x="63" y="0" width="10.5" height="68"/>
+                                    <rect x="84" y="0" width="10.5" height="68"/>
+                                </g>
+                                <!-- Field lines -->
+                                <g fill="none" stroke="white" stroke-width="0.3">
+                                    <rect x="0.5" y="0.5" width="104" height="67"/>
+                                    <line x1="52.5" y1="0.5" x2="52.5" y2="67.5"/>
+                                    <circle cx="52.5" cy="34" r="9.15"/>
+                                    <circle cx="52.5" cy="34" r="0.5" fill="white"/>
+                                    <rect x="0.5" y="13.84" width="16.5" height="40.32"/>
+                                    <rect x="0.5" y="24.84" width="5.5" height="18.32"/>
+                                    <circle cx="11" cy="34" r="0.5" fill="white"/>
+                                    <path d="M 16.5 27.5 A 9.15 9.15 0 0 1 16.5 40.5"/>
+                                    <rect x="88" y="13.84" width="16.5" height="40.32"/>
+                                    <rect x="99" y="24.84" width="5.5" height="18.32"/>
+                                    <circle cx="94" cy="34" r="0.5" fill="white"/>
+                                    <path d="M 88 27.5 A 9.15 9.15 0 0 0 88 40.5"/>
+                                </g>
+                                <!-- Team labels -->
+                                <text x="13" y="5" fill="white" font-size="4" font-weight="bold" opacity="0.7" font-family="Arial">${homeTeam.toUpperCase().slice(0, 10)}</text>
+                                <text x="79" y="5" fill="white" font-size="4" font-weight="bold" opacity="0.7" font-family="Arial">${awayTeam.toUpperCase().slice(0, 10)}</text>
+                                <!-- Shot markers -->
+                                ${pdfShotMarkers}
+                            </svg>
+                        </div>
+                        <div class="shot-map-legend">
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: ${homeColor};"></span>
+                                <span>${homeTeam}</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: ${awayColor};"></span>
+                                <span>${awayTeam}</span>
+                            </div>
+                            <div class="legend-item">
+                                <span style="font-size: 0.9rem;">★</span>
+                                <span>Goal</span>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
 
                     <div class="footer">
                         <div>Generated by Soccer Shot Tracker</div>
