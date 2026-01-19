@@ -1021,8 +1021,12 @@
                 mainHeatmapInstance = null;
             }
 
+            // Set explicit dimensions on container (heatmap.js requires this)
+            container.style.width = rect.width + 'px';
+            container.style.height = rect.height + 'px';
+
             try {
-                console.log('Creating heatmap instance...');
+                console.log('Creating heatmap instance with dimensions:', rect.width, rect.height);
                 // Create heatmap instance
                 mainHeatmapInstance = h337.create({
                 container: container,
@@ -1070,8 +1074,16 @@
                 data: points
             };
             console.log('Setting heatmap data:', heatmapData);
+            console.log('Points:', JSON.stringify(points));
             mainHeatmapInstance.setData(heatmapData);
-            console.log('Heatmap created successfully, canvas:', container.querySelector('canvas'));
+
+            // Check canvas dimensions
+            const canvas = container.querySelector('canvas');
+            console.log('Heatmap created successfully, canvas:', canvas);
+            if (canvas) {
+                console.log('Canvas dimensions:', canvas.width, canvas.height);
+                console.log('Canvas style:', canvas.style.cssText);
+            }
             } catch (e) {
                 console.error('Error rendering heat map:', e);
             }
@@ -1121,6 +1133,10 @@
                 container.innerHTML = '';
                 historyHeatmapInstances[gameId] = null;
             }
+
+            // Set explicit dimensions on container (heatmap.js requires this)
+            container.style.width = rect.width + 'px';
+            container.style.height = rect.height + 'px';
 
             try {
                 // Create heatmap instance
