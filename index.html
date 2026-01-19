@@ -104,8 +104,9 @@
                 </form>
             </div>
 
-            <div class="text-center mt-8 pt-6 border-t border-slate-200 text-slate-500 text-lg italic font-medium">
-                This app inspired by Coach Adolpho
+            <div class="text-center mt-8 pt-6 border-t border-slate-200 text-slate-500">
+                <p class="text-lg italic font-medium">This app inspired by Coach Adolpho</p>
+                <p class="text-xs mt-1" id="version-auth"></p>
             </div>
         </div>
     </div>
@@ -395,8 +396,9 @@
             </div>
         </div>
 
-        <footer class="text-center py-6 text-slate-500 text-lg italic font-medium">
-            This app inspired by Coach Adolpho
+        <footer class="text-center py-6 text-slate-500">
+            <p class="text-lg italic font-medium">This app inspired by Coach Adolpho</p>
+            <p class="text-xs mt-1" id="version-app"></p>
         </footer>
 
         <!-- Confirmation Modal -->
@@ -2506,6 +2508,23 @@
         document.getElementById('modal-overlay').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
+    </script>
+
+    <script>
+        // Fetch latest commit info from GitHub API
+        fetch('https://api.github.com/repos/brookswest/soccer-shot-tracker/commits/main')
+            .then(res => res.json())
+            .then(data => {
+                const version = data.sha.substring(0, 7); // Short hash
+                const versionText = `v${version}`;
+                const authVersion = document.getElementById('version-auth');
+                const appVersion = document.getElementById('version-app');
+                if (authVersion) authVersion.textContent = versionText;
+                if (appVersion) appVersion.textContent = versionText;
+            })
+            .catch(() => {
+                // Silently fail if GitHub API is unavailable
+            });
     </script>
 </body>
 </html>
