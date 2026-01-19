@@ -1001,8 +1001,14 @@
             // Clear canvas
             ctx.clearRect(0, 0, rect.width, rect.height);
 
-            // Get shots with positions
-            const shotData = shots || gameState.log.filter(s => s.position);
+            // Get shots with valid positions (must have numeric x and y)
+            const shotData = (shots || gameState.log).filter(s =>
+                s.position &&
+                typeof s.position.x === 'number' &&
+                typeof s.position.y === 'number' &&
+                !isNaN(s.position.x) &&
+                !isNaN(s.position.y)
+            );
             if (shotData.length < HEAT_MAP_MIN_SHOTS) return;
 
             // Field dimensions (SVG viewBox: 105 x 68)
@@ -1074,11 +1080,22 @@
                 }
             }
 
-            // Apply blur for smoother appearance (with fallback for browsers that don't support filter)
+            // Apply blur for smoother appearance using offscreen canvas
             try {
                 if (typeof ctx.filter !== 'undefined') {
+                    // Create offscreen canvas to avoid artifacts from drawing onto itself
+                    const offscreen = document.createElement('canvas');
+                    offscreen.width = canvas.width;
+                    offscreen.height = canvas.height;
+                    const offCtx = offscreen.getContext('2d');
+
+                    // Copy current content to offscreen canvas
+                    offCtx.drawImage(canvas, 0, 0);
+
+                    // Clear main canvas and draw back with blur
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.filter = 'blur(8px)';
-                    ctx.drawImage(canvas, 0, 0);
+                    ctx.drawImage(offscreen, 0, 0);
                     ctx.filter = 'none';
                 }
             } catch (e) {
@@ -1166,7 +1183,16 @@
             // Clear canvas
             ctx.clearRect(0, 0, rect.width, rect.height);
 
-            if (shots.length < HEAT_MAP_MIN_SHOTS) return;
+            // Filter shots to only include valid positions
+            const validShots = shots.filter(s =>
+                s.position &&
+                typeof s.position.x === 'number' &&
+                typeof s.position.y === 'number' &&
+                !isNaN(s.position.x) &&
+                !isNaN(s.position.y)
+            );
+
+            if (validShots.length < HEAT_MAP_MIN_SHOTS) return;
 
             // Field dimensions (SVG viewBox: 105 x 68)
             const fieldWidth = 105;
@@ -1185,7 +1211,7 @@
             const grid = Array(rows).fill(null).map(() => Array(cols).fill(0));
 
             // Calculate density for each grid cell
-            shots.forEach(shot => {
+            validShots.forEach(shot => {
                 const x = shot.position.x;
                 const y = shot.position.y;
 
@@ -1226,11 +1252,19 @@
                 }
             }
 
-            // Apply blur for smoother appearance
+            // Apply blur for smoother appearance using offscreen canvas
             try {
                 if (typeof ctx.filter !== 'undefined') {
+                    const offscreen = document.createElement('canvas');
+                    offscreen.width = canvas.width;
+                    offscreen.height = canvas.height;
+                    const offCtx = offscreen.getContext('2d');
+
+                    offCtx.drawImage(canvas, 0, 0);
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.filter = 'blur(8px)';
-                    ctx.drawImage(canvas, 0, 0);
+                    ctx.drawImage(offscreen, 0, 0);
                     ctx.filter = 'none';
                 }
             } catch (e) {
