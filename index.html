@@ -530,7 +530,9 @@
                     <div class="absolute inset-0" id="shot-map-click-area" style="z-index: 5;"></div>
 
                     <!-- Heat map container for heatmap.js (on top of click area) -->
-                    <div id="heat-map-container" class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 20; display: none;"></div>
+                    <div id="heat-map-wrapper" class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 20; display: none;">
+                        <div id="heat-map-container" style="position: relative; width: 100%; height: 100%;"></div>
+                    </div>
                 </div>
 
                 <!-- Shot position indicator -->
@@ -938,15 +940,15 @@
             heatMapEnabled = toggle.checked;
             localStorage.setItem('heatMapEnabled', heatMapEnabled);
 
-            const container = document.getElementById('heat-map-container');
-            if (!container) return;
+            const wrapper = document.getElementById('heat-map-wrapper');
+            if (!wrapper) return;
 
             if (heatMapEnabled) {
-                container.style.display = 'block';
+                wrapper.style.display = 'block';
                 // Small delay to ensure container is visible before rendering
                 setTimeout(() => renderHeatMap(), 50);
             } else {
-                container.style.display = 'none';
+                wrapper.style.display = 'none';
             }
         }
 
@@ -954,7 +956,7 @@
         function updateHeatMapControls(shotCount) {
             const toggle = document.getElementById('heat-map-toggle');
             const status = document.getElementById('heat-map-status');
-            const container = document.getElementById('heat-map-container');
+            const wrapper = document.getElementById('heat-map-wrapper');
 
             if (!toggle || !status) return;
 
@@ -967,8 +969,8 @@
                 // Restore user preference if heat map should be enabled
                 if (heatMapEnabled) {
                     toggle.checked = true;
-                    if (container) {
-                        container.style.display = 'block';
+                    if (wrapper) {
+                        wrapper.style.display = 'block';
                         setTimeout(() => renderHeatMap(), 50);
                     }
                 }
@@ -980,8 +982,8 @@
                 status.classList.remove('text-emerald-500');
 
                 // Hide heat map
-                if (container) {
-                    container.style.display = 'none';
+                if (wrapper) {
+                    wrapper.style.display = 'none';
                 }
             }
         }
@@ -1064,13 +1066,20 @@
                 return {
                     x: Math.round(x * scaleX),
                     y: Math.round(y * scaleY),
-                    value: 1
+                    value: 5  // Higher value for better visibility
                 };
+            });
+
+            // Add a test point in the center to verify heatmap is working
+            points.push({
+                x: Math.round(rect.width / 2),
+                y: Math.round(rect.height / 2),
+                value: 10
             });
 
             // Set data
             const heatmapData = {
-                max: Math.max(3, Math.ceil(shotData.length / 5)),
+                max: 10,
                 data: points
             };
             console.log('Setting heatmap data:', heatmapData);
@@ -1078,12 +1087,14 @@
             mainHeatmapInstance.setData(heatmapData);
 
             // Check canvas dimensions
-            const canvas = container.querySelector('canvas');
-            console.log('Heatmap created successfully, canvas:', canvas);
-            if (canvas) {
-                console.log('Canvas dimensions:', canvas.width, canvas.height);
-                console.log('Canvas style:', canvas.style.cssText);
-            }
+            const canvases = container.querySelectorAll('canvas');
+            console.log('Heatmap created successfully, number of canvases:', canvases.length);
+            canvases.forEach((c, i) => {
+                console.log(`Canvas ${i}:`, c.width, c.height, c.style.cssText);
+            });
+
+            // Force repaint
+            mainHeatmapInstance.repaint();
             } catch (e) {
                 console.error('Error rendering heat map:', e);
             }
