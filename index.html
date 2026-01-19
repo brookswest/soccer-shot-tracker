@@ -987,9 +987,14 @@
 
             const ctx = canvas.getContext('2d');
             const container = canvas.parentElement;
+            if (!container) return;
 
             // Set canvas size to match container
             const rect = container.getBoundingClientRect();
+
+            // Skip if container has no dimensions (not visible yet)
+            if (rect.width === 0 || rect.height === 0) return;
+
             canvas.width = rect.width * window.devicePixelRatio;
             canvas.height = rect.height * window.devicePixelRatio;
             ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
@@ -1070,10 +1075,17 @@
                 }
             }
 
-            // Apply blur for smoother appearance
-            ctx.filter = 'blur(8px)';
-            ctx.drawImage(canvas, 0, 0);
-            ctx.filter = 'none';
+            // Apply blur for smoother appearance (with fallback for browsers that don't support filter)
+            try {
+                if (typeof ctx.filter !== 'undefined') {
+                    ctx.filter = 'blur(8px)';
+                    ctx.drawImage(canvas, 0, 0);
+                    ctx.filter = 'none';
+                }
+            } catch (e) {
+                // Blur not supported, heat map will be slightly less smooth
+                console.log('Canvas blur not supported');
+            }
         }
 
         // Get color for heat map based on intensity (0-1)
@@ -1147,6 +1159,10 @@
 
             // Set canvas size to match container
             const rect = container.getBoundingClientRect();
+
+            // Skip if container has no dimensions (not visible yet)
+            if (rect.width === 0 || rect.height === 0) return;
+
             canvas.width = rect.width * window.devicePixelRatio;
             canvas.height = rect.height * window.devicePixelRatio;
             ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
@@ -1214,10 +1230,17 @@
                 }
             }
 
-            // Apply blur
-            ctx.filter = 'blur(8px)';
-            ctx.drawImage(canvas, 0, 0);
-            ctx.filter = 'none';
+            // Apply blur for smoother appearance (with fallback for browsers that don't support filter)
+            try {
+                if (typeof ctx.filter !== 'undefined') {
+                    ctx.filter = 'blur(8px)';
+                    ctx.drawImage(canvas, 0, 0);
+                    ctx.filter = 'none';
+                }
+            } catch (e) {
+                // Blur not supported, heat map will be slightly less smooth
+                console.log('Canvas blur not supported');
+            }
         }
 
         // Format seconds to MM:SS
