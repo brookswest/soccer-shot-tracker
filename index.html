@@ -115,15 +115,15 @@
     <div id="app-wrapper" class="hidden">
         <header class="bg-gradient-to-br from-emerald-500 to-emerald-600 pb-20">
             <!-- User bar with email and logout -->
-            <div class="flex items-center justify-between gap-3 px-5 py-2 bg-black/10">
-                <img src="intent-soccer-crest-ball-only-final.svg" alt="Intent Soccer" class="h-8 w-auto">
-                <div class="flex items-center gap-3">
-                    <span class="text-white/90 text-sm" id="user-email"></span>
-                    <button class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors" onclick="handleLogout()">Log Out</button>
-                </div>
+            <div class="flex items-center justify-end gap-3 px-5 py-2 bg-black/10">
+                <span class="text-white/90 text-sm" id="user-email"></span>
+                <button class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors" onclick="handleLogout()">Log Out</button>
             </div>
             <div class="text-center pt-4 px-5">
-                <img src="intent-soccer-text-only-final.svg" alt="Intent Soccer" class="h-14 mx-auto mb-2 brightness-0 invert">
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <img src="intent-soccer-crest-ball-only-final.svg" alt="Intent Soccer Crest" class="h-14 w-auto brightness-0 invert">
+                    <img src="intent-soccer-text-only-final.svg" alt="Intent Soccer" class="h-14 brightness-0 invert">
+                </div>
                 <p class="text-white/80 text-sm">Track shots and save game statistics</p>
             </div>
         </header>
@@ -438,6 +438,22 @@
                     </button>
                 </div>
 
+                <!-- Heat Map Toggle -->
+                <div class="flex items-center justify-between mb-3 px-1 py-2 bg-slate-50 rounded-lg" id="heat-map-controls">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
+                        </svg>
+                        <span class="text-xs font-medium text-slate-600">Heat Map</span>
+                        <span class="text-xs text-slate-400" id="heat-map-status">(10 shots required)</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="heat-map-toggle" class="sr-only peer" onchange="toggleHeatMap()" disabled>
+                        <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
+                    </label>
+                </div>
+
                 <!-- Soccer Field SVG -->
                 <div class="relative bg-emerald-600 rounded-xl overflow-hidden cursor-crosshair" id="shot-map-field" style="aspect-ratio: 105/68;">
                     <svg viewBox="0 0 105 68" class="w-full h-full" id="shot-map-svg">
@@ -507,6 +523,9 @@
                         <!-- Previous shots for this game -->
                         <g id="shot-map-previous-shots"></g>
                     </svg>
+
+                    <!-- Heat map canvas overlay -->
+                    <canvas id="heat-map-canvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-0 transition-opacity duration-300" style="mix-blend-mode: multiply;"></canvas>
 
                     <!-- Click overlay for positioning -->
                     <div class="absolute inset-0" id="shot-map-click-area"></div>
@@ -820,6 +839,10 @@
         let selectedShotPosition = null;
         let fieldSidesFlipped = false; // false = Home on Left, true = Home on Right
 
+        // Heat Map state
+        let heatMapEnabled = localStorage.getItem('heatMapEnabled') === 'true';
+        const HEAT_MAP_MIN_SHOTS = 10;
+
         // Saved games storage key
         const STORAGE_KEY = 'soccer-shot-tracker-games';
 
@@ -848,6 +871,12 @@
 
             // Redraw previous shots with transposed positions
             drawPreviousShots();
+
+            // Re-render heat map if enabled
+            const toggle = document.getElementById('heat-map-toggle');
+            if (toggle && toggle.checked) {
+                renderHeatMap();
+            }
 
             // Transpose current marker position if one is selected
             if (selectedShotPosition) {
@@ -891,6 +920,304 @@
                 homeLabel.textContent = homeName.toUpperCase().slice(0, 10);
                 awayLabel.textContent = awayName.toUpperCase().slice(0, 10);
             }
+        }
+
+        // =====================================================
+        // HEAT MAP FUNCTIONS
+        // =====================================================
+
+        // Toggle heat map display
+        window.toggleHeatMap = function() {
+            const toggle = document.getElementById('heat-map-toggle');
+            heatMapEnabled = toggle.checked;
+            localStorage.setItem('heatMapEnabled', heatMapEnabled);
+
+            const canvas = document.getElementById('heat-map-canvas');
+            if (heatMapEnabled) {
+                renderHeatMap();
+                canvas.classList.remove('opacity-0');
+                canvas.classList.add('opacity-70');
+            } else {
+                canvas.classList.add('opacity-0');
+                canvas.classList.remove('opacity-70');
+            }
+        }
+
+        // Update heat map controls based on shot count
+        function updateHeatMapControls(shotCount) {
+            const toggle = document.getElementById('heat-map-toggle');
+            const status = document.getElementById('heat-map-status');
+
+            if (!toggle || !status) return;
+
+            if (shotCount >= HEAT_MAP_MIN_SHOTS) {
+                toggle.disabled = false;
+                status.textContent = `(${shotCount} shots)`;
+                status.classList.remove('text-slate-400');
+                status.classList.add('text-emerald-500');
+
+                // Restore user preference if heat map should be enabled
+                if (heatMapEnabled) {
+                    toggle.checked = true;
+                    const canvas = document.getElementById('heat-map-canvas');
+                    renderHeatMap();
+                    canvas.classList.remove('opacity-0');
+                    canvas.classList.add('opacity-70');
+                }
+            } else {
+                toggle.disabled = true;
+                toggle.checked = false;
+                status.textContent = `(${shotCount}/${HEAT_MAP_MIN_SHOTS} shots)`;
+                status.classList.add('text-slate-400');
+                status.classList.remove('text-emerald-500');
+
+                // Hide heat map
+                const canvas = document.getElementById('heat-map-canvas');
+                if (canvas) {
+                    canvas.classList.add('opacity-0');
+                    canvas.classList.remove('opacity-70');
+                }
+            }
+        }
+
+        // Render heat map on canvas
+        function renderHeatMap(shots = null, canvasId = 'heat-map-canvas') {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const container = canvas.parentElement;
+
+            // Set canvas size to match container
+            const rect = container.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+            // Clear canvas
+            ctx.clearRect(0, 0, rect.width, rect.height);
+
+            // Get shots with positions
+            const shotData = shots || gameState.log.filter(s => s.position);
+            if (shotData.length < HEAT_MAP_MIN_SHOTS) return;
+
+            // Field dimensions (SVG viewBox: 105 x 68)
+            const fieldWidth = 105;
+            const fieldHeight = 68;
+            const scaleX = rect.width / fieldWidth;
+            const scaleY = rect.height / fieldHeight;
+
+            // Heat map parameters
+            const gridSize = 3; // Size of each grid cell in field units
+            const radius = 12; // Influence radius for each shot
+            const maxIntensity = 8; // Cap for color scaling
+
+            // Create density grid
+            const cols = Math.ceil(fieldWidth / gridSize);
+            const rows = Math.ceil(fieldHeight / gridSize);
+            const grid = Array(rows).fill(null).map(() => Array(cols).fill(0));
+
+            // Calculate density for each grid cell
+            shotData.forEach(shot => {
+                let x = shot.position.x;
+                let y = shot.position.y;
+
+                // Apply transposition if sides are flipped
+                if (fieldSidesFlipped) {
+                    x = 105 - x;
+                    y = 68 - y;
+                }
+
+                // Add influence to nearby grid cells
+                for (let row = 0; row < rows; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        const cellX = (col + 0.5) * gridSize;
+                        const cellY = (row + 0.5) * gridSize;
+                        const distance = Math.sqrt(Math.pow(cellX - x, 2) + Math.pow(cellY - y, 2));
+
+                        if (distance < radius) {
+                            // Gaussian-like falloff
+                            const influence = Math.exp(-Math.pow(distance / (radius / 2), 2));
+                            grid[row][col] += influence;
+                        }
+                    }
+                }
+            });
+
+            // Find max density for normalization
+            let maxDensity = 0;
+            grid.forEach(row => row.forEach(val => { if (val > maxDensity) maxDensity = val; }));
+
+            // Draw heat map
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const density = grid[row][col];
+                    if (density > 0.05) { // Skip very low density cells
+                        const normalizedDensity = Math.min(density / Math.max(maxDensity, maxIntensity), 1);
+                        const color = getHeatMapColor(normalizedDensity);
+
+                        ctx.fillStyle = color;
+                        ctx.beginPath();
+
+                        // Draw rounded rectangle for smoother appearance
+                        const x = col * gridSize * scaleX;
+                        const y = row * gridSize * scaleY;
+                        const w = gridSize * scaleX + 1; // +1 to prevent gaps
+                        const h = gridSize * scaleY + 1;
+
+                        ctx.fillRect(x, y, w, h);
+                    }
+                }
+            }
+
+            // Apply blur for smoother appearance
+            ctx.filter = 'blur(8px)';
+            ctx.drawImage(canvas, 0, 0);
+            ctx.filter = 'none';
+        }
+
+        // Get color for heat map based on intensity (0-1)
+        function getHeatMapColor(intensity) {
+            // Color gradient: blue -> cyan -> green -> yellow -> orange -> red
+            const colors = [
+                { pos: 0, r: 0, g: 0, b: 255 },      // Blue
+                { pos: 0.2, r: 0, g: 255, b: 255 },  // Cyan
+                { pos: 0.4, r: 0, g: 255, b: 0 },    // Green
+                { pos: 0.6, r: 255, g: 255, b: 0 },  // Yellow
+                { pos: 0.8, r: 255, g: 128, b: 0 },  // Orange
+                { pos: 1, r: 255, g: 0, b: 0 }       // Red
+            ];
+
+            // Find the two colors to interpolate between
+            let lower = colors[0];
+            let upper = colors[colors.length - 1];
+
+            for (let i = 0; i < colors.length - 1; i++) {
+                if (intensity >= colors[i].pos && intensity <= colors[i + 1].pos) {
+                    lower = colors[i];
+                    upper = colors[i + 1];
+                    break;
+                }
+            }
+
+            // Interpolate
+            const range = upper.pos - lower.pos;
+            const t = range > 0 ? (intensity - lower.pos) / range : 0;
+
+            const r = Math.round(lower.r + (upper.r - lower.r) * t);
+            const g = Math.round(lower.g + (upper.g - lower.g) * t);
+            const b = Math.round(lower.b + (upper.b - lower.b) * t);
+
+            // Alpha based on intensity (more intense = more opaque)
+            const alpha = 0.3 + intensity * 0.5;
+
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // Toggle heat map for history view
+        window.toggleHistoryHeatMap = function(gameId, enabled) {
+            const canvas = document.getElementById(`history-heat-map-${gameId}`);
+            if (!canvas) return;
+
+            if (enabled) {
+                // Find the game data
+                getSavedGames().then(games => {
+                    const game = games.find(g => g.id === gameId);
+                    if (game && game.log) {
+                        const shotsWithPositions = game.log.filter(s => s.position);
+                        renderHistoryHeatMap(gameId, shotsWithPositions);
+                        canvas.classList.remove('opacity-0');
+                        canvas.classList.add('opacity-70');
+                    }
+                });
+            } else {
+                canvas.classList.add('opacity-0');
+                canvas.classList.remove('opacity-70');
+            }
+        }
+
+        // Render heat map for history view (doesn't use fieldSidesFlipped)
+        function renderHistoryHeatMap(gameId, shots) {
+            const canvas = document.getElementById(`history-heat-map-${gameId}`);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById(`history-field-${gameId}`);
+            if (!container) return;
+
+            // Set canvas size to match container
+            const rect = container.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+            // Clear canvas
+            ctx.clearRect(0, 0, rect.width, rect.height);
+
+            if (shots.length < HEAT_MAP_MIN_SHOTS) return;
+
+            // Field dimensions (SVG viewBox: 105 x 68)
+            const fieldWidth = 105;
+            const fieldHeight = 68;
+            const scaleX = rect.width / fieldWidth;
+            const scaleY = rect.height / fieldHeight;
+
+            // Heat map parameters
+            const gridSize = 3;
+            const radius = 12;
+            const maxIntensity = 8;
+
+            // Create density grid
+            const cols = Math.ceil(fieldWidth / gridSize);
+            const rows = Math.ceil(fieldHeight / gridSize);
+            const grid = Array(rows).fill(null).map(() => Array(cols).fill(0));
+
+            // Calculate density for each grid cell
+            shots.forEach(shot => {
+                const x = shot.position.x;
+                const y = shot.position.y;
+
+                for (let row = 0; row < rows; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        const cellX = (col + 0.5) * gridSize;
+                        const cellY = (row + 0.5) * gridSize;
+                        const distance = Math.sqrt(Math.pow(cellX - x, 2) + Math.pow(cellY - y, 2));
+
+                        if (distance < radius) {
+                            const influence = Math.exp(-Math.pow(distance / (radius / 2), 2));
+                            grid[row][col] += influence;
+                        }
+                    }
+                }
+            });
+
+            // Find max density
+            let maxDensity = 0;
+            grid.forEach(row => row.forEach(val => { if (val > maxDensity) maxDensity = val; }));
+
+            // Draw heat map
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const density = grid[row][col];
+                    if (density > 0.05) {
+                        const normalizedDensity = Math.min(density / Math.max(maxDensity, maxIntensity), 1);
+                        const color = getHeatMapColor(normalizedDensity);
+
+                        ctx.fillStyle = color;
+                        const x = col * gridSize * scaleX;
+                        const y = row * gridSize * scaleY;
+                        const w = gridSize * scaleX + 1;
+                        const h = gridSize * scaleY + 1;
+
+                        ctx.fillRect(x, y, w, h);
+                    }
+                }
+            }
+
+            // Apply blur
+            ctx.filter = 'blur(8px)';
+            ctx.drawImage(canvas, 0, 0);
+            ctx.filter = 'none';
         }
 
         // Format seconds to MM:SS
@@ -1252,6 +1579,10 @@
             // Draw previous shots from this game
             drawPreviousShots();
 
+            // Update heat map controls
+            const shotsWithPositions = gameState.log.filter(s => s.position).length;
+            updateHeatMapControls(shotsWithPositions);
+
             // Show modal
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -1470,6 +1801,10 @@
 
             // Draw all shots
             drawPreviousShots();
+
+            // Update heat map controls
+            const shotsWithPositions = gameState.log.filter(s => s.position).length;
+            updateHeatMapControls(shotsWithPositions);
 
             // Show modal
             modal.classList.remove('hidden');
@@ -1963,8 +2298,17 @@
                             ${hasShotMap ? `
                             <!-- Shot Map Visualization -->
                             <div class="mt-5 pt-5 border-t border-slate-200">
-                                <div class="text-sm font-semibold text-slate-700 mb-3">Shot Map</div>
-                                <div class="relative bg-emerald-600 rounded-xl overflow-hidden" style="aspect-ratio: 105/68;">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="text-sm font-semibold text-slate-700">Shot Map</div>
+                                    ${shotsWithPositions.length >= 10 ? `
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <span class="text-xs text-slate-500">Heat Map</span>
+                                        <input type="checkbox" class="sr-only peer history-heat-map-toggle" data-game-id="${game.id}" onchange="toggleHistoryHeatMap('${game.id}', this.checked)">
+                                        <div class="w-8 h-4 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-orange-500 relative"></div>
+                                    </label>
+                                    ` : `<span class="text-xs text-slate-400">${shotsWithPositions.length}/10 shots for heat map</span>`}
+                                </div>
+                                <div class="relative bg-emerald-600 rounded-xl overflow-hidden" id="history-field-${game.id}" style="aspect-ratio: 105/68;">
                                     <svg viewBox="0 0 105 68" class="w-full h-full">
                                         <!-- Field background -->
                                         <rect x="0" y="0" width="105" height="68" fill="#2d8a4e"/>
@@ -1997,6 +2341,8 @@
                                         <!-- Shot markers -->
                                         ${shotMarkersSvg}
                                     </svg>
+                                    <!-- Heat map canvas for history view -->
+                                    <canvas id="history-heat-map-${game.id}" class="absolute inset-0 w-full h-full pointer-events-none opacity-0 transition-opacity duration-300" style="mix-blend-mode: multiply;"></canvas>
                                 </div>
                                 <div class="flex items-center justify-center gap-6 mt-3 text-xs text-slate-500">
                                     <div class="flex items-center gap-1.5">
@@ -2011,6 +2357,22 @@
                                         <span class="text-base">★</span>
                                         <span>Goal</span>
                                     </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                            ${(game.notes && game.notes.length > 0) ? `
+                            <!-- Game Notes -->
+                            <div class="mt-5 pt-5 border-t border-slate-200">
+                                <div class="text-sm font-semibold text-slate-700 mb-3">Game Notes</div>
+                                <div class="space-y-2">
+                                    ${game.notes.map(note => `
+                                        <div class="bg-white rounded-lg p-3 border border-slate-200">
+                                            <div class="flex items-start gap-2">
+                                                <span class="text-xs font-mono text-slate-400 whitespace-nowrap">${note.timestamp || ''}</span>
+                                                <span class="text-sm text-slate-600">${note.text}</span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
                                 </div>
                             </div>
                             ` : ''}
@@ -2293,6 +2655,32 @@
                             height: 10px;
                             border-radius: 50%;
                         }
+                        .notes-section {
+                            margin: 15px 0;
+                            page-break-inside: avoid;
+                        }
+                        .notes-section h2 {
+                            font-size: 0.95rem;
+                            margin-bottom: 10px;
+                            padding-bottom: 5px;
+                            border-bottom: 1px solid #e5e7eb;
+                        }
+                        .note-item {
+                            padding: 8px 10px;
+                            background: #f9fafb;
+                            border-radius: 6px;
+                            margin-bottom: 6px;
+                            font-size: 0.8rem;
+                        }
+                        .note-timestamp {
+                            font-family: monospace;
+                            color: #9ca3af;
+                            font-size: 0.7rem;
+                            margin-right: 8px;
+                        }
+                        .note-text {
+                            color: #374151;
+                        }
                         @media print {
                             body { padding: 0; }
                         }
@@ -2457,6 +2845,18 @@
                                 <span>Goal</span>
                             </div>
                         </div>
+                    </div>
+                    ` : ''}
+
+                    ${(game.notes && game.notes.length > 0) ? `
+                    <div class="notes-section">
+                        <h2>Game Notes</h2>
+                        ${game.notes.map(note => `
+                            <div class="note-item">
+                                <span class="note-timestamp">${note.timestamp || ''}</span>
+                                <span class="note-text">${note.text}</span>
+                            </div>
+                        `).join('')}
                     </div>
                     ` : ''}
 
