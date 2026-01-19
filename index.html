@@ -7,8 +7,6 @@
     <link rel="icon" type="image/svg+xml" href="intent-soccer-crest-ball-only-final.svg">
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Heatmap.js -->
-    <script src="https://cdn.jsdelivr.net/npm/heatmap.js@2.0.5/build/heatmap.min.js"></script>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -526,13 +524,11 @@
                         <g id="shot-map-previous-shots"></g>
                     </svg>
 
-                    <!-- Click overlay for positioning -->
-                    <div class="absolute inset-0" id="shot-map-click-area" style="z-index: 5;"></div>
+                    <!-- Heat map canvas overlay -->
+                    <canvas id="heat-map-canvas" class="absolute inset-0 w-full h-full pointer-events-none" style="display: none;"></canvas>
 
-                    <!-- Heat map container for heatmap.js (on top of click area) -->
-                    <div id="heat-map-wrapper" class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 20; display: none;">
-                        <div id="heat-map-container" style="position: relative; width: 100%; height: 100%;"></div>
-                    </div>
+                    <!-- Click overlay for positioning -->
+                    <div class="absolute inset-0" id="shot-map-click-area"></div>
                 </div>
 
                 <!-- Shot position indicator -->
@@ -927,12 +923,8 @@
         }
 
         // =====================================================
-        // HEAT MAP FUNCTIONS (using heatmap.js)
+        // HEAT MAP FUNCTIONS (custom canvas implementation)
         // =====================================================
-
-        // Store heatmap instances
-        let mainHeatmapInstance = null;
-        let historyHeatmapInstances = {};
 
         // Toggle heat map display
         window.toggleHeatMap = function() {
@@ -940,15 +932,14 @@
             heatMapEnabled = toggle.checked;
             localStorage.setItem('heatMapEnabled', heatMapEnabled);
 
-            const wrapper = document.getElementById('heat-map-wrapper');
-            if (!wrapper) return;
+            const canvas = document.getElementById('heat-map-canvas');
+            if (!canvas) return;
 
             if (heatMapEnabled) {
-                wrapper.style.display = 'block';
-                // Small delay to ensure container is visible before rendering
-                setTimeout(() => renderHeatMap(), 50);
+                canvas.style.display = 'block';
+                renderHeatMap();
             } else {
-                wrapper.style.display = 'none';
+                canvas.style.display = 'none';
             }
         }
 
@@ -956,7 +947,7 @@
         function updateHeatMapControls(shotCount) {
             const toggle = document.getElementById('heat-map-toggle');
             const status = document.getElementById('heat-map-status');
-            const wrapper = document.getElementById('heat-map-wrapper');
+            const canvas = document.getElementById('heat-map-canvas');
 
             if (!toggle || !status) return;
 
@@ -969,9 +960,9 @@
                 // Restore user preference if heat map should be enabled
                 if (heatMapEnabled) {
                     toggle.checked = true;
-                    if (wrapper) {
-                        wrapper.style.display = 'block';
-                        setTimeout(() => renderHeatMap(), 50);
+                    if (canvas) {
+                        canvas.style.display = 'block';
+                        renderHeatMap();
                     }
                 }
             } else {
@@ -982,69 +973,37 @@
                 status.classList.remove('text-emerald-500');
 
                 // Hide heat map
-                if (wrapper) {
-                    wrapper.style.display = 'none';
+                if (canvas) {
+                    canvas.style.display = 'none';
                 }
             }
         }
 
-        // Render heat map using heatmap.js
+        // Render heat map on canvas
         function renderHeatMap(shots = null) {
-            const container = document.getElementById('heat-map-container');
-            if (!container) {
-                console.log('Heat map container not found');
-                return;
-            }
+            const canvas = document.getElementById('heat-map-canvas');
+            if (!canvas) return;
 
-            // Check if heatmap.js is loaded
-            if (typeof h337 === 'undefined') {
-                console.error('heatmap.js not loaded');
-                return;
-            }
+            const ctx = canvas.getContext('2d');
+            const container = canvas.parentElement;
+            if (!container) return;
 
+            // Set canvas size to match container
             const rect = container.getBoundingClientRect();
-            console.log('Heat map container dimensions:', rect.width, rect.height);
-            if (rect.width === 0 || rect.height === 0) {
-                console.log('Heat map container has no dimensions');
-                return;
-            }
+
+            // Skip if container has no dimensions (not visible yet)
+            if (rect.width === 0 || rect.height === 0) return;
+
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+            // Clear canvas
+            ctx.clearRect(0, 0, rect.width, rect.height);
 
             // Get shots with positions
             const shotData = shots || gameState.log.filter(s => s.position);
-            console.log('Shot data for heat map:', shotData.length, 'shots');
-            if (shotData.length < HEAT_MAP_MIN_SHOTS) {
-                console.log('Not enough shots for heat map');
-                return;
-            }
-
-            // Clear previous instance
-            if (mainHeatmapInstance) {
-                container.innerHTML = '';
-                mainHeatmapInstance = null;
-            }
-
-            // Set explicit dimensions on container (heatmap.js requires this)
-            container.style.width = rect.width + 'px';
-            container.style.height = rect.height + 'px';
-
-            try {
-                console.log('Creating heatmap instance with dimensions:', rect.width, rect.height);
-                // Create heatmap instance
-                mainHeatmapInstance = h337.create({
-                container: container,
-                radius: Math.round(rect.width * 0.12), // ~12% of field width
-                maxOpacity: 0.8,
-                minOpacity: 0.1,
-                blur: 0.85,
-                gradient: {
-                    0.0: 'blue',
-                    0.2: 'cyan',
-                    0.4: 'lime',
-                    0.6: 'yellow',
-                    0.8: 'orange',
-                    1.0: 'red'
-                }
-            });
+            if (shotData.length < HEAT_MAP_MIN_SHOTS) return;
 
             // Field dimensions (SVG viewBox: 105 x 68)
             const fieldWidth = 105;
@@ -1052,8 +1011,18 @@
             const scaleX = rect.width / fieldWidth;
             const scaleY = rect.height / fieldHeight;
 
-            // Convert shots to heatmap data points
-            const points = shotData.map(shot => {
+            // Heat map parameters
+            const gridSize = 3; // Size of each grid cell in field units
+            const radius = 12; // Influence radius for each shot
+            const maxIntensity = 8; // Cap for color scaling
+
+            // Create density grid
+            const cols = Math.ceil(fieldWidth / gridSize);
+            const rows = Math.ceil(fieldHeight / gridSize);
+            const grid = Array(rows).fill(null).map(() => Array(cols).fill(0));
+
+            // Calculate density for each grid cell
+            shotData.forEach(shot => {
                 let x = shot.position.x;
                 let y = shot.position.y;
 
@@ -1063,130 +1032,209 @@
                     y = 68 - y;
                 }
 
-                return {
-                    x: Math.round(x * scaleX),
-                    y: Math.round(y * scaleY),
-                    value: 5  // Higher value for better visibility
-                };
+                // Add influence to nearby grid cells
+                for (let row = 0; row < rows; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        const cellX = (col + 0.5) * gridSize;
+                        const cellY = (row + 0.5) * gridSize;
+                        const distance = Math.sqrt(Math.pow(cellX - x, 2) + Math.pow(cellY - y, 2));
+
+                        if (distance < radius) {
+                            // Gaussian-like falloff
+                            const influence = Math.exp(-Math.pow(distance / (radius / 2), 2));
+                            grid[row][col] += influence;
+                        }
+                    }
+                }
             });
 
-            // Add a test point in the center to verify heatmap is working
-            points.push({
-                x: Math.round(rect.width / 2),
-                y: Math.round(rect.height / 2),
-                value: 10
-            });
+            // Find max density for normalization
+            let maxDensity = 0;
+            grid.forEach(row => row.forEach(val => { if (val > maxDensity) maxDensity = val; }));
 
-            // Set data
-            const heatmapData = {
-                max: 10,
-                data: points
-            };
-            console.log('Setting heatmap data:', heatmapData);
-            console.log('Points:', JSON.stringify(points));
-            mainHeatmapInstance.setData(heatmapData);
+            // Draw heat map
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const density = grid[row][col];
+                    if (density > 0.05) { // Skip very low density cells
+                        const normalizedDensity = Math.min(density / Math.max(maxDensity, maxIntensity), 1);
+                        const color = getHeatMapColor(normalizedDensity);
 
-            // Check canvas dimensions
-            const canvases = container.querySelectorAll('canvas');
-            console.log('Heatmap created successfully, number of canvases:', canvases.length);
-            canvases.forEach((c, i) => {
-                console.log(`Canvas ${i}:`, c.width, c.height, c.style.cssText);
-            });
+                        ctx.fillStyle = color;
+                        ctx.beginPath();
 
-            // Force repaint
-            mainHeatmapInstance.repaint();
-            } catch (e) {
-                console.error('Error rendering heat map:', e);
+                        // Draw rounded rectangle for smoother appearance
+                        const x = col * gridSize * scaleX;
+                        const y = row * gridSize * scaleY;
+                        const w = gridSize * scaleX + 1; // +1 to prevent gaps
+                        const h = gridSize * scaleY + 1;
+
+                        ctx.fillRect(x, y, w, h);
+                    }
+                }
             }
+
+            // Apply blur for smoother appearance (with fallback for browsers that don't support filter)
+            try {
+                if (typeof ctx.filter !== 'undefined') {
+                    ctx.filter = 'blur(8px)';
+                    ctx.drawImage(canvas, 0, 0);
+                    ctx.filter = 'none';
+                }
+            } catch (e) {
+                // Blur not supported, heat map will be slightly less smooth
+            }
+        }
+
+        // Get color for heat map based on intensity (0-1)
+        function getHeatMapColor(intensity) {
+            // Color gradient: blue -> cyan -> green -> yellow -> orange -> red
+            const colors = [
+                { pos: 0, r: 0, g: 0, b: 255 },      // Blue
+                { pos: 0.2, r: 0, g: 255, b: 255 },  // Cyan
+                { pos: 0.4, r: 0, g: 255, b: 0 },    // Green
+                { pos: 0.6, r: 255, g: 255, b: 0 },  // Yellow
+                { pos: 0.8, r: 255, g: 128, b: 0 },  // Orange
+                { pos: 1, r: 255, g: 0, b: 0 }       // Red
+            ];
+
+            // Find the two colors to interpolate between
+            let lower = colors[0];
+            let upper = colors[colors.length - 1];
+
+            for (let i = 0; i < colors.length - 1; i++) {
+                if (intensity >= colors[i].pos && intensity <= colors[i + 1].pos) {
+                    lower = colors[i];
+                    upper = colors[i + 1];
+                    break;
+                }
+            }
+
+            // Interpolate
+            const range = upper.pos - lower.pos;
+            const t = range > 0 ? (intensity - lower.pos) / range : 0;
+
+            const r = Math.round(lower.r + (upper.r - lower.r) * t);
+            const g = Math.round(lower.g + (upper.g - lower.g) * t);
+            const b = Math.round(lower.b + (upper.b - lower.b) * t);
+
+            // Alpha based on intensity (more intense = more opaque)
+            const alpha = 0.3 + intensity * 0.5;
+
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         }
 
         // Toggle heat map for history view
         window.toggleHistoryHeatMap = function(gameId, enabled) {
-            const container = document.getElementById(`history-heat-map-${gameId}`);
-            if (!container) return;
+            const canvas = document.getElementById(`history-heat-map-${gameId}`);
+            if (!canvas) return;
 
             if (enabled) {
-                container.style.display = 'block';
+                canvas.style.display = 'block';
                 // Find the game data
                 getSavedGames().then(games => {
                     const game = games.find(g => g.id === gameId);
                     if (game && game.log) {
                         const shotsWithPositions = game.log.filter(s => s.position);
-                        setTimeout(() => renderHistoryHeatMap(gameId, shotsWithPositions), 50);
+                        renderHistoryHeatMap(gameId, shotsWithPositions);
                     }
                 });
             } else {
-                container.style.display = 'none';
+                canvas.style.display = 'none';
             }
         }
 
-        // Render heat map for history view using heatmap.js
+        // Render heat map for history view
         function renderHistoryHeatMap(gameId, shots) {
-            const container = document.getElementById(`history-heat-map-${gameId}`);
+            const canvas = document.getElementById(`history-heat-map-${gameId}`);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById(`history-field-${gameId}`);
             if (!container) return;
 
-            // Check if heatmap.js is loaded
-            if (typeof h337 === 'undefined') {
-                console.error('heatmap.js not loaded');
-                return;
-            }
+            // Set canvas size to match container
+            const rect = container.getBoundingClientRect();
 
-            const fieldContainer = document.getElementById(`history-field-${gameId}`);
-            if (!fieldContainer) return;
-
-            const rect = fieldContainer.getBoundingClientRect();
+            // Skip if container has no dimensions (not visible yet)
             if (rect.width === 0 || rect.height === 0) return;
+
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+            // Clear canvas
+            ctx.clearRect(0, 0, rect.width, rect.height);
 
             if (shots.length < HEAT_MAP_MIN_SHOTS) return;
 
-            // Clear previous instance
-            if (historyHeatmapInstances[gameId]) {
-                container.innerHTML = '';
-                historyHeatmapInstances[gameId] = null;
+            // Field dimensions (SVG viewBox: 105 x 68)
+            const fieldWidth = 105;
+            const fieldHeight = 68;
+            const scaleX = rect.width / fieldWidth;
+            const scaleY = rect.height / fieldHeight;
+
+            // Heat map parameters
+            const gridSize = 3;
+            const radius = 12;
+            const maxIntensity = 8;
+
+            // Create density grid
+            const cols = Math.ceil(fieldWidth / gridSize);
+            const rows = Math.ceil(fieldHeight / gridSize);
+            const grid = Array(rows).fill(null).map(() => Array(cols).fill(0));
+
+            // Calculate density for each grid cell
+            shots.forEach(shot => {
+                const x = shot.position.x;
+                const y = shot.position.y;
+
+                for (let row = 0; row < rows; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        const cellX = (col + 0.5) * gridSize;
+                        const cellY = (row + 0.5) * gridSize;
+                        const distance = Math.sqrt(Math.pow(cellX - x, 2) + Math.pow(cellY - y, 2));
+
+                        if (distance < radius) {
+                            const influence = Math.exp(-Math.pow(distance / (radius / 2), 2));
+                            grid[row][col] += influence;
+                        }
+                    }
+                }
+            });
+
+            // Find max density
+            let maxDensity = 0;
+            grid.forEach(row => row.forEach(val => { if (val > maxDensity) maxDensity = val; }));
+
+            // Draw heat map
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const density = grid[row][col];
+                    if (density > 0.05) {
+                        const normalizedDensity = Math.min(density / Math.max(maxDensity, maxIntensity), 1);
+                        const color = getHeatMapColor(normalizedDensity);
+
+                        ctx.fillStyle = color;
+                        const x = col * gridSize * scaleX;
+                        const y = row * gridSize * scaleY;
+                        const w = gridSize * scaleX + 1;
+                        const h = gridSize * scaleY + 1;
+
+                        ctx.fillRect(x, y, w, h);
+                    }
+                }
             }
 
-            // Set explicit dimensions on container (heatmap.js requires this)
-            container.style.width = rect.width + 'px';
-            container.style.height = rect.height + 'px';
-
+            // Apply blur for smoother appearance
             try {
-                // Create heatmap instance
-                historyHeatmapInstances[gameId] = h337.create({
-                    container: container,
-                    radius: Math.round(rect.width * 0.12),
-                    maxOpacity: 0.8,
-                    minOpacity: 0.1,
-                    blur: 0.85,
-                    gradient: {
-                        0.0: 'blue',
-                        0.2: 'cyan',
-                        0.4: 'lime',
-                        0.6: 'yellow',
-                        0.8: 'orange',
-                        1.0: 'red'
-                    }
-                });
-
-                // Field dimensions (SVG viewBox: 105 x 68)
-                const fieldWidth = 105;
-                const fieldHeight = 68;
-                const scaleX = rect.width / fieldWidth;
-                const scaleY = rect.height / fieldHeight;
-
-                // Convert shots to heatmap data points
-                const points = shots.map(shot => ({
-                    x: Math.round(shot.position.x * scaleX),
-                    y: Math.round(shot.position.y * scaleY),
-                    value: 1
-                }));
-
-                // Set data
-                historyHeatmapInstances[gameId].setData({
-                    max: Math.max(3, Math.ceil(shots.length / 5)),
-                    data: points
-                });
+                if (typeof ctx.filter !== 'undefined') {
+                    ctx.filter = 'blur(8px)';
+                    ctx.drawImage(canvas, 0, 0);
+                    ctx.filter = 'none';
+                }
             } catch (e) {
-                console.error('Error rendering history heat map:', e);
+                // Blur not supported
             }
         }
 
@@ -2312,7 +2360,7 @@
                                         ${shotMarkersSvg}
                                     </svg>
                                     <!-- Heat map canvas for history view -->
-                                    <div id="history-heat-map-${game.id}" class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 20; display: none;"></div>
+                                    <canvas id="history-heat-map-${game.id}" class="absolute inset-0 w-full h-full pointer-events-none" style="display: none;"></canvas>
                                 </div>
                                 <div class="flex items-center justify-center gap-6 mt-3 text-xs text-slate-500">
                                     <div class="flex items-center gap-1.5">
