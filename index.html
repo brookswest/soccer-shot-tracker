@@ -850,6 +850,7 @@
             // Transpose current marker position if one is selected
             if (selectedShotPosition) {
                 selectedShotPosition.x = 105 - selectedShotPosition.x;
+                selectedShotPosition.y = 68 - selectedShotPosition.y;
                 const marker = document.getElementById('shot-marker');
                 marker.setAttribute('transform', `translate(${selectedShotPosition.x}, ${selectedShotPosition.y})`);
 
@@ -1271,9 +1272,10 @@
                     const color = shot.team === 'home' ? homeColor : awayColor;
                     const isGoal = shot.type === 'GOAL!';
 
-                    // Transpose x coordinate if sides are flipped
+                    // Transpose both coordinates if sides are flipped
+                    // This maintains the shooter's perspective (their "right" stays "right")
                     const displayX = fieldSidesFlipped ? (105 - shot.position.x) : shot.position.x;
-                    const displayY = shot.position.y;
+                    const displayY = fieldSidesFlipped ? (68 - shot.position.y) : shot.position.y;
 
                     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                     circle.setAttribute('cx', displayX);
