@@ -1038,6 +1038,17 @@
                     y = 68 - y;
                 }
 
+                // Determine shot weight based on type
+                // Goals and shots on target have full weight, off-target shots reduced
+                let weight = 1.0;
+                const isOffTarget = shot.type === 'Shot Off Target';
+
+                if (isOffTarget) {
+                    // Skip off-target shots not in the attacking half (x > 52.5)
+                    if (x <= 52.5) return;
+                    weight = 0.4; // Reduced weight for off-target shots
+                }
+
                 // Add influence to nearby grid cells
                 for (let row = 0; row < rows; row++) {
                     for (let col = 0; col < cols; col++) {
@@ -1046,8 +1057,8 @@
                         const distance = Math.sqrt(Math.pow(cellX - x, 2) + Math.pow(cellY - y, 2));
 
                         if (distance < radius) {
-                            // Gaussian-like falloff
-                            const influence = Math.exp(-Math.pow(distance / (radius / 2), 2));
+                            // Gaussian-like falloff, weighted by shot type
+                            const influence = Math.exp(-Math.pow(distance / (radius / 2), 2)) * weight;
                             grid[row][col] += influence;
                         }
                     }
@@ -1204,6 +1215,16 @@
                 const x = shot.position.x;
                 const y = shot.position.y;
 
+                // Determine shot weight based on type
+                let weight = 1.0;
+                const isOffTarget = shot.type === 'Shot Off Target';
+
+                if (isOffTarget) {
+                    // Skip off-target shots not in the attacking half (x > 52.5)
+                    if (x <= 52.5) return;
+                    weight = 0.4;
+                }
+
                 for (let row = 0; row < rows; row++) {
                     for (let col = 0; col < cols; col++) {
                         const cellX = (col + 0.5) * gridSize;
@@ -1211,7 +1232,7 @@
                         const distance = Math.sqrt(Math.pow(cellX - x, 2) + Math.pow(cellY - y, 2));
 
                         if (distance < radius) {
-                            const influence = Math.exp(-Math.pow(distance / (radius / 2), 2));
+                            const influence = Math.exp(-Math.pow(distance / (radius / 2), 2)) * weight;
                             grid[row][col] += influence;
                         }
                     }
