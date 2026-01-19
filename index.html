@@ -527,7 +527,7 @@
                     </svg>
 
                     <!-- Heat map container for heatmap.js -->
-                    <div id="heat-map-container" class="absolute inset-0 w-full h-full pointer-events-none opacity-0 transition-opacity duration-300"></div>
+                    <div id="heat-map-container" class="absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300" style="z-index: 10; display: none;"></div>
 
                     <!-- Click overlay for positioning -->
                     <div class="absolute inset-0" id="shot-map-click-area"></div>
@@ -939,13 +939,14 @@
             localStorage.setItem('heatMapEnabled', heatMapEnabled);
 
             const container = document.getElementById('heat-map-container');
+            if (!container) return;
+
             if (heatMapEnabled) {
-                renderHeatMap();
-                container.classList.remove('opacity-0');
-                container.classList.add('opacity-70');
+                container.style.display = 'block';
+                // Small delay to ensure container is visible before rendering
+                setTimeout(() => renderHeatMap(), 50);
             } else {
-                container.classList.add('opacity-0');
-                container.classList.remove('opacity-70');
+                container.style.display = 'none';
             }
         }
 
@@ -953,6 +954,7 @@
         function updateHeatMapControls(shotCount) {
             const toggle = document.getElementById('heat-map-toggle');
             const status = document.getElementById('heat-map-status');
+            const container = document.getElementById('heat-map-container');
 
             if (!toggle || !status) return;
 
@@ -965,10 +967,10 @@
                 // Restore user preference if heat map should be enabled
                 if (heatMapEnabled) {
                     toggle.checked = true;
-                    const container = document.getElementById('heat-map-container');
-                    renderHeatMap();
-                    container.classList.remove('opacity-0');
-                    container.classList.add('opacity-70');
+                    if (container) {
+                        container.style.display = 'block';
+                        setTimeout(() => renderHeatMap(), 50);
+                    }
                 }
             } else {
                 toggle.disabled = true;
@@ -978,10 +980,8 @@
                 status.classList.remove('text-emerald-500');
 
                 // Hide heat map
-                const container = document.getElementById('heat-map-container');
                 if (container) {
-                    container.classList.add('opacity-0');
-                    container.classList.remove('opacity-70');
+                    container.style.display = 'none';
                 }
             }
         }
@@ -991,8 +991,17 @@
             const container = document.getElementById('heat-map-container');
             if (!container) return;
 
+            // Check if heatmap.js is loaded
+            if (typeof h337 === 'undefined') {
+                console.error('heatmap.js not loaded');
+                return;
+            }
+
             const rect = container.getBoundingClientRect();
-            if (rect.width === 0 || rect.height === 0) return;
+            if (rect.width === 0 || rect.height === 0) {
+                console.log('Heat map container has no dimensions');
+                return;
+            }
 
             // Get shots with positions
             const shotData = shots || gameState.log.filter(s => s.position);
@@ -1001,10 +1010,12 @@
             // Clear previous instance
             if (mainHeatmapInstance) {
                 container.innerHTML = '';
+                mainHeatmapInstance = null;
             }
 
-            // Create heatmap instance
-            mainHeatmapInstance = h337.create({
+            try {
+                // Create heatmap instance
+                mainHeatmapInstance = h337.create({
                 container: container,
                 radius: Math.round(rect.width * 0.12), // ~12% of field width
                 maxOpacity: 0.8,
@@ -1049,6 +1060,9 @@
                 max: Math.max(3, Math.ceil(shotData.length / 5)),
                 data: points
             });
+            } catch (e) {
+                console.error('Error rendering heat map:', e);
+            }
         }
 
         // Toggle heat map for history view
@@ -1057,19 +1071,17 @@
             if (!container) return;
 
             if (enabled) {
+                container.style.display = 'block';
                 // Find the game data
                 getSavedGames().then(games => {
                     const game = games.find(g => g.id === gameId);
                     if (game && game.log) {
                         const shotsWithPositions = game.log.filter(s => s.position);
-                        renderHistoryHeatMap(gameId, shotsWithPositions);
-                        container.classList.remove('opacity-0');
-                        container.classList.add('opacity-70');
+                        setTimeout(() => renderHistoryHeatMap(gameId, shotsWithPositions), 50);
                     }
                 });
             } else {
-                container.classList.add('opacity-0');
-                container.classList.remove('opacity-70');
+                container.style.display = 'none';
             }
         }
 
@@ -1077,6 +1089,12 @@
         function renderHistoryHeatMap(gameId, shots) {
             const container = document.getElementById(`history-heat-map-${gameId}`);
             if (!container) return;
+
+            // Check if heatmap.js is loaded
+            if (typeof h337 === 'undefined') {
+                console.error('heatmap.js not loaded');
+                return;
+            }
 
             const fieldContainer = document.getElementById(`history-field-${gameId}`);
             if (!fieldContainer) return;
@@ -1089,43 +1107,48 @@
             // Clear previous instance
             if (historyHeatmapInstances[gameId]) {
                 container.innerHTML = '';
+                historyHeatmapInstances[gameId] = null;
             }
 
-            // Create heatmap instance
-            historyHeatmapInstances[gameId] = h337.create({
-                container: container,
-                radius: Math.round(rect.width * 0.12),
-                maxOpacity: 0.8,
-                minOpacity: 0.1,
-                blur: 0.85,
-                gradient: {
-                    0.0: 'blue',
-                    0.2: 'cyan',
-                    0.4: 'lime',
-                    0.6: 'yellow',
-                    0.8: 'orange',
-                    1.0: 'red'
-                }
-            });
+            try {
+                // Create heatmap instance
+                historyHeatmapInstances[gameId] = h337.create({
+                    container: container,
+                    radius: Math.round(rect.width * 0.12),
+                    maxOpacity: 0.8,
+                    minOpacity: 0.1,
+                    blur: 0.85,
+                    gradient: {
+                        0.0: 'blue',
+                        0.2: 'cyan',
+                        0.4: 'lime',
+                        0.6: 'yellow',
+                        0.8: 'orange',
+                        1.0: 'red'
+                    }
+                });
 
-            // Field dimensions (SVG viewBox: 105 x 68)
-            const fieldWidth = 105;
-            const fieldHeight = 68;
-            const scaleX = rect.width / fieldWidth;
-            const scaleY = rect.height / fieldHeight;
+                // Field dimensions (SVG viewBox: 105 x 68)
+                const fieldWidth = 105;
+                const fieldHeight = 68;
+                const scaleX = rect.width / fieldWidth;
+                const scaleY = rect.height / fieldHeight;
 
-            // Convert shots to heatmap data points
-            const points = shots.map(shot => ({
-                x: Math.round(shot.position.x * scaleX),
-                y: Math.round(shot.position.y * scaleY),
-                value: 1
-            }));
+                // Convert shots to heatmap data points
+                const points = shots.map(shot => ({
+                    x: Math.round(shot.position.x * scaleX),
+                    y: Math.round(shot.position.y * scaleY),
+                    value: 1
+                }));
 
-            // Set data
-            historyHeatmapInstances[gameId].setData({
-                max: Math.max(3, Math.ceil(shots.length / 5)),
-                data: points
-            });
+                // Set data
+                historyHeatmapInstances[gameId].setData({
+                    max: Math.max(3, Math.ceil(shots.length / 5)),
+                    data: points
+                });
+            } catch (e) {
+                console.error('Error rendering history heat map:', e);
+            }
         }
 
         // Format seconds to MM:SS
@@ -2250,7 +2273,7 @@
                                         ${shotMarkersSvg}
                                     </svg>
                                     <!-- Heat map canvas for history view -->
-                                    <div id="history-heat-map-${game.id}" class="absolute inset-0 w-full h-full pointer-events-none opacity-0 transition-opacity duration-300"></div>
+                                    <div id="history-heat-map-${game.id}" class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 10; display: none;"></div>
                                 </div>
                                 <div class="flex items-center justify-center gap-6 mt-3 text-xs text-slate-500">
                                     <div class="flex items-center gap-1.5">
