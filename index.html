@@ -439,19 +439,27 @@
                 </div>
 
                 <!-- Heat Map Toggle -->
-                <div class="flex items-center justify-between mb-3 px-1 py-2 bg-slate-50 rounded-lg" id="heat-map-controls">
-                    <div class="flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
-                        </svg>
-                        <span class="text-xs font-medium text-slate-600">Heat Map</span>
-                        <span class="text-xs text-slate-400" id="heat-map-status">(10 shots required)</span>
+                <div class="mb-3 px-1 py-2 bg-slate-50 rounded-lg" id="heat-map-controls">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
+                            </svg>
+                            <span class="text-xs font-medium text-slate-600">Heat Map</span>
+                            <span class="text-xs text-slate-400" id="heat-map-status">(10 shots required)</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="heat-map-toggle" class="sr-only peer" onchange="toggleHeatMap()" disabled>
+                            <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
+                        </label>
                     </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="heat-map-toggle" class="sr-only peer" onchange="toggleHeatMap()" disabled>
-                        <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
-                    </label>
+                    <!-- Team Filter Buttons -->
+                    <div class="flex items-center justify-center gap-1 mt-2" id="heat-map-team-filter" style="display: none;">
+                        <button type="button" id="heat-map-filter-all" onclick="setHeatMapTeamFilter('all')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 bg-orange-500 text-white">All</button>
+                        <button type="button" id="heat-map-filter-home" onclick="setHeatMapTeamFilter('home')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 bg-slate-200 text-slate-600 hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Home</button>
+                        <button type="button" id="heat-map-filter-away" onclick="setHeatMapTeamFilter('away')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 bg-slate-200 text-slate-600 hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Away</button>
+                    </div>
                 </div>
 
                 <!-- Soccer Field SVG -->
@@ -864,6 +872,7 @@
 
         // Heat Map state
         let heatMapEnabled = localStorage.getItem('heatMapEnabled') === 'true';
+        let heatMapTeamFilter = localStorage.getItem('heatMapTeamFilter') || 'all'; // 'all', 'home', 'away'
         const HEAT_MAP_MIN_SHOTS = 10;
 
         // Saved games storage key
@@ -956,33 +965,80 @@
             localStorage.setItem('heatMapEnabled', heatMapEnabled);
 
             const canvas = document.getElementById('heat-map-canvas');
-            if (!canvas) return;
+            const teamFilterDiv = document.getElementById('heat-map-team-filter');
 
             if (heatMapEnabled) {
-                canvas.style.display = 'block';
+                if (canvas) canvas.style.display = 'block';
+                if (teamFilterDiv) teamFilterDiv.style.display = 'flex';
+                updateHeatMapFilterButtons();
                 renderHeatMap();
             } else {
-                canvas.style.display = 'none';
+                if (canvas) canvas.style.display = 'none';
+                if (teamFilterDiv) teamFilterDiv.style.display = 'none';
             }
         }
 
-        // Update heat map controls based on shot count
-        function updateHeatMapControls(shotCount) {
+        // Update heat map controls based on shot counts
+        function updateHeatMapControls() {
             const toggle = document.getElementById('heat-map-toggle');
             const status = document.getElementById('heat-map-status');
             const canvas = document.getElementById('heat-map-canvas');
+            const teamFilterDiv = document.getElementById('heat-map-team-filter');
+            const filterAllBtn = document.getElementById('heat-map-filter-all');
+            const filterHomeBtn = document.getElementById('heat-map-filter-home');
+            const filterAwayBtn = document.getElementById('heat-map-filter-away');
 
             if (!toggle || !status) return;
 
-            if (shotCount >= HEAT_MAP_MIN_SHOTS) {
+            // Count shots with positions per team
+            const shotsWithPositions = gameState.log.filter(s => s.position);
+            const homeShots = shotsWithPositions.filter(s => s.team === 'home').length;
+            const awayShots = shotsWithPositions.filter(s => s.team === 'away').length;
+            const totalShots = shotsWithPositions.length;
+
+            const homeHasEnough = homeShots >= HEAT_MAP_MIN_SHOTS;
+            const awayHasEnough = awayShots >= HEAT_MAP_MIN_SHOTS;
+            const anyTeamHasEnough = homeHasEnough || awayHasEnough;
+
+            if (anyTeamHasEnough) {
                 toggle.disabled = false;
-                status.textContent = `(${shotCount} shots)`;
+                status.textContent = `(${totalShots} shots)`;
                 status.classList.remove('text-slate-400');
                 status.classList.add('text-emerald-500');
+
+                // Update team filter buttons
+                if (filterHomeBtn) {
+                    filterHomeBtn.disabled = !homeHasEnough;
+                    filterHomeBtn.title = homeHasEnough ? '' : `${homeShots}/${HEAT_MAP_MIN_SHOTS} shots`;
+                }
+                if (filterAwayBtn) {
+                    filterAwayBtn.disabled = !awayHasEnough;
+                    filterAwayBtn.title = awayHasEnough ? '' : `${awayShots}/${HEAT_MAP_MIN_SHOTS} shots`;
+                }
+                if (filterAllBtn) {
+                    // "All" requires both teams to have enough shots
+                    filterAllBtn.disabled = !(homeHasEnough && awayHasEnough);
+                    filterAllBtn.title = (homeHasEnough && awayHasEnough) ? '' : 'Both teams need 10 shots';
+                }
+
+                // If current filter is invalid, switch to a valid one
+                if (heatMapTeamFilter === 'all' && !(homeHasEnough && awayHasEnough)) {
+                    heatMapTeamFilter = homeHasEnough ? 'home' : 'away';
+                    localStorage.setItem('heatMapTeamFilter', heatMapTeamFilter);
+                } else if (heatMapTeamFilter === 'home' && !homeHasEnough) {
+                    heatMapTeamFilter = awayHasEnough ? 'away' : 'all';
+                    localStorage.setItem('heatMapTeamFilter', heatMapTeamFilter);
+                } else if (heatMapTeamFilter === 'away' && !awayHasEnough) {
+                    heatMapTeamFilter = homeHasEnough ? 'home' : 'all';
+                    localStorage.setItem('heatMapTeamFilter', heatMapTeamFilter);
+                }
+
+                updateHeatMapFilterButtons();
 
                 // Restore user preference if heat map should be enabled
                 if (heatMapEnabled) {
                     toggle.checked = true;
+                    if (teamFilterDiv) teamFilterDiv.style.display = 'flex';
                     if (canvas) {
                         canvas.style.display = 'block';
                         renderHeatMap();
@@ -991,14 +1047,51 @@
             } else {
                 toggle.disabled = true;
                 toggle.checked = false;
-                status.textContent = `(${shotCount}/${HEAT_MAP_MIN_SHOTS} shots)`;
+                status.textContent = `(${totalShots}/${HEAT_MAP_MIN_SHOTS} shots)`;
                 status.classList.add('text-slate-400');
                 status.classList.remove('text-emerald-500');
 
-                // Hide heat map
+                // Hide heat map and team filter
                 if (canvas) {
                     canvas.style.display = 'none';
                 }
+                if (teamFilterDiv) {
+                    teamFilterDiv.style.display = 'none';
+                }
+            }
+        }
+
+        // Update the visual state of team filter buttons
+        function updateHeatMapFilterButtons() {
+            const filterAllBtn = document.getElementById('heat-map-filter-all');
+            const filterHomeBtn = document.getElementById('heat-map-filter-home');
+            const filterAwayBtn = document.getElementById('heat-map-filter-away');
+
+            const buttons = [
+                { btn: filterAllBtn, filter: 'all' },
+                { btn: filterHomeBtn, filter: 'home' },
+                { btn: filterAwayBtn, filter: 'away' }
+            ];
+
+            buttons.forEach(({ btn, filter }) => {
+                if (!btn) return;
+                if (heatMapTeamFilter === filter && !btn.disabled) {
+                    btn.classList.remove('bg-slate-200', 'text-slate-600', 'hover:bg-slate-300');
+                    btn.classList.add('bg-orange-500', 'text-white');
+                } else {
+                    btn.classList.remove('bg-orange-500', 'text-white');
+                    btn.classList.add('bg-slate-200', 'text-slate-600', 'hover:bg-slate-300');
+                }
+            });
+        }
+
+        // Set the heat map team filter
+        window.setHeatMapTeamFilter = function(filter) {
+            heatMapTeamFilter = filter;
+            localStorage.setItem('heatMapTeamFilter', filter);
+            updateHeatMapFilterButtons();
+            if (heatMapEnabled) {
+                renderHeatMap();
             }
         }
 
@@ -1025,13 +1118,21 @@
             ctx.clearRect(0, 0, rect.width, rect.height);
 
             // Get shots with valid positions (must have numeric x and y)
-            const shotData = (shots || gameState.log).filter(s =>
+            let shotData = (shots || gameState.log).filter(s =>
                 s.position &&
                 typeof s.position.x === 'number' &&
                 typeof s.position.y === 'number' &&
                 !isNaN(s.position.x) &&
                 !isNaN(s.position.y)
             );
+
+            // Apply team filter
+            if (heatMapTeamFilter === 'home') {
+                shotData = shotData.filter(s => s.team === 'home');
+            } else if (heatMapTeamFilter === 'away') {
+                shotData = shotData.filter(s => s.team === 'away');
+            }
+
             if (shotData.length < HEAT_MAP_MIN_SHOTS) return;
 
             // Field dimensions (SVG viewBox: 105 x 68)
@@ -1655,8 +1756,7 @@
             drawPreviousShots();
 
             // Update heat map controls
-            const shotsWithPositions = gameState.log.filter(s => s.position).length;
-            updateHeatMapControls(shotsWithPositions);
+            updateHeatMapControls();
 
             // Show modal
             modal.classList.remove('hidden');
@@ -1904,8 +2004,7 @@
             drawPreviousShots();
 
             // Update heat map controls
-            const shotsWithPositions = gameState.log.filter(s => s.position).length;
-            updateHeatMapControls(shotsWithPositions);
+            updateHeatMapControls();
 
             // Show modal
             modal.classList.remove('hidden');
