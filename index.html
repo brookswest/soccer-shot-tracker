@@ -526,11 +526,11 @@
                         <g id="shot-map-previous-shots"></g>
                     </svg>
 
-                    <!-- Heat map container for heatmap.js -->
-                    <div id="heat-map-container" class="absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300" style="z-index: 10; display: none;"></div>
-
                     <!-- Click overlay for positioning -->
-                    <div class="absolute inset-0" id="shot-map-click-area"></div>
+                    <div class="absolute inset-0" id="shot-map-click-area" style="z-index: 5;"></div>
+
+                    <!-- Heat map container for heatmap.js (on top of click area) -->
+                    <div id="heat-map-container" class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 20; display: none;"></div>
                 </div>
 
                 <!-- Shot position indicator -->
@@ -989,7 +989,10 @@
         // Render heat map using heatmap.js
         function renderHeatMap(shots = null) {
             const container = document.getElementById('heat-map-container');
-            if (!container) return;
+            if (!container) {
+                console.log('Heat map container not found');
+                return;
+            }
 
             // Check if heatmap.js is loaded
             if (typeof h337 === 'undefined') {
@@ -998,6 +1001,7 @@
             }
 
             const rect = container.getBoundingClientRect();
+            console.log('Heat map container dimensions:', rect.width, rect.height);
             if (rect.width === 0 || rect.height === 0) {
                 console.log('Heat map container has no dimensions');
                 return;
@@ -1005,7 +1009,11 @@
 
             // Get shots with positions
             const shotData = shots || gameState.log.filter(s => s.position);
-            if (shotData.length < HEAT_MAP_MIN_SHOTS) return;
+            console.log('Shot data for heat map:', shotData.length, 'shots');
+            if (shotData.length < HEAT_MAP_MIN_SHOTS) {
+                console.log('Not enough shots for heat map');
+                return;
+            }
 
             // Clear previous instance
             if (mainHeatmapInstance) {
@@ -1014,6 +1022,7 @@
             }
 
             try {
+                console.log('Creating heatmap instance...');
                 // Create heatmap instance
                 mainHeatmapInstance = h337.create({
                 container: container,
@@ -1056,10 +1065,13 @@
             });
 
             // Set data
-            mainHeatmapInstance.setData({
+            const heatmapData = {
                 max: Math.max(3, Math.ceil(shotData.length / 5)),
                 data: points
-            });
+            };
+            console.log('Setting heatmap data:', heatmapData);
+            mainHeatmapInstance.setData(heatmapData);
+            console.log('Heatmap created successfully, canvas:', container.querySelector('canvas'));
             } catch (e) {
                 console.error('Error rendering heat map:', e);
             }
@@ -2273,7 +2285,7 @@
                                         ${shotMarkersSvg}
                                     </svg>
                                     <!-- Heat map canvas for history view -->
-                                    <div id="history-heat-map-${game.id}" class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 10; display: none;"></div>
+                                    <div id="history-heat-map-${game.id}" class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 20; display: none;"></div>
                                 </div>
                                 <div class="flex items-center justify-center gap-6 mt-3 text-xs text-slate-500">
                                     <div class="flex items-center gap-1.5">
