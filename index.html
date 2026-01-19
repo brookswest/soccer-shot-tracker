@@ -1057,61 +1057,50 @@
             // Find max density for normalization
             let maxDensity = 0;
             grid.forEach(row => row.forEach(val => { if (val > maxDensity) maxDensity = val; }));
+            if (maxDensity === 0) return;
 
-            // Draw heat map
+            // Draw heat map with blur using CSS filter on canvas element
+            // Reset transform for drawing
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+            // Use a finer resolution for smoother appearance
+            const dpr = window.devicePixelRatio;
+
             for (let row = 0; row < rows; row++) {
                 for (let col = 0; col < cols; col++) {
                     const density = grid[row][col];
-                    if (density > 0.05) { // Skip very low density cells
-                        const normalizedDensity = Math.min(density / Math.max(maxDensity, maxIntensity), 1);
+                    if (density > 0.01) { // Lower threshold for smoother gradients
+                        // Normalize based on actual max density for full color range
+                        const normalizedDensity = Math.min(density / maxDensity, 1);
                         const color = getHeatMapColor(normalizedDensity);
 
                         ctx.fillStyle = color;
-                        ctx.beginPath();
 
-                        // Draw rounded rectangle for smoother appearance
-                        const x = col * gridSize * scaleX;
-                        const y = row * gridSize * scaleY;
-                        const w = gridSize * scaleX + 1; // +1 to prevent gaps
-                        const h = gridSize * scaleY + 1;
+                        // Draw with device pixel ratio scaling
+                        const x = col * gridSize * scaleX * dpr;
+                        const y = row * gridSize * scaleY * dpr;
+                        const w = (gridSize * scaleX + 1) * dpr;
+                        const h = (gridSize * scaleY + 1) * dpr;
 
                         ctx.fillRect(x, y, w, h);
                     }
                 }
             }
 
-            // Apply blur for smoother appearance using offscreen canvas
-            try {
-                if (typeof ctx.filter !== 'undefined') {
-                    // Create offscreen canvas to avoid artifacts from drawing onto itself
-                    const offscreen = document.createElement('canvas');
-                    offscreen.width = canvas.width;
-                    offscreen.height = canvas.height;
-                    const offCtx = offscreen.getContext('2d');
-
-                    // Copy current content to offscreen canvas
-                    offCtx.drawImage(canvas, 0, 0);
-
-                    // Clear main canvas and draw back with blur
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.filter = 'blur(8px)';
-                    ctx.drawImage(offscreen, 0, 0);
-                    ctx.filter = 'none';
-                }
-            } catch (e) {
-                // Blur not supported, heat map will be slightly less smooth
-            }
+            // Apply CSS blur filter to canvas element for smooth appearance
+            canvas.style.filter = 'blur(6px)';
         }
 
         // Get color for heat map based on intensity (0-1)
         function getHeatMapColor(intensity) {
-            // Color gradient: blue -> cyan -> green -> yellow -> orange -> red
+            // Color gradient shifted toward warmer colors
             const colors = [
-                { pos: 0, r: 0, g: 0, b: 255 },      // Blue
-                { pos: 0.2, r: 0, g: 255, b: 255 },  // Cyan
-                { pos: 0.4, r: 0, g: 255, b: 0 },    // Green
-                { pos: 0.6, r: 255, g: 255, b: 0 },  // Yellow
-                { pos: 0.8, r: 255, g: 128, b: 0 },  // Orange
+                { pos: 0, r: 0, g: 150, b: 255 },    // Light blue
+                { pos: 0.15, r: 0, g: 255, b: 200 }, // Cyan-green
+                { pos: 0.3, r: 100, g: 255, b: 0 },  // Yellow-green
+                { pos: 0.45, r: 255, g: 255, b: 0 }, // Yellow
+                { pos: 0.6, r: 255, g: 180, b: 0 },  // Yellow-orange
+                { pos: 0.75, r: 255, g: 100, b: 0 }, // Orange
                 { pos: 1, r: 255, g: 0, b: 0 }       // Red
             ];
 
@@ -1232,44 +1221,34 @@
             // Find max density
             let maxDensity = 0;
             grid.forEach(row => row.forEach(val => { if (val > maxDensity) maxDensity = val; }));
+            if (maxDensity === 0) return;
+
+            // Reset transform for drawing
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            const dpr = window.devicePixelRatio;
 
             // Draw heat map
             for (let row = 0; row < rows; row++) {
                 for (let col = 0; col < cols; col++) {
                     const density = grid[row][col];
-                    if (density > 0.05) {
-                        const normalizedDensity = Math.min(density / Math.max(maxDensity, maxIntensity), 1);
+                    if (density > 0.01) {
+                        // Normalize based on actual max density for full color range
+                        const normalizedDensity = Math.min(density / maxDensity, 1);
                         const color = getHeatMapColor(normalizedDensity);
 
                         ctx.fillStyle = color;
-                        const x = col * gridSize * scaleX;
-                        const y = row * gridSize * scaleY;
-                        const w = gridSize * scaleX + 1;
-                        const h = gridSize * scaleY + 1;
+                        const x = col * gridSize * scaleX * dpr;
+                        const y = row * gridSize * scaleY * dpr;
+                        const w = (gridSize * scaleX + 1) * dpr;
+                        const h = (gridSize * scaleY + 1) * dpr;
 
                         ctx.fillRect(x, y, w, h);
                     }
                 }
             }
 
-            // Apply blur for smoother appearance using offscreen canvas
-            try {
-                if (typeof ctx.filter !== 'undefined') {
-                    const offscreen = document.createElement('canvas');
-                    offscreen.width = canvas.width;
-                    offscreen.height = canvas.height;
-                    const offCtx = offscreen.getContext('2d');
-
-                    offCtx.drawImage(canvas, 0, 0);
-
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.filter = 'blur(8px)';
-                    ctx.drawImage(offscreen, 0, 0);
-                    ctx.filter = 'none';
-                }
-            } catch (e) {
-                // Blur not supported
-            }
+            // Apply CSS blur filter to canvas element for smooth appearance
+            canvas.style.filter = 'blur(6px)';
         }
 
         // Format seconds to MM:SS
