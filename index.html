@@ -1265,23 +1265,119 @@
             return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         }
 
+        // Track history heat map team filters per game
+        const historyHeatMapFilters = {};
+
         // Toggle heat map for history view
         window.toggleHistoryHeatMap = function(gameId, enabled) {
             const canvas = document.getElementById(`history-heat-map-${gameId}`);
+            const teamFilterDiv = document.getElementById(`history-heat-map-filter-${gameId}`);
             if (!canvas) return;
 
             if (enabled) {
                 canvas.style.display = 'block';
-                // Find the game data
+                if (teamFilterDiv) teamFilterDiv.style.display = 'flex';
+
+                // Initialize filter if not set
+                if (!historyHeatMapFilters[gameId]) {
+                    historyHeatMapFilters[gameId] = 'all';
+                }
+
+                // Find the game data and render
                 getSavedGames().then(games => {
                     const game = games.find(g => g.id === gameId);
                     if (game && game.log) {
                         const shotsWithPositions = game.log.filter(s => s.position);
+                        updateHistoryHeatMapFilterButtons(gameId, shotsWithPositions);
                         renderHistoryHeatMap(gameId, shotsWithPositions);
                     }
                 });
             } else {
                 canvas.style.display = 'none';
+                if (teamFilterDiv) teamFilterDiv.style.display = 'none';
+            }
+        }
+
+        // Set team filter for history heat map
+        window.setHistoryHeatMapFilter = function(gameId, filter) {
+            historyHeatMapFilters[gameId] = filter;
+
+            // Update button styles
+            const allBtn = document.getElementById(`history-filter-all-${gameId}`);
+            const homeBtn = document.getElementById(`history-filter-home-${gameId}`);
+            const awayBtn = document.getElementById(`history-filter-away-${gameId}`);
+
+            [allBtn, homeBtn, awayBtn].forEach(btn => {
+                if (!btn) return;
+                btn.classList.remove('bg-orange-500', 'text-white');
+                btn.classList.add('bg-slate-200', 'text-slate-600');
+            });
+
+            const activeBtn = filter === 'all' ? allBtn : filter === 'home' ? homeBtn : awayBtn;
+            if (activeBtn && !activeBtn.disabled) {
+                activeBtn.classList.remove('bg-slate-200', 'text-slate-600');
+                activeBtn.classList.add('bg-orange-500', 'text-white');
+            }
+
+            // Re-render heat map
+            getSavedGames().then(games => {
+                const game = games.find(g => g.id === gameId);
+                if (game && game.log) {
+                    const shotsWithPositions = game.log.filter(s => s.position);
+                    renderHistoryHeatMap(gameId, shotsWithPositions);
+                }
+            });
+        }
+
+        // Update history heat map filter buttons based on shot counts
+        function updateHistoryHeatMapFilterButtons(gameId, shots) {
+            const homeShots = shots.filter(s => s.team === 'home').length;
+            const awayShots = shots.filter(s => s.team === 'away').length;
+
+            const allBtn = document.getElementById(`history-filter-all-${gameId}`);
+            const homeBtn = document.getElementById(`history-filter-home-${gameId}`);
+            const awayBtn = document.getElementById(`history-filter-away-${gameId}`);
+
+            const homeHasEnough = homeShots >= HEAT_MAP_MIN_SHOTS;
+            const awayHasEnough = awayShots >= HEAT_MAP_MIN_SHOTS;
+
+            if (allBtn) {
+                allBtn.disabled = !(homeHasEnough && awayHasEnough);
+                allBtn.title = (homeHasEnough && awayHasEnough) ? '' : 'Both teams need 10 shots';
+            }
+            if (homeBtn) {
+                homeBtn.disabled = !homeHasEnough;
+                homeBtn.title = homeHasEnough ? '' : `${homeShots}/10 shots`;
+            }
+            if (awayBtn) {
+                awayBtn.disabled = !awayHasEnough;
+                awayBtn.title = awayHasEnough ? '' : `${awayShots}/10 shots`;
+            }
+
+            // If current filter is invalid, switch to a valid one
+            let currentFilter = historyHeatMapFilters[gameId] || 'all';
+            if (currentFilter === 'all' && !(homeHasEnough && awayHasEnough)) {
+                currentFilter = homeHasEnough ? 'home' : 'away';
+                historyHeatMapFilters[gameId] = currentFilter;
+            } else if (currentFilter === 'home' && !homeHasEnough) {
+                currentFilter = awayHasEnough ? 'away' : 'all';
+                historyHeatMapFilters[gameId] = currentFilter;
+            } else if (currentFilter === 'away' && !awayHasEnough) {
+                currentFilter = homeHasEnough ? 'home' : 'all';
+                historyHeatMapFilters[gameId] = currentFilter;
+            }
+
+            // Update button styles
+            [allBtn, homeBtn, awayBtn].forEach(btn => {
+                if (!btn) return;
+                btn.classList.remove('bg-orange-500', 'text-white');
+                btn.classList.add('bg-slate-200', 'text-slate-600');
+            });
+
+            const activeBtn = currentFilter === 'all' ? allBtn : currentFilter === 'home' ? homeBtn : awayBtn;
+            if (activeBtn && !activeBtn.disabled) {
+                activeBtn.classList.remove('bg-slate-200', 'text-slate-600');
+                activeBtn.classList.add('bg-orange-500', 'text-white');
             }
         }
 
@@ -1308,13 +1404,21 @@
             ctx.clearRect(0, 0, rect.width, rect.height);
 
             // Filter shots to only include valid positions
-            const validShots = shots.filter(s =>
+            let validShots = shots.filter(s =>
                 s.position &&
                 typeof s.position.x === 'number' &&
                 typeof s.position.y === 'number' &&
                 !isNaN(s.position.x) &&
                 !isNaN(s.position.y)
             );
+
+            // Apply team filter
+            const teamFilter = historyHeatMapFilters[gameId] || 'all';
+            if (teamFilter === 'home') {
+                validShots = validShots.filter(s => s.team === 'home');
+            } else if (teamFilter === 'away') {
+                validShots = validShots.filter(s => s.team === 'away');
+            }
 
             if (validShots.length < HEAT_MAP_MIN_SHOTS) return;
 
@@ -2512,15 +2616,23 @@
                             ${hasShotMap ? `
                             <!-- Shot Map Visualization -->
                             <div class="mt-5 pt-5 border-t border-slate-200">
-                                <div class="flex items-center justify-between mb-3">
-                                    <div class="text-sm font-semibold text-slate-700">Shot Map</div>
-                                    ${shotsWithPositions.length >= 10 ? `
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <span class="text-xs text-slate-500">Heat Map</span>
-                                        <input type="checkbox" class="sr-only peer history-heat-map-toggle" data-game-id="${game.id}" onchange="toggleHistoryHeatMap('${game.id}', this.checked)">
-                                        <div class="w-8 h-4 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-orange-500 relative"></div>
-                                    </label>
-                                    ` : `<span class="text-xs text-slate-400">${shotsWithPositions.length}/10 shots for heat map</span>`}
+                                <div class="mb-3">
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-sm font-semibold text-slate-700">Shot Map</div>
+                                        ${shotsWithPositions.length >= 10 ? `
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <span class="text-xs text-slate-500">Heat Map</span>
+                                            <input type="checkbox" class="sr-only peer history-heat-map-toggle" data-game-id="${game.id}" onchange="toggleHistoryHeatMap('${game.id}', this.checked)">
+                                            <div class="w-8 h-4 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-orange-500 relative"></div>
+                                        </label>
+                                        ` : `<span class="text-xs text-slate-400">${shotsWithPositions.length}/10 shots for heat map</span>`}
+                                    </div>
+                                    <!-- Team Filter Buttons for History Heat Map -->
+                                    <div class="flex items-center justify-center gap-1 mt-2" id="history-heat-map-filter-${game.id}" style="display: none;">
+                                        <button type="button" id="history-filter-all-${game.id}" onclick="setHistoryHeatMapFilter('${game.id}', 'all')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 bg-orange-500 text-white disabled:opacity-50 disabled:cursor-not-allowed">All</button>
+                                        <button type="button" id="history-filter-home-${game.id}" onclick="setHistoryHeatMapFilter('${game.id}', 'home')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 bg-slate-200 text-slate-600 hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed">${game.homeTeam}</button>
+                                        <button type="button" id="history-filter-away-${game.id}" onclick="setHistoryHeatMapFilter('${game.id}', 'away')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 bg-slate-200 text-slate-600 hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed">${game.awayTeam}</button>
+                                    </div>
                                 </div>
                                 <div class="relative bg-emerald-600 rounded-xl overflow-hidden" id="history-field-${game.id}" style="aspect-ratio: 105/68;">
                                     <svg viewBox="0 0 105 68" class="w-full h-full">

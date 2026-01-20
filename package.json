@@ -1,0 +1,25 @@
+{
+  "name": "soccer-shot-tracker",
+  "version": "1.0.0",
+  "description": "Intent Soccer Shot Tracker App",
+  "type": "module",
+  "scripts": {
+    "generate-shots": "node scripts/generate-shots.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "main": "index.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brookswest/soccer-shot-tracker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brookswest/soccer-shot-tracker/issues"
+  },
+  "homepage": "https://github.com/brookswest/soccer-shot-tracker#readme"
+}
