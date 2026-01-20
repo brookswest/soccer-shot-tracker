@@ -177,6 +177,18 @@
                                 </button>
                             </div>
                         </div>
+                        <!-- Wake Lock Toggle -->
+                        <div class="sm:col-span-2 mt-3 pt-3 border-t border-slate-100">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="text-sm font-medium text-slate-700">Keep Screen On</label>
+                                    <p class="text-xs text-slate-400 mt-0.5">Prevent screen from dimming</p>
+                                </div>
+                                <button type="button" id="wake-lock-toggle" onclick="toggleWakeLock()" class="relative w-12 h-7 bg-slate-300 rounded-full transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
+                                    <span id="wake-lock-toggle-dot" class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -875,6 +887,10 @@
         let heatMapTeamFilter = localStorage.getItem('heatMapTeamFilter') || 'all'; // 'all', 'home', 'away'
         const HEAT_MAP_MIN_SHOTS = 10;
 
+        // Wake Lock state
+        let wakeLock = null;
+        let wakeLockEnabled = localStorage.getItem('wakeLockEnabled') === 'true';
+
         // Saved games storage key
         const STORAGE_KEY = 'soccer-shot-tracker-games';
 
@@ -894,6 +910,82 @@
                 dot.style.transform = 'translateX(0)';
             }
         }
+
+        // =====================================================
+        // WAKE LOCK FUNCTIONS
+        // =====================================================
+
+        // Toggle wake lock setting
+        window.toggleWakeLock = async function() {
+            wakeLockEnabled = !wakeLockEnabled;
+            localStorage.setItem('wakeLockEnabled', wakeLockEnabled);
+            updateWakeLockToggleUI();
+
+            if (wakeLockEnabled) {
+                await requestWakeLock();
+            } else {
+                await releaseWakeLock();
+            }
+        }
+
+        // Update wake lock toggle UI
+        function updateWakeLockToggleUI() {
+            const toggle = document.getElementById('wake-lock-toggle');
+            const dot = document.getElementById('wake-lock-toggle-dot');
+
+            if (!toggle || !dot) return;
+
+            if (wakeLockEnabled) {
+                toggle.classList.remove('bg-slate-300');
+                toggle.classList.add('bg-emerald-500');
+                dot.style.transform = 'translateX(20px)';
+            } else {
+                toggle.classList.add('bg-slate-300');
+                toggle.classList.remove('bg-emerald-500');
+                dot.style.transform = 'translateX(0)';
+            }
+        }
+
+        // Request wake lock
+        async function requestWakeLock() {
+            if (!('wakeLock' in navigator)) {
+                console.log('Wake Lock API not supported');
+                return;
+            }
+
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log('Wake lock acquired');
+
+                // Re-acquire wake lock if released (e.g., when tab becomes visible again)
+                wakeLock.addEventListener('release', () => {
+                    console.log('Wake lock released');
+                    wakeLock = null;
+                });
+            } catch (err) {
+                console.log('Wake lock request failed:', err.message);
+            }
+        }
+
+        // Release wake lock
+        async function releaseWakeLock() {
+            if (wakeLock) {
+                try {
+                    await wakeLock.release();
+                    wakeLock = null;
+                    console.log('Wake lock released');
+                } catch (err) {
+                    console.log('Wake lock release failed:', err.message);
+                }
+            }
+        }
+
+        // Re-acquire wake lock when page becomes visible again
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'visible' && wakeLockEnabled && !wakeLock) {
+                await requestWakeLock();
+            }
+        });
 
         // Flip field sides (swap Home and Away positions on the field)
         window.flipFieldSides = function() {
@@ -1594,6 +1686,12 @@
             try {
                 document.getElementById('game-date').valueAsDate = new Date();
                 updateClockDisplay();
+
+                // Restore wake lock state from localStorage
+                if (wakeLockEnabled) {
+                    updateWakeLockToggleUI();
+                    requestWakeLock();
+                }
             } catch (e) {
                 console.error('Initialization error:', e);
             }
