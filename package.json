@@ -4,13 +4,25 @@
   "description": "Intent Soccer Shot Tracker App",
   "type": "module",
   "scripts": {
-    "generate-shots": "node scripts/generate-shots.js"
+    "generate-shots": "node scripts/generate-shots.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "test:ci": "node --experimental-vm-modules node_modules/jest/bin/jest.js --ci --coverage --reporters=default --reporters=jest-junit",
+    "prepare": "husky"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0"
   },
   "main": "index.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "@testing-library/dom": "^9.3.4",
+    "@testing-library/jest-dom": "^6.4.2",
+    "husky": "^9.1.7",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jest-junit": "^16.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/brookswest/soccer-shot-tracker.git"
@@ -21,5 +33,9 @@
   "bugs": {
     "url": "https://github.com/brookswest/soccer-shot-tracker/issues"
   },
-  "homepage": "https://github.com/brookswest/soccer-shot-tracker#readme"
+  "homepage": "https://github.com/brookswest/soccer-shot-tracker#readme",
+  "jest-junit": {
+    "outputDirectory": ".",
+    "outputName": "junit.xml"
+  }
 }
