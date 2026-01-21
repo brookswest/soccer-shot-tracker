@@ -11,6 +11,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -58,53 +59,59 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        /* Dark mode scrollbar */
+        .dark .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        /* Dark mode body background */
+        html.dark { background-color: #0f172a; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen font-sans text-slate-800 antialiased">
+<body class="bg-slate-100 dark:bg-slate-900 min-h-screen font-sans text-slate-800 dark:text-slate-200 antialiased">
     <!-- ===== Authentication Screen ===== -->
-    <div id="auth-container" class="min-h-screen flex flex-col items-center justify-center p-5 bg-gradient-to-br from-slate-100 to-slate-200">
-        <div class="bg-white rounded-2xl shadow-xl p-8 sm:p-10 w-full max-w-md">
+    <div id="auth-container" class="min-h-screen flex flex-col items-center justify-center p-5 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 sm:p-10 w-full max-w-md">
             <div class="text-center mb-8">
                 <img src="intent-soccer-crest-ball-only-final.svg" alt="Intent Soccer" class="w-20 h-auto mx-auto mb-4">
                 <img src="intent-soccer-text-only-final.svg" alt="Intent Soccer" class="h-12 mx-auto mb-3">
-                <p class="text-slate-500 mt-2">Track shots and save game statistics</p>
+                <p class="text-slate-500 dark:text-slate-400 mt-2">Track shots and save game statistics</p>
             </div>
 
             <!-- Loading state while checking auth -->
             <div id="auth-loading" class="show text-center py-10">
-                <div class="w-10 h-10 border-3 border-slate-200 border-t-emerald-500 rounded-full animate-spin-slow mx-auto mb-4" style="border-width: 3px;"></div>
-                <p class="text-slate-500">Loading...</p>
+                <div class="w-10 h-10 border-3 border-slate-200 dark:border-slate-600 border-t-emerald-500 rounded-full animate-spin-slow mx-auto mb-4" style="border-width: 3px;"></div>
+                <p class="text-slate-500 dark:text-slate-400">Loading...</p>
             </div>
 
             <!-- Auth form (hidden while loading) -->
             <div id="auth-form-container" style="display: none;">
                 <!-- Login/Signup tabs -->
-                <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
-                    <button class="auth-tab active flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 bg-white text-emerald-600 shadow-sm" id="login-tab" onclick="switchAuthTab('login')">Log In</button>
-                    <button class="auth-tab flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 text-slate-500 hover:text-slate-700" id="signup-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+                <div class="flex bg-slate-100 dark:bg-slate-700 rounded-xl p-1 mb-6">
+                    <button class="auth-tab active flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 bg-white dark:bg-slate-600 text-emerald-600 dark:text-emerald-400 shadow-sm" id="login-tab" onclick="switchAuthTab('login')">Log In</button>
+                    <button class="auth-tab flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200" id="signup-tab" onclick="switchAuthTab('signup')">Sign Up</button>
                 </div>
 
                 <!-- Error/Success messages -->
-                <div id="auth-error" class="hidden bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-4"></div>
-                <div id="auth-success" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-600 px-4 py-3 rounded-xl text-sm mb-4"></div>
+                <div id="auth-error" class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl text-sm mb-4"></div>
+                <div id="auth-success" class="hidden bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 px-4 py-3 rounded-xl text-sm mb-4"></div>
 
                 <!-- Login Form -->
                 <form id="login-form" class="flex flex-col gap-4" onsubmit="handleLogin(event)">
-                    <input type="email" id="login-email" class="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Email address" required>
-                    <input type="password" id="login-password" class="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Password" required>
+                    <input type="email" id="login-email" class="w-full px-4 py-3.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Email address" required>
+                    <input type="password" id="login-password" class="w-full px-4 py-3.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Password" required>
                     <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 active:scale-[0.98]" id="login-btn">Log In</button>
                 </form>
 
                 <!-- Signup Form (hidden by default) -->
                 <form id="signup-form" class="flex flex-col gap-4" style="display: none;" onsubmit="handleSignup(event)">
-                    <input type="email" id="signup-email" class="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Email address" required>
-                    <input type="password" id="signup-password" class="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Password (min 6 characters)" minlength="6" required>
-                    <input type="password" id="signup-confirm" class="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Confirm password" minlength="6" required>
+                    <input type="email" id="signup-email" class="w-full px-4 py-3.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Email address" required>
+                    <input type="password" id="signup-password" class="w-full px-4 py-3.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Password (min 6 characters)" minlength="6" required>
+                    <input type="password" id="signup-confirm" class="w-full px-4 py-3.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Confirm password" minlength="6" required>
                     <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 active:scale-[0.98]" id="signup-btn">Create Account</button>
                 </form>
             </div>
 
-            <div class="text-center mt-8 pt-6 border-t border-slate-200 text-slate-500">
+            <div class="text-center mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400">
                 <p class="text-lg italic font-medium">This app inspired by Coach Adolpho</p>
                 <p class="text-xs mt-1" id="version-auth"></p>
             </div>
@@ -114,10 +121,17 @@
     <!-- ===== Main App (hidden until authenticated) ===== -->
     <div id="app-wrapper" class="hidden">
         <header class="bg-gradient-to-br from-emerald-500 to-emerald-600 pb-20">
-            <!-- User bar with email and logout -->
-            <div class="flex items-center justify-end gap-3 px-5 py-2 bg-black/10">
-                <span class="text-white/90 text-sm" id="user-email"></span>
-                <button class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors" onclick="handleLogout()">Log Out</button>
+            <!-- User bar with profile button -->
+            <div class="flex items-center justify-end px-5 py-2 bg-black/10">
+                <button onclick="openProfileModal()" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg transition-colors">
+                    <div id="user-avatar" class="w-7 h-7 bg-white/30 rounded-full flex items-center justify-center text-sm font-semibold">
+                        U
+                    </div>
+                    <span class="text-sm" id="user-email"></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
             </div>
             <div class="text-center pt-4 px-5">
                 <div class="flex items-center justify-center gap-3 mb-2">
@@ -129,62 +143,62 @@
         </header>
 
         <div class="max-w-4xl mx-auto px-4 -mt-14 pb-10">
-            <nav class="flex bg-white rounded-2xl p-1.5 mb-6 shadow-lg">
+            <nav class="flex bg-white dark:bg-slate-800 rounded-2xl p-1.5 mb-6 shadow-lg">
                 <button class="nav-tab active flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 bg-emerald-500 text-white shadow-sm" onclick="switchView('game')">Current Game</button>
-                <button class="nav-tab flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50" onclick="switchView('history')">Game History</button>
+                <button class="nav-tab flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700" onclick="switchView('history')">Game History</button>
             </nav>
 
             <!-- Current Game View -->
             <div id="game-view" class="view active">
                 <!-- Game Setup Card -->
-                <div class="bg-white rounded-2xl p-6 mb-5 shadow-lg">
-                    <h2 class="text-lg font-semibold text-slate-800 mb-5">Game Setup</h2>
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 mb-5 shadow-lg">
+                    <h2 class="text-lg font-semibold text-slate-800 dark:text-white mb-5">Game Setup</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <label for="game-date" class="text-sm font-medium text-slate-500">Date</label>
-                            <input type="date" id="game-date" class="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10">
+                            <label for="game-date" class="text-sm font-medium text-slate-500 dark:text-slate-400">Date</label>
+                            <input type="date" id="game-date" class="w-full px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10">
                         </div>
                         <div class="space-y-1.5">
-                            <label class="text-sm font-medium text-slate-500">Half</label>
+                            <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Half</label>
                             <div class="flex gap-2">
                                 <button type="button" class="half-btn active flex-1 py-2.5 px-4 border-2 border-emerald-500 bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-all duration-200" id="half-1-btn" onclick="setHalf(1)">1st Half</button>
-                                <button type="button" class="half-btn flex-1 py-2.5 px-4 border-2 border-slate-200 bg-white text-slate-500 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500" id="half-2-btn" onclick="setHalf(2)">2nd Half</button>
+                                <button type="button" class="half-btn flex-1 py-2.5 px-4 border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500" id="half-2-btn" onclick="setHalf(2)">2nd Half</button>
                             </div>
                         </div>
                         <div class="space-y-1.5">
-                            <label for="home-team-input" class="text-sm font-medium text-slate-500">Home Team</label>
+                            <label for="home-team-input" class="text-sm font-medium text-slate-500 dark:text-slate-400">Home Team</label>
                             <div class="flex gap-2">
-                                <input type="text" id="home-team-input" class="flex-1 px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Home Team">
-                                <input type="color" id="home-color" class="color-picker w-11 h-11 border-2 border-slate-200 rounded-xl cursor-pointer p-1 bg-white" value="#10b981" title="Home team color">
+                                <input type="text" id="home-team-input" class="flex-1 px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Home Team">
+                                <input type="color" id="home-color" class="color-picker w-11 h-11 border-2 border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer p-1 bg-white dark:bg-slate-700" value="#10b981" title="Home team color">
                             </div>
                         </div>
                         <div class="space-y-1.5">
-                            <label for="away-team-input" class="text-sm font-medium text-slate-500">Away Team</label>
+                            <label for="away-team-input" class="text-sm font-medium text-slate-500 dark:text-slate-400">Away Team</label>
                             <div class="flex gap-2">
-                                <input type="text" id="away-team-input" class="flex-1 px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Away Team">
-                                <input type="color" id="away-color" class="color-picker w-11 h-11 border-2 border-slate-200 rounded-xl cursor-pointer p-1 bg-white" value="#3b82f6" title="Away team color">
+                                <input type="text" id="away-team-input" class="flex-1 px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Away Team">
+                                <input type="color" id="away-color" class="color-picker w-11 h-11 border-2 border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer p-1 bg-white dark:bg-slate-700" value="#3b82f6" title="Away team color">
                             </div>
                         </div>
                         <!-- Shot Map Toggle -->
-                        <div class="sm:col-span-2 mt-2 pt-4 border-t border-slate-200">
+                        <div class="sm:col-span-2 mt-2 pt-4 border-t border-slate-200 dark:border-slate-700">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <label class="text-sm font-medium text-slate-700">Shot Map</label>
+                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Shot Map</label>
                                     <p class="text-xs text-slate-400 mt-0.5">Record shot locations on the field</p>
                                 </div>
-                                <button type="button" id="shot-map-toggle" onclick="toggleShotMap()" class="relative w-12 h-7 bg-slate-300 rounded-full transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
+                                <button type="button" id="shot-map-toggle" onclick="toggleShotMap()" class="relative w-12 h-7 bg-slate-300 dark:bg-slate-600 rounded-full transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
                                     <span id="shot-map-toggle-dot" class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
                                 </button>
                             </div>
                         </div>
                         <!-- Wake Lock Toggle -->
-                        <div class="sm:col-span-2 mt-3 pt-3 border-t border-slate-100">
+                        <div class="sm:col-span-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <label class="text-sm font-medium text-slate-700">Keep Screen On</label>
+                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Keep Screen On</label>
                                     <p class="text-xs text-slate-400 mt-0.5">Prevent screen from dimming</p>
                                 </div>
-                                <button type="button" id="wake-lock-toggle" onclick="toggleWakeLock()" class="relative w-12 h-7 bg-slate-300 rounded-full transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
+                                <button type="button" id="wake-lock-toggle" onclick="toggleWakeLock()" class="relative w-12 h-7 bg-slate-300 dark:bg-slate-600 rounded-full transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
                                     <span id="wake-lock-toggle-dot" class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
                                 </button>
                             </div>
@@ -231,8 +245,8 @@
                 <!-- Team Panels -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                     <!-- Home Team Panel -->
-                    <div class="team-panel home bg-white rounded-2xl p-6 shadow-lg border-t-4 border-emerald-500">
-                        <h2 id="home-panel-title" class="text-lg font-semibold text-emerald-600 mb-5 flex items-center gap-2">
+                    <div class="team-panel home bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border-t-4 border-emerald-500">
+                        <h2 id="home-panel-title" class="text-lg font-semibold text-emerald-600 dark:text-emerald-400 mb-5 flex items-center gap-2">
                             <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
                             Home Team
                         </h2>
@@ -241,50 +255,50 @@
                             <button class="btn btn-on-target w-full py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0" onclick="recordShot('home', 'on-target')">Shot On Target</button>
                             <button class="btn btn-off-target w-full py-3.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0" onclick="recordShot('home', 'off-target')">Shot Off Target</button>
                         </div>
-                        <div class="mt-5 pt-5 border-t border-slate-200">
-                            <div class="flex justify-between py-2.5 border-b border-slate-100">
-                                <span class="text-slate-500 text-sm">Goals</span>
-                                <span class="font-semibold text-slate-800" id="home-goals">0</span>
+                        <div class="mt-5 pt-5 border-t border-slate-200 dark:border-slate-700">
+                            <div class="flex justify-between py-2.5 border-b border-slate-100 dark:border-slate-700">
+                                <span class="text-slate-500 dark:text-slate-400 text-sm">Goals</span>
+                                <span class="font-semibold text-slate-800 dark:text-white" id="home-goals">0</span>
                             </div>
-                            <div class="flex justify-between py-2.5 border-b border-slate-100">
-                                <span class="text-slate-500 text-sm">Shots On Target</span>
-                                <span class="font-semibold text-slate-800" id="home-on-target">0</span>
+                            <div class="flex justify-between py-2.5 border-b border-slate-100 dark:border-slate-700">
+                                <span class="text-slate-500 dark:text-slate-400 text-sm">Shots On Target</span>
+                                <span class="font-semibold text-slate-800 dark:text-white" id="home-on-target">0</span>
                             </div>
-                            <div class="flex justify-between py-2.5 border-b border-slate-100">
-                                <span class="text-slate-500 text-sm">Shots Off Target</span>
-                                <span class="font-semibold text-slate-800" id="home-off-target">0</span>
+                            <div class="flex justify-between py-2.5 border-b border-slate-100 dark:border-slate-700">
+                                <span class="text-slate-500 dark:text-slate-400 text-sm">Shots Off Target</span>
+                                <span class="font-semibold text-slate-800 dark:text-white" id="home-off-target">0</span>
                             </div>
-                            <div class="flex justify-between py-2.5 border-b border-slate-100">
-                                <span class="text-slate-500 text-sm">Total Shots</span>
-                                <span class="font-semibold text-slate-800" id="home-total">0</span>
+                            <div class="flex justify-between py-2.5 border-b border-slate-100 dark:border-slate-700">
+                                <span class="text-slate-500 dark:text-slate-400 text-sm">Total Shots</span>
+                                <span class="font-semibold text-slate-800 dark:text-white" id="home-total">0</span>
                             </div>
                             <div class="flex justify-between py-2.5">
-                                <span class="text-slate-500 text-sm">Shot Accuracy</span>
-                                <span class="font-semibold text-emerald-600" id="home-accuracy">0%</span>
+                                <span class="text-slate-500 dark:text-slate-400 text-sm">Shot Accuracy</span>
+                                <span class="font-semibold text-emerald-600 dark:text-emerald-400" id="home-accuracy">0%</span>
                             </div>
                         </div>
-                        <div class="half-breakdown mt-4 pt-4 border-t border-slate-200">
+                        <div class="half-breakdown mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">By Half</div>
                             <div class="grid grid-cols-2 gap-3">
-                                <div class="bg-slate-50 rounded-xl p-3">
+                                <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-3">
                                     <h4 class="text-xs font-semibold text-slate-400 uppercase mb-2">1st Half</h4>
-                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Goals</span><span class="font-semibold text-slate-700" id="home-h1-goals">0</span></div>
-                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">On Target</span><span class="font-semibold text-slate-700" id="home-h1-on-target">0</span></div>
-                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Off Target</span><span class="font-semibold text-slate-700" id="home-h1-off-target">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Goals</span><span class="font-semibold text-slate-700 dark:text-slate-200" id="home-h1-goals">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">On Target</span><span class="font-semibold text-slate-700 dark:text-slate-200" id="home-h1-on-target">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Off Target</span><span class="font-semibold text-slate-700 dark:text-slate-200" id="home-h1-off-target">0</span></div>
                                 </div>
-                                <div class="bg-slate-50 rounded-xl p-3">
+                                <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-3">
                                     <h4 class="text-xs font-semibold text-slate-400 uppercase mb-2">2nd Half</h4>
-                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Goals</span><span class="font-semibold text-slate-700" id="home-h2-goals">0</span></div>
-                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">On Target</span><span class="font-semibold text-slate-700" id="home-h2-on-target">0</span></div>
-                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Off Target</span><span class="font-semibold text-slate-700" id="home-h2-off-target">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Goals</span><span class="font-semibold text-slate-700 dark:text-slate-200" id="home-h2-goals">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">On Target</span><span class="font-semibold text-slate-700 dark:text-slate-200" id="home-h2-on-target">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Off Target</span><span class="font-semibold text-slate-700 dark:text-slate-200" id="home-h2-off-target">0</span></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Away Team Panel -->
-                    <div class="team-panel away bg-white rounded-2xl p-6 shadow-lg border-t-4 border-blue-500">
-                        <h2 id="away-panel-title" class="text-lg font-semibold text-blue-600 mb-5 flex items-center gap-2">
+                    <div class="team-panel away bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border-t-4 border-blue-500">
+                        <h2 id="away-panel-title" class="text-lg font-semibold text-blue-600 dark:text-blue-400 mb-5 flex items-center gap-2">
                             <span class="w-3 h-3 rounded-full bg-blue-500"></span>
                             Away Team
                         </h2>
@@ -293,42 +307,42 @@
                             <button class="btn btn-on-target w-full py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0" onclick="recordShot('away', 'on-target')">Shot On Target</button>
                             <button class="btn btn-off-target w-full py-3.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0" onclick="recordShot('away', 'off-target')">Shot Off Target</button>
                         </div>
-                        <div class="mt-5 pt-5 border-t border-slate-200">
-                            <div class="flex justify-between py-2.5 border-b border-slate-100">
-                                <span class="text-slate-500 text-sm">Goals</span>
-                                <span class="font-semibold text-slate-800" id="away-goals">0</span>
+                        <div class="mt-5 pt-5 border-t border-slate-200 dark:border-slate-700">
+                            <div class="flex justify-between py-2.5 border-b border-slate-100 dark:border-slate-700">
+                                <span class="text-slate-500 dark:text-slate-400 text-sm">Goals</span>
+                                <span class="font-semibold text-slate-800 dark:text-white" id="away-goals">0</span>
                             </div>
-                            <div class="flex justify-between py-2.5 border-b border-slate-100">
-                                <span class="text-slate-500 text-sm">Shots On Target</span>
-                                <span class="font-semibold text-slate-800" id="away-on-target">0</span>
+                            <div class="flex justify-between py-2.5 border-b border-slate-100 dark:border-slate-700">
+                                <span class="text-slate-500 dark:text-slate-400 text-sm">Shots On Target</span>
+                                <span class="font-semibold text-slate-800 dark:text-white" id="away-on-target">0</span>
                             </div>
-                            <div class="flex justify-between py-2.5 border-b border-slate-100">
-                                <span class="text-slate-500 text-sm">Shots Off Target</span>
-                                <span class="font-semibold text-slate-800" id="away-off-target">0</span>
+                            <div class="flex justify-between py-2.5 border-b border-slate-100 dark:border-slate-700">
+                                <span class="text-slate-500 dark:text-slate-400 text-sm">Shots Off Target</span>
+                                <span class="font-semibold text-slate-800 dark:text-white" id="away-off-target">0</span>
                             </div>
-                            <div class="flex justify-between py-2.5 border-b border-slate-100">
-                                <span class="text-slate-500 text-sm">Total Shots</span>
-                                <span class="font-semibold text-slate-800" id="away-total">0</span>
+                            <div class="flex justify-between py-2.5 border-b border-slate-100 dark:border-slate-700">
+                                <span class="text-slate-500 dark:text-slate-400 text-sm">Total Shots</span>
+                                <span class="font-semibold text-slate-800 dark:text-white" id="away-total">0</span>
                             </div>
                             <div class="flex justify-between py-2.5">
-                                <span class="text-slate-500 text-sm">Shot Accuracy</span>
-                                <span class="font-semibold text-blue-600" id="away-accuracy">0%</span>
+                                <span class="text-slate-500 dark:text-slate-400 text-sm">Shot Accuracy</span>
+                                <span class="font-semibold text-blue-600 dark:text-blue-400" id="away-accuracy">0%</span>
                             </div>
                         </div>
-                        <div class="half-breakdown mt-4 pt-4 border-t border-slate-200">
+                        <div class="half-breakdown mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">By Half</div>
                             <div class="grid grid-cols-2 gap-3">
-                                <div class="bg-slate-50 rounded-xl p-3">
+                                <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-3">
                                     <h4 class="text-xs font-semibold text-slate-400 uppercase mb-2">1st Half</h4>
-                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Goals</span><span class="font-semibold text-slate-700" id="away-h1-goals">0</span></div>
-                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">On Target</span><span class="font-semibold text-slate-700" id="away-h1-on-target">0</span></div>
-                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Off Target</span><span class="font-semibold text-slate-700" id="away-h1-off-target">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Goals</span><span class="font-semibold text-slate-700 dark:text-slate-200" id="away-h1-goals">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">On Target</span><span class="font-semibold text-slate-700 dark:text-slate-200" id="away-h1-on-target">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Off Target</span><span class="font-semibold text-slate-700 dark:text-slate-200" id="away-h1-off-target">0</span></div>
                                 </div>
-                                <div class="bg-slate-50 rounded-xl p-3">
+                                <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-3">
                                     <h4 class="text-xs font-semibold text-slate-400 uppercase mb-2">2nd Half</h4>
-                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Goals</span><span class="font-semibold text-slate-700" id="away-h2-goals">0</span></div>
-                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">On Target</span><span class="font-semibold text-slate-700" id="away-h2-on-target">0</span></div>
-                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Off Target</span><span class="font-semibold text-slate-700" id="away-h2-off-target">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Goals</span><span class="font-semibold text-slate-700 dark:text-slate-200" id="away-h2-goals">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">On Target</span><span class="font-semibold text-slate-700 dark:text-slate-200" id="away-h2-on-target">0</span></div>
+                                    <div class="flex justify-between text-xs py-1"><span class="text-slate-400">Off Target</span><span class="font-semibold text-slate-700 dark:text-slate-200" id="away-h2-off-target">0</span></div>
                                 </div>
                             </div>
                         </div>
@@ -336,12 +350,12 @@
                 </div>
 
                 <!-- Shot Log -->
-                <div class="bg-white rounded-2xl p-6 mb-5 shadow-lg">
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 mb-5 shadow-lg">
                     <div class="flex justify-between items-center mb-5">
-                        <h2 class="text-lg font-semibold text-slate-800">Shot Log</h2>
+                        <h2 class="text-lg font-semibold text-slate-800 dark:text-white">Shot Log</h2>
                         <div class="flex gap-2">
-                            <button class="btn btn-outline px-4 py-2 border-2 border-slate-200 text-slate-500 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed" id="view-shot-map-btn" onclick="viewShotMap()" disabled>View Shot Map</button>
-                            <button class="btn btn-outline px-4 py-2 border-2 border-slate-200 text-slate-500 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed" id="undo-btn" onclick="undoLastShot()" disabled>Undo</button>
+                            <button class="btn btn-outline px-4 py-2 border-2 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed" id="view-shot-map-btn" onclick="viewShotMap()" disabled>View Shot Map</button>
+                            <button class="btn btn-outline px-4 py-2 border-2 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed" id="undo-btn" onclick="undoLastShot()" disabled>Undo</button>
                         </div>
                     </div>
                     <div class="log-entries max-h-60 overflow-y-auto custom-scrollbar" id="log-entries">
@@ -353,10 +367,10 @@
                 </div>
 
                 <!-- Notes Section -->
-                <div class="bg-white rounded-2xl p-6 mb-5 shadow-lg">
-                    <h2 class="text-lg font-semibold text-slate-800 mb-5">Game Notes</h2>
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 mb-5 shadow-lg">
+                    <h2 class="text-lg font-semibold text-slate-800 dark:text-white mb-5">Game Notes</h2>
                     <div class="flex flex-col sm:flex-row gap-3 mb-4">
-                        <input type="text" id="note-input" class="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Add a note..." onkeypress="if(event.key === 'Enter') addNote()">
+                        <input type="text" id="note-input" class="flex-1 px-4 py-3 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Add a note..." onkeypress="if(event.key === 'Enter') addNote()">
                         <button class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg" onclick="addNote()">Add Note</button>
                     </div>
                     <div class="log-entries max-h-60 overflow-y-auto custom-scrollbar" id="notes-entries">
@@ -370,33 +384,33 @@
                 <!-- Action Buttons -->
                 <div class="flex flex-col sm:flex-row gap-3">
                     <button class="flex-1 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl" onclick="saveGame()">Save Game</button>
-                    <button class="flex-1 py-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl transition-all duration-200" onclick="confirmReset()">Reset Game</button>
+                    <button class="flex-1 py-4 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-all duration-200" onclick="confirmReset()">Reset Game</button>
                 </div>
             </div>
 
             <!-- History View -->
             <div id="history-view" class="view hidden">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="stats-dashboard">
-                    <div class="bg-white rounded-2xl p-5 text-center shadow-lg border border-slate-100">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 text-center shadow-lg border border-slate-100 dark:border-slate-700">
                         <div class="text-3xl font-bold text-emerald-500" id="total-games">0</div>
-                        <div class="text-xs font-medium text-slate-500 mt-2">Games Played</div>
+                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-2">Games Played</div>
                     </div>
-                    <div class="bg-white rounded-2xl p-5 text-center shadow-lg border border-slate-100">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 text-center shadow-lg border border-slate-100 dark:border-slate-700">
                         <div class="text-3xl font-bold text-emerald-500" id="avg-goals">0</div>
-                        <div class="text-xs font-medium text-slate-500 mt-2">Avg Goals/Game</div>
+                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-2">Avg Goals/Game</div>
                     </div>
-                    <div class="bg-white rounded-2xl p-5 text-center shadow-lg border border-slate-100">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 text-center shadow-lg border border-slate-100 dark:border-slate-700">
                         <div class="text-3xl font-bold text-emerald-500" id="total-shots">0</div>
-                        <div class="text-xs font-medium text-slate-500 mt-2">Total Shots</div>
+                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-2">Total Shots</div>
                     </div>
-                    <div class="bg-white rounded-2xl p-5 text-center shadow-lg border border-slate-100">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 text-center shadow-lg border border-slate-100 dark:border-slate-700">
                         <div class="text-3xl font-bold text-emerald-500" id="avg-accuracy">0%</div>
-                        <div class="text-xs font-medium text-slate-500 mt-2">Avg Accuracy</div>
+                        <div class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-2">Avg Accuracy</div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-2xl p-6 shadow-lg">
-                    <h2 class="text-lg font-semibold text-slate-800 mb-5">Saved Games</h2>
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+                    <h2 class="text-lg font-semibold text-slate-800 dark:text-white mb-5">Saved Games</h2>
                     <div class="game-list flex flex-col gap-3" id="game-list">
                         <div class="empty-state text-center py-10 text-slate-400">
                             <div class="text-5xl mb-3">&#128202;</div>
@@ -408,41 +422,105 @@
             </div>
         </div>
 
-        <footer class="text-center py-6 text-slate-500">
+        <footer class="text-center py-6 text-slate-500 dark:text-slate-400">
             <p class="text-lg italic font-medium">This app inspired by Coach Adolpho</p>
             <p class="text-xs mt-1" id="version-app"></p>
         </footer>
 
         <!-- Confirmation Modal -->
         <div class="modal-overlay fixed inset-0 bg-black/50 z-50 hidden items-center justify-center" id="modal-overlay">
-            <div class="bg-white rounded-2xl p-6 max-w-sm w-11/12 shadow-2xl">
-                <h3 class="text-lg font-semibold text-slate-800 mb-3" id="modal-title">Confirm Action</h3>
-                <p class="text-slate-500 mb-6" id="modal-message">Are you sure you want to proceed?</p>
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-11/12 shadow-2xl">
+                <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-3" id="modal-title">Confirm Action</h3>
+                <p class="text-slate-500 dark:text-slate-400 mb-6" id="modal-message">Are you sure you want to proceed?</p>
                 <div class="flex gap-3 justify-end">
-                    <button class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl transition-all duration-200" onclick="closeModal()">Cancel</button>
+                    <button class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-all duration-200" onclick="closeModal()">Cancel</button>
                     <button class="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl transition-all duration-200" id="modal-confirm">Confirm</button>
                 </div>
             </div>
         </div>
 
+        <!-- Profile Modal -->
+        <div class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center" id="profile-modal-overlay" onclick="if(event.target === this) closeProfileModal()">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-11/12 shadow-2xl">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold text-slate-800 dark:text-white">Profile</h3>
+                    <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- User Info -->
+                <div class="flex items-center gap-4 mb-6 pb-6 border-b border-slate-200 dark:border-slate-700">
+                    <div id="profile-avatar" class="w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center text-2xl font-bold text-white">
+                        U
+                    </div>
+                    <div>
+                        <p class="text-slate-800 dark:text-white font-medium" id="profile-email">user@example.com</p>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Logged in</p>
+                    </div>
+                </div>
+
+                <!-- Theme Toggle -->
+                <div class="flex items-center justify-between mb-6 pb-6 border-b border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center gap-3">
+                        <!-- Sun icon (light mode) -->
+                        <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <!-- Moon icon (dark mode) -->
+                        <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-400 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                        <span class="text-slate-700 dark:text-slate-200 font-medium">Dark Mode</span>
+                    </div>
+                    <button type="button" id="theme-toggle" onclick="toggleTheme()" class="relative w-12 h-7 bg-slate-300 dark:bg-emerald-500 rounded-full transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
+                        <span id="theme-toggle-dot" class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
+                    </button>
+                </div>
+
+                <!-- Password Reset -->
+                <div class="mb-6 pb-6 border-b border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center gap-3 mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                        <span class="text-slate-700 dark:text-slate-200 font-medium">Password</span>
+                    </div>
+                    <button onclick="handlePasswordReset()" id="password-reset-btn" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-all duration-200">
+                        Send Password Reset Email
+                    </button>
+                    <div id="password-reset-error" class="hidden mt-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-2 rounded-xl text-sm"></div>
+                    <div id="password-reset-success" class="hidden mt-3 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-xl text-sm"></div>
+                </div>
+
+                <!-- Logout Button -->
+                <button onclick="handleLogout(); closeProfileModal();" class="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl transition-all duration-200">
+                    Log Out
+                </button>
+            </div>
+        </div>
+
         <!-- Shot Map Modal -->
         <div class="shot-map-modal fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4" id="shot-map-modal">
-            <div class="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
                 <div class="flex justify-between items-center mb-4">
                     <div>
-                        <h3 class="text-lg font-semibold text-slate-800">Mark Shot Location</h3>
-                        <p class="text-sm text-slate-500 mt-1">Tap on the field where the shot was taken</p>
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white">Mark Shot Location</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Tap on the field where the shot was taken</p>
                     </div>
                     <div id="shot-map-shot-info" class="text-right">
                         <span id="shot-map-team" class="text-sm font-semibold"></span>
-                        <span id="shot-map-type" class="text-xs text-slate-500 block"></span>
+                        <span id="shot-map-type" class="text-xs text-slate-500 dark:text-slate-400 block"></span>
                     </div>
                 </div>
 
                 <!-- Flip Sides Button -->
                 <div class="flex items-center justify-between mb-3 px-1">
                     <span class="text-xs text-slate-400" id="field-sides-label">Home: Left · Away: Right</span>
-                    <button type="button" onclick="flipFieldSides()" class="px-3 py-1.5 border border-slate-300 text-slate-600 rounded-lg text-xs font-medium transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 flex items-center gap-1.5">
+                    <button type="button" onclick="flipFieldSides()" class="px-3 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-medium transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 flex items-center gap-1.5">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
@@ -451,14 +529,14 @@
                 </div>
 
                 <!-- Heat Map Toggle -->
-                <div class="mb-3 px-1 py-2 bg-slate-50 rounded-lg" id="heat-map-controls">
+                <div class="mb-3 px-1 py-2 bg-slate-50 dark:bg-slate-700 rounded-lg" id="heat-map-controls">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
                             </svg>
-                            <span class="text-xs font-medium text-slate-600">Heat Map</span>
+                            <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Heat Map</span>
                             <span class="text-xs text-slate-400" id="heat-map-status">(10 shots required)</span>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -552,7 +630,7 @@
                 </div>
 
                 <!-- Shot Map Legend -->
-                <div class="mt-3 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-600">
+                <div class="mt-3 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-600 dark:text-slate-400">
                     <div class="flex items-center gap-1.5">
                         <svg width="14" height="14" viewBox="0 0 14 14">
                             <circle cx="7" cy="7" r="5" fill="#6b7280" stroke="white" stroke-width="1"/>
@@ -576,11 +654,11 @@
 
                 <!-- Shot position indicator -->
                 <div class="mt-4 flex items-center justify-between">
-                    <div id="shot-position-display" class="text-sm text-slate-500">
+                    <div id="shot-position-display" class="text-sm text-slate-500 dark:text-slate-400">
                         Click on the field to mark shot location
                     </div>
                     <div class="flex gap-2">
-                        <button class="px-4 py-2 text-slate-500 hover:text-slate-700 font-medium rounded-xl transition-all duration-200" onclick="skipShotLocation()">Skip</button>
+                        <button class="px-4 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-medium rounded-xl transition-all duration-200" onclick="skipShotLocation()">Skip</button>
                         <button class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed" id="confirm-shot-location-btn" onclick="confirmShotLocation()" disabled>Confirm Location</button>
                     </div>
                 </div>
@@ -773,6 +851,170 @@
             }
         }
 
+        // =====================================================
+        // PROFILE MODAL FUNCTIONS
+        // =====================================================
+
+        window.openProfileModal = function() {
+            const modal = document.getElementById('profile-modal-overlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            // Update profile data
+            if (currentUser) {
+                const email = currentUser.email;
+                const initial = email.charAt(0).toUpperCase();
+                document.getElementById('profile-email').textContent = email;
+                document.getElementById('profile-avatar').textContent = initial;
+            }
+
+            // Update theme toggle state
+            updateThemeToggleUI();
+            hidePasswordResetMessages();
+        }
+
+        window.closeProfileModal = function() {
+            const modal = document.getElementById('profile-modal-overlay');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // =====================================================
+        // PASSWORD RESET FUNCTIONS
+        // =====================================================
+
+        window.handlePasswordReset = async function() {
+            if (!currentUser || !currentUser.email) {
+                showPasswordResetError('No user email found');
+                return;
+            }
+
+            const btn = document.getElementById('password-reset-btn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Sending...';
+            btn.disabled = true;
+
+            try {
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(currentUser.email, {
+                    redirectTo: window.location.origin + window.location.pathname
+                });
+
+                if (error) {
+                    showPasswordResetError(error.message);
+                } else {
+                    showPasswordResetSuccess('Password reset email sent! Check your inbox.');
+                }
+            } catch (err) {
+                showPasswordResetError('Failed to send reset email. Please try again.');
+                console.error('Password reset error:', err);
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function showPasswordResetError(message) {
+            hidePasswordResetMessages();
+            const errorEl = document.getElementById('password-reset-error');
+            errorEl.textContent = message;
+            errorEl.classList.remove('hidden');
+        }
+
+        function showPasswordResetSuccess(message) {
+            hidePasswordResetMessages();
+            const successEl = document.getElementById('password-reset-success');
+            successEl.textContent = message;
+            successEl.classList.remove('hidden');
+        }
+
+        function hidePasswordResetMessages() {
+            document.getElementById('password-reset-error').classList.add('hidden');
+            document.getElementById('password-reset-success').classList.add('hidden');
+        }
+
+        // =====================================================
+        // THEME FUNCTIONS
+        // =====================================================
+
+        const THEME_STORAGE_KEY = 'soccer-shot-tracker-theme';
+
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+            let isDark = false;
+
+            if (savedTheme) {
+                isDark = savedTheme === 'dark';
+            } else {
+                // Check system preference
+                isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
+
+            applyTheme(isDark);
+        }
+
+        function applyTheme(isDark) {
+            const html = document.documentElement;
+            if (isDark) {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
+            updateThemeIcons(isDark);
+            updateThemeToggleUI();
+        }
+
+        window.toggleTheme = function() {
+            const html = document.documentElement;
+            const isDark = !html.classList.contains('dark');
+            applyTheme(isDark);
+            localStorage.setItem(THEME_STORAGE_KEY, isDark ? 'dark' : 'light');
+        }
+
+        function updateThemeToggleUI() {
+            const toggle = document.getElementById('theme-toggle');
+            const dot = document.getElementById('theme-toggle-dot');
+            const isDark = document.documentElement.classList.contains('dark');
+
+            if (toggle && dot) {
+                if (isDark) {
+                    dot.style.transform = 'translateX(20px)';
+                    toggle.classList.remove('bg-slate-300');
+                    toggle.classList.add('bg-emerald-500');
+                } else {
+                    dot.style.transform = 'translateX(0)';
+                    toggle.classList.remove('bg-emerald-500');
+                    toggle.classList.add('bg-slate-300');
+                }
+            }
+        }
+
+        function updateThemeIcons(isDark) {
+            const sunIcon = document.getElementById('theme-icon-sun');
+            const moonIcon = document.getElementById('theme-icon-moon');
+
+            if (sunIcon && moonIcon) {
+                if (isDark) {
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                } else {
+                    sunIcon.classList.remove('hidden');
+                    moonIcon.classList.add('hidden');
+                }
+            }
+        }
+
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+            // Only apply system preference if user hasn't set a preference
+            if (!savedTheme) {
+                applyTheme(e.matches);
+            }
+        });
+
+        // Initialize theme on page load
+        initializeTheme();
+
         // Show the main app (after successful login)
         function showApp(user) {
             currentUser = user;
@@ -781,8 +1023,10 @@
             document.getElementById('auth-container').style.display = 'none';
             document.getElementById('app-wrapper').classList.remove('hidden');
 
-            // Display user email
+            // Display user email and avatar initial
             document.getElementById('user-email').textContent = user.email;
+            const userInitial = user.email.charAt(0).toUpperCase();
+            document.getElementById('user-avatar').textContent = userInitial;
 
             // Initialize app UI (set date, clock display)
             initializeApp();
