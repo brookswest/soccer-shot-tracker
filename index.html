@@ -210,15 +210,29 @@
                                     <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Roster</label>
                                     <span class="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 text-[10px] font-bold uppercase rounded">BETA</span>
                                 </div>
-                                <button type="button" onclick="openRosterModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5">
+                                <button type="button" onclick="openRostersModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                     </svg>
-                                    Manage Roster
+                                    Manage Rosters
                                 </button>
                             </div>
+                            <!-- Selected Roster Display -->
+                            <div class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Active Roster</label>
+                                        <p class="text-xs mt-0.5" id="selected-roster-display">
+                                            <span class="text-slate-400">No roster selected</span>
+                                        </p>
+                                    </div>
+                                    <button type="button" onclick="openSelectRosterModal()" class="px-3 py-1.5 border border-slate-300 dark:border-slate-600 hover:border-emerald-500 hover:text-emerald-500 text-slate-500 dark:text-slate-400 text-sm font-medium rounded-lg transition-colors">
+                                        Change
+                                    </button>
+                                </div>
+                            </div>
                             <!-- Player Tracking Toggle -->
-                            <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                            <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl mt-3" id="player-tracking-section" style="display: none;">
                                 <div>
                                     <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Track Goal Scorers</label>
                                     <p class="text-xs text-slate-400 mt-0.5">Select player when recording goals</p>
@@ -536,16 +550,67 @@
             </div>
         </div>
 
-        <!-- Roster Modal -->
-        <div class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" id="roster-modal-overlay" onclick="if(event.target === this) closeRosterModal()">
+        <!-- Rosters List Modal -->
+        <div class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" id="rosters-modal-overlay" onclick="if(event.target === this) closeRostersModal()">
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 <!-- Header -->
                 <div class="flex justify-between items-center mb-4">
                     <div class="flex items-center gap-2">
-                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white">Manage Roster</h3>
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white">My Rosters</h3>
                         <span class="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 text-[10px] font-bold uppercase rounded">BETA</span>
                     </div>
-                    <button onclick="closeRosterModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                    <button onclick="closeRostersModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Create Roster Form -->
+                <div class="mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
+                    <div class="flex gap-2">
+                        <input type="text" id="roster-name-input" class="flex-1 px-3 py-2 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20" placeholder="New roster name (e.g., U12 Eagles)">
+                        <button onclick="createRoster()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="rosters-error" class="hidden mt-2 text-red-500 dark:text-red-400 text-sm"></div>
+                </div>
+
+                <!-- Rosters List -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar" id="rosters-list">
+                    <div class="text-center py-8 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        <p>No rosters created yet</p>
+                        <p class="text-sm mt-1">Create a roster to track your team</p>
+                    </div>
+                </div>
+
+                <!-- Roster Count -->
+                <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 text-center">
+                    <span class="text-sm text-slate-500 dark:text-slate-400" id="rosters-count">0 rosters</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roster Players Modal -->
+        <div class="fixed inset-0 bg-black/50 z-[55] hidden items-center justify-center p-4" id="roster-players-modal-overlay" onclick="if(event.target === this) closeRosterPlayersModal()">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-2">
+                        <button onclick="closeRosterPlayersModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors mr-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white" id="roster-players-title">Roster Players</h3>
+                    </div>
+                    <button onclick="closeRosterPlayersModal(); closeRostersModal();" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -573,13 +638,71 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
                         <p>No players added yet</p>
-                        <p class="text-sm mt-1">Add players to your roster above</p>
+                        <p class="text-sm mt-1">Add players to this roster above</p>
                     </div>
                 </div>
 
                 <!-- Player Count -->
                 <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 text-center">
                     <span class="text-sm text-slate-500 dark:text-slate-400" id="roster-count">0 players</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Roster Modal -->
+        <div class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" id="select-roster-modal-overlay" onclick="if(event.target === this) closeSelectRosterModal()">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl max-h-[80vh] overflow-hidden flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white">Select Roster</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Choose a roster for this game</p>
+                    </div>
+                    <button onclick="closeSelectRosterModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Roster List for Selection -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2" id="select-roster-list">
+                    <div class="text-center py-8 text-slate-400">
+                        <p>No rosters available</p>
+                        <p class="text-sm mt-1">Create a roster first</p>
+                    </div>
+                </div>
+
+                <!-- Clear Selection Button -->
+                <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <button onclick="clearSelectedRoster()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 font-medium rounded-lg transition-colors">
+                        Clear Selection (No Roster)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Roster Modal -->
+        <div class="fixed inset-0 bg-black/50 z-[60] hidden items-center justify-center p-4" id="edit-roster-modal-overlay" onclick="if(event.target === this) closeEditRosterModal()">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-slate-800 dark:text-white">Edit Roster</h3>
+                    <button onclick="closeEditRosterModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <input type="hidden" id="edit-roster-id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm font-medium text-slate-600 dark:text-slate-400 block mb-1.5">Roster Name</label>
+                        <input type="text" id="edit-roster-name" class="w-full px-3 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">
+                    </div>
+                    <div id="edit-roster-error" class="hidden text-red-500 dark:text-red-400 text-sm"></div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeEditRosterModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-lg transition-colors">Cancel</button>
+                    <button onclick="saveRosterEdit()" class="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors">Save</button>
                 </div>
             </div>
         </div>
@@ -1210,8 +1333,8 @@
             // Initialize player tracking UI
             initializePlayerTracking();
 
-            // Load roster from Supabase
-            loadRoster();
+            // Load rosters from Supabase
+            loadRosters();
 
             // Load user's saved games from Supabase
             loadHistoryView();
@@ -1318,7 +1441,11 @@
         let wakeLockEnabled = localStorage.getItem('wakeLockEnabled') === 'true';
 
         // Roster state
-        let roster = []; // Array of { id, name, number }
+        let rosters = []; // Array of { id, name, color }
+        let currentRosterId = localStorage.getItem('currentRosterId') || null; // Selected roster for current game
+        let currentRoster = null; // The currently selected roster object
+        let roster = []; // Array of players in current roster { id, name, number, roster_id }
+        let editingRosterId = null; // Roster being edited in the players modal
         let playerTrackingEnabled = localStorage.getItem('playerTrackingEnabled') === 'true';
         let rosterTeam = localStorage.getItem('rosterTeam') || 'home'; // Which team the roster belongs to
         let pendingGoalForPlayer = null; // Stores pending goal data when player selection is needed
@@ -1327,36 +1454,317 @@
         const STORAGE_KEY = 'soccer-shot-tracker-games';
 
         // =====================================================
-        // ROSTER MANAGEMENT
+        // ROSTER MANAGEMENT (Multiple Rosters)
         // =====================================================
 
-        // Load roster from Supabase
-        async function loadRoster() {
+        // Load all rosters from Supabase
+        async function loadRosters() {
             try {
                 const { data: { user } } = await supabaseClient.auth.getUser();
                 if (!user) return;
 
                 const { data, error } = await supabaseClient
-                    .from('players')
+                    .from('rosters')
                     .select('*')
                     .eq('user_id', user.id)
+                    .order('name', { ascending: true });
+
+                if (error) {
+                    console.error('Error loading rosters:', error);
+                    return;
+                }
+
+                rosters = data || [];
+                updateRostersDisplay();
+                updateRostersCount();
+
+                // Load current roster if one is selected
+                if (currentRosterId) {
+                    currentRoster = rosters.find(r => r.id === currentRosterId);
+                    if (currentRoster) {
+                        await loadRosterPlayers(currentRosterId);
+                    } else {
+                        // Selected roster no longer exists
+                        currentRosterId = null;
+                        localStorage.removeItem('currentRosterId');
+                    }
+                }
+                updateSelectedRosterDisplay();
+            } catch (err) {
+                console.error('Error loading rosters:', err);
+            }
+        }
+
+        // Create a new roster
+        window.createRoster = async function() {
+            const nameInput = document.getElementById('roster-name-input');
+            const errorEl = document.getElementById('rosters-error');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                errorEl.textContent = 'Please enter a roster name';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            errorEl.classList.add('hidden');
+
+            try {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) return;
+
+                const { data, error } = await supabaseClient
+                    .from('rosters')
+                    .insert([{ user_id: user.id, name }])
+                    .select()
+                    .single();
+
+                if (error) {
+                    errorEl.textContent = error.message;
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+
+                rosters.push(data);
+                rosters.sort((a, b) => a.name.localeCompare(b.name));
+                nameInput.value = '';
+                updateRostersDisplay();
+                updateRostersCount();
+            } catch (err) {
+                errorEl.textContent = 'Failed to create roster';
+                errorEl.classList.remove('hidden');
+                console.error('Error creating roster:', err);
+            }
+        }
+
+        // Delete a roster
+        window.deleteRoster = async function(rosterId) {
+            if (!confirm('Delete this roster and all its players? This cannot be undone.')) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('rosters')
+                    .delete()
+                    .eq('id', rosterId);
+
+                if (error) {
+                    console.error('Error deleting roster:', error);
+                    return;
+                }
+
+                rosters = rosters.filter(r => r.id !== rosterId);
+                updateRostersDisplay();
+                updateRostersCount();
+
+                // Clear current roster if it was deleted
+                if (currentRosterId === rosterId) {
+                    currentRosterId = null;
+                    currentRoster = null;
+                    roster = [];
+                    localStorage.removeItem('currentRosterId');
+                    updateSelectedRosterDisplay();
+                }
+            } catch (err) {
+                console.error('Error deleting roster:', err);
+            }
+        }
+
+        // Open edit roster modal
+        window.openEditRosterModal = function(rosterId) {
+            const rosterObj = rosters.find(r => r.id === rosterId);
+            if (!rosterObj) return;
+
+            document.getElementById('edit-roster-id').value = rosterId;
+            document.getElementById('edit-roster-name').value = rosterObj.name;
+            document.getElementById('edit-roster-error').classList.add('hidden');
+
+            const modal = document.getElementById('edit-roster-modal-overlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // Close edit roster modal
+        window.closeEditRosterModal = function() {
+            const modal = document.getElementById('edit-roster-modal-overlay');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Save roster edit
+        window.saveRosterEdit = async function() {
+            const rosterId = document.getElementById('edit-roster-id').value;
+            const name = document.getElementById('edit-roster-name').value.trim();
+            const errorEl = document.getElementById('edit-roster-error');
+
+            if (!name) {
+                errorEl.textContent = 'Please enter a roster name';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            errorEl.classList.add('hidden');
+
+            try {
+                const { error } = await supabaseClient
+                    .from('rosters')
+                    .update({ name })
+                    .eq('id', rosterId);
+
+                if (error) {
+                    errorEl.textContent = error.message;
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+
+                const rosterIndex = rosters.findIndex(r => r.id === rosterId);
+                if (rosterIndex !== -1) {
+                    rosters[rosterIndex].name = name;
+                }
+                rosters.sort((a, b) => a.name.localeCompare(b.name));
+
+                // Update current roster if it was edited
+                if (currentRosterId === rosterId) {
+                    currentRoster = rosters.find(r => r.id === rosterId);
+                    updateSelectedRosterDisplay();
+                }
+
+                closeEditRosterModal();
+                updateRostersDisplay();
+            } catch (err) {
+                errorEl.textContent = 'Failed to update roster';
+                errorEl.classList.remove('hidden');
+                console.error('Error updating roster:', err);
+            }
+        }
+
+        // Update rosters display in modal
+        function updateRostersDisplay() {
+            const container = document.getElementById('rosters-list');
+
+            if (rosters.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        <p>No rosters created yet</p>
+                        <p class="text-sm mt-1">Create a roster to track your team</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = rosters.map(rosterObj => `
+                <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl mb-2 group cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700" onclick="openRosterPlayersModal('${rosterObj.id}')">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="font-medium text-slate-800 dark:text-white">${escapeHtml(rosterObj.name)}</span>
+                            <span class="text-xs text-slate-400 block">Click to manage players</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onclick="event.stopPropagation()">
+                        <button onclick="openEditRosterModal('${rosterObj.id}')" class="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                        </button>
+                        <button onclick="deleteRoster('${rosterObj.id}')" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update rosters count
+        function updateRostersCount() {
+            const countEl = document.getElementById('rosters-count');
+            countEl.textContent = `${rosters.length} roster${rosters.length !== 1 ? 's' : ''}`;
+        }
+
+        // Open rosters modal
+        window.openRostersModal = function() {
+            const modal = document.getElementById('rosters-modal-overlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            loadRosters();
+        }
+
+        // Close rosters modal
+        window.closeRostersModal = function() {
+            const modal = document.getElementById('rosters-modal-overlay');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // =====================================================
+        // PLAYER MANAGEMENT (Within a Roster)
+        // =====================================================
+
+        // Load players for a specific roster
+        async function loadRosterPlayers(rosterId) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('players')
+                    .select('*')
+                    .eq('roster_id', rosterId)
                     .order('number', { ascending: true, nullsFirst: false });
 
                 if (error) {
-                    console.error('Error loading roster:', error);
+                    console.error('Error loading players:', error);
                     return;
                 }
 
                 roster = data || [];
-                updateRosterDisplay();
-                updateRosterCount();
+
+                // Update display if we're in the players modal
+                if (editingRosterId === rosterId) {
+                    updateRosterDisplay();
+                    updateRosterCount();
+                }
             } catch (err) {
-                console.error('Error loading roster:', err);
+                console.error('Error loading players:', err);
             }
         }
 
-        // Add a new player
+        // Open roster players modal
+        window.openRosterPlayersModal = async function(rosterId) {
+            editingRosterId = rosterId;
+            const rosterObj = rosters.find(r => r.id === rosterId);
+            document.getElementById('roster-players-title').textContent = rosterObj ? rosterObj.name : 'Players';
+
+            // Clear inputs
+            document.getElementById('player-name-input').value = '';
+            document.getElementById('player-number-input').value = '';
+            document.getElementById('roster-error').classList.add('hidden');
+
+            // Load players
+            await loadRosterPlayers(rosterId);
+
+            const modal = document.getElementById('roster-players-modal-overlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // Close roster players modal
+        window.closeRosterPlayersModal = function() {
+            const modal = document.getElementById('roster-players-modal-overlay');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            editingRosterId = null;
+        }
+
+        // Add a new player to current roster
         window.addPlayer = async function() {
+            if (!editingRosterId) return;
+
             const nameInput = document.getElementById('player-name-input');
             const numberInput = document.getElementById('player-number-input');
             const errorEl = document.getElementById('roster-error');
@@ -1364,7 +1772,6 @@
             const name = nameInput.value.trim();
             const number = numberInput.value ? parseInt(numberInput.value) : null;
 
-            // Validation
             if (!name) {
                 errorEl.textContent = 'Please enter a player name';
                 errorEl.classList.remove('hidden');
@@ -1377,7 +1784,6 @@
                 return;
             }
 
-            // Check for duplicate number
             if (number !== null && roster.some(p => p.number === number)) {
                 errorEl.textContent = `Number ${number} is already assigned`;
                 errorEl.classList.remove('hidden');
@@ -1392,7 +1798,7 @@
 
                 const { data, error } = await supabaseClient
                     .from('players')
-                    .insert([{ user_id: user.id, name, number }])
+                    .insert([{ user_id: user.id, roster_id: editingRosterId, name, number }])
                     .select()
                     .single();
 
@@ -1423,7 +1829,7 @@
 
         // Delete a player
         window.deletePlayer = async function(playerId) {
-            if (!confirm('Remove this player from your roster?')) return;
+            if (!confirm('Remove this player from the roster?')) return;
 
             try {
                 const { error } = await supabaseClient
@@ -1486,7 +1892,6 @@
                 return;
             }
 
-            // Check for duplicate number (excluding current player)
             if (number !== null && roster.some(p => p.id !== playerId && p.number === number)) {
                 errorEl.textContent = `Number ${number} is already assigned`;
                 errorEl.classList.remove('hidden');
@@ -1540,7 +1945,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
                         <p>No players added yet</p>
-                        <p class="text-sm mt-1">Add players to your roster above</p>
+                        <p class="text-sm mt-1">Add players to this roster above</p>
                     </div>
                 `;
                 return;
@@ -1576,20 +1981,99 @@
             countEl.textContent = `${roster.length} player${roster.length !== 1 ? 's' : ''}`;
         }
 
-        // Open roster modal
-        window.openRosterModal = function() {
-            const modal = document.getElementById('roster-modal-overlay');
+        // =====================================================
+        // ROSTER SELECTION (For Current Game)
+        // =====================================================
+
+        // Open select roster modal
+        window.openSelectRosterModal = async function() {
+            await loadRosters();
+            updateSelectRosterList();
+
+            const modal = document.getElementById('select-roster-modal-overlay');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            loadRoster();
         }
 
-        // Close roster modal
-        window.closeRosterModal = function() {
-            const modal = document.getElementById('roster-modal-overlay');
+        // Close select roster modal
+        window.closeSelectRosterModal = function() {
+            const modal = document.getElementById('select-roster-modal-overlay');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
+
+        // Update select roster list
+        function updateSelectRosterList() {
+            const container = document.getElementById('select-roster-list');
+
+            if (rosters.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <p>No rosters available</p>
+                        <p class="text-sm mt-1">Create a roster first</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = rosters.map(rosterObj => `
+                <button onclick="selectRosterForGame('${rosterObj.id}')" class="w-full flex items-center gap-3 p-3 ${currentRosterId === rosterObj.id ? 'bg-emerald-100 dark:bg-emerald-900/50' : 'bg-slate-50 dark:bg-slate-700/50'} hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-xl mb-2 transition-colors text-left">
+                    <div class="w-10 h-10 ${currentRosterId === rosterObj.id ? 'bg-emerald-500' : 'bg-emerald-100 dark:bg-emerald-900/50'} rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="${currentRosterId === rosterObj.id ? 'w-5 h-5 text-white' : 'w-5 h-5 text-emerald-600 dark:text-emerald-400'}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </div>
+                    <span class="font-medium text-slate-800 dark:text-white">${escapeHtml(rosterObj.name)}</span>
+                    ${currentRosterId === rosterObj.id ? '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-500 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>' : ''}
+                </button>
+            `).join('');
+        }
+
+        // Select roster for current game
+        window.selectRosterForGame = async function(rosterId) {
+            currentRosterId = rosterId;
+            currentRoster = rosters.find(r => r.id === rosterId);
+            localStorage.setItem('currentRosterId', rosterId);
+
+            // Load players for selected roster
+            await loadRosterPlayers(rosterId);
+
+            updateSelectedRosterDisplay();
+            closeSelectRosterModal();
+        }
+
+        // Clear selected roster
+        window.clearSelectedRoster = function() {
+            currentRosterId = null;
+            currentRoster = null;
+            roster = [];
+            localStorage.removeItem('currentRosterId');
+            updateSelectedRosterDisplay();
+            closeSelectRosterModal();
+        }
+
+        // Update selected roster display in game setup
+        function updateSelectedRosterDisplay() {
+            const display = document.getElementById('selected-roster-display');
+            const trackingSection = document.getElementById('player-tracking-section');
+            const teamAssignment = document.getElementById('roster-team-assignment');
+
+            if (currentRoster) {
+                display.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-medium">${escapeHtml(currentRoster.name)}</span> <span class="text-slate-400">(${roster.length} players)</span>`;
+                trackingSection.style.display = 'flex';
+                if (playerTrackingEnabled) {
+                    teamAssignment.style.display = 'block';
+                }
+            } else {
+                display.innerHTML = `<span class="text-slate-400">No roster selected</span>`;
+                trackingSection.style.display = 'none';
+                teamAssignment.style.display = 'none';
+            }
+        }
+
+        // =====================================================
+        // PLAYER TRACKING TOGGLE
+        // =====================================================
 
         // Toggle player tracking
         window.togglePlayerTracking = function() {
@@ -1604,7 +2088,9 @@
                 toggle.classList.remove('bg-slate-300', 'dark:bg-slate-600');
                 toggle.classList.add('bg-emerald-500');
                 dot.style.transform = 'translateX(20px)';
-                teamAssignment.style.display = 'block';
+                if (currentRoster) {
+                    teamAssignment.style.display = 'block';
+                }
             } else {
                 toggle.classList.add('bg-slate-300', 'dark:bg-slate-600');
                 toggle.classList.remove('bg-emerald-500');
@@ -1638,18 +2124,20 @@
         function initializePlayerTracking() {
             const toggle = document.getElementById('player-tracking-toggle');
             const dot = document.getElementById('player-tracking-toggle-dot');
-            const teamAssignment = document.getElementById('roster-team-assignment');
 
             if (playerTrackingEnabled) {
                 toggle.classList.remove('bg-slate-300', 'dark:bg-slate-600');
                 toggle.classList.add('bg-emerald-500');
                 dot.style.transform = 'translateX(20px)';
-                teamAssignment.style.display = 'block';
             }
 
             // Set initial team button state
             setRosterTeam(rosterTeam);
         }
+
+        // =====================================================
+        // GOAL PLAYER SELECTION
+        // =====================================================
 
         // Show player selection modal for goals
         function showPlayerSelectionModal() {
@@ -1659,7 +2147,7 @@
                 container.innerHTML = `
                     <div class="text-center py-8 text-slate-400">
                         <p>No players in roster</p>
-                        <p class="text-sm mt-1">Add players in Manage Roster</p>
+                        <p class="text-sm mt-1">Add players in Manage Rosters</p>
                     </div>
                 `;
             } else {
@@ -1732,7 +2220,7 @@
                 container.innerHTML = `
                     <div class="text-center py-8 text-slate-400">
                         <p>No players in roster</p>
-                        <p class="text-sm mt-1">Add players in Manage Roster</p>
+                        <p class="text-sm mt-1">Add players in Manage Rosters</p>
                     </div>
                 `;
             } else {
