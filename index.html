@@ -203,6 +203,39 @@
                                 </button>
                             </div>
                         </div>
+                        <!-- Roster Section -->
+                        <div class="sm:col-span-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-2">
+                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Roster</label>
+                                    <span class="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 text-[10px] font-bold uppercase rounded">BETA</span>
+                                </div>
+                                <button type="button" onclick="openRosterModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                    </svg>
+                                    Manage Roster
+                                </button>
+                            </div>
+                            <!-- Player Tracking Toggle -->
+                            <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                                <div>
+                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Track Goal Scorers</label>
+                                    <p class="text-xs text-slate-400 mt-0.5">Select player when recording goals</p>
+                                </div>
+                                <button type="button" id="player-tracking-toggle" onclick="togglePlayerTracking()" class="relative w-12 h-7 bg-slate-300 dark:bg-slate-600 rounded-full transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
+                                    <span id="player-tracking-toggle-dot" class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
+                                </button>
+                            </div>
+                            <!-- Roster Team Assignment -->
+                            <div class="mt-3" id="roster-team-assignment" style="display: none;">
+                                <label class="text-xs font-medium text-slate-500 dark:text-slate-400 block mb-2">Assign roster to team:</label>
+                                <div class="flex gap-2">
+                                    <button type="button" class="roster-team-btn flex-1 py-2 px-3 border-2 border-emerald-500 bg-emerald-500 text-white rounded-lg text-sm font-medium transition-all duration-200" id="roster-team-home-btn" onclick="setRosterTeam('home')">Home</button>
+                                    <button type="button" class="roster-team-btn flex-1 py-2 px-3 border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-lg text-sm font-medium transition-all duration-200 hover:border-blue-500 hover:text-blue-500" id="roster-team-away-btn" onclick="setRosterTeam('away')">Away</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -500,6 +533,150 @@
                 <button onclick="handleLogout(); closeProfileModal();" class="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl transition-all duration-200">
                     Log Out
                 </button>
+            </div>
+        </div>
+
+        <!-- Roster Modal -->
+        <div class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" id="roster-modal-overlay" onclick="if(event.target === this) closeRosterModal()">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white">Manage Roster</h3>
+                        <span class="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 text-[10px] font-bold uppercase rounded">BETA</span>
+                    </div>
+                    <button onclick="closeRosterModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Add Player Form -->
+                <div class="mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
+                    <div class="flex gap-2">
+                        <input type="text" id="player-name-input" class="flex-1 px-3 py-2 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20" placeholder="Player name">
+                        <input type="number" id="player-number-input" class="w-20 px-3 py-2 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg text-sm text-center transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20" placeholder="#" min="1" max="99">
+                        <button onclick="addPlayer()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="roster-error" class="hidden mt-2 text-red-500 dark:text-red-400 text-sm"></div>
+                </div>
+
+                <!-- Player List -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar" id="roster-list">
+                    <div class="text-center py-8 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <p>No players added yet</p>
+                        <p class="text-sm mt-1">Add players to your roster above</p>
+                    </div>
+                </div>
+
+                <!-- Player Count -->
+                <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 text-center">
+                    <span class="text-sm text-slate-500 dark:text-slate-400" id="roster-count">0 players</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Player Modal -->
+        <div class="fixed inset-0 bg-black/50 z-[60] hidden items-center justify-center p-4" id="edit-player-modal-overlay" onclick="if(event.target === this) closeEditPlayerModal()">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-slate-800 dark:text-white">Edit Player</h3>
+                    <button onclick="closeEditPlayerModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <input type="hidden" id="edit-player-id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm font-medium text-slate-600 dark:text-slate-400 block mb-1.5">Name</label>
+                        <input type="text" id="edit-player-name" class="w-full px-3 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-slate-600 dark:text-slate-400 block mb-1.5">Number (optional)</label>
+                        <input type="number" id="edit-player-number" class="w-full px-3 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20" min="1" max="99">
+                    </div>
+                    <div id="edit-player-error" class="hidden text-red-500 dark:text-red-400 text-sm"></div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeEditPlayerModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-lg transition-colors">Cancel</button>
+                    <button onclick="savePlayerEdit()" class="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Player Selection Modal (for goals) -->
+        <div class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" id="player-select-modal-overlay" onclick="if(event.target === this) skipPlayerSelection()">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl max-h-[80vh] overflow-hidden flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white">Who Scored?</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Select the player who scored</p>
+                    </div>
+                    <button onclick="skipPlayerSelection()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Player List for Selection -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2" id="player-select-list">
+                    <div class="text-center py-8 text-slate-400">
+                        <p>No players in roster</p>
+                    </div>
+                </div>
+
+                <!-- Skip Button -->
+                <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <button onclick="skipPlayerSelection()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 font-medium rounded-lg transition-colors">
+                        Skip (Unknown Player)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Goal Player Modal (for shot log) -->
+        <div class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" id="edit-goal-player-modal-overlay" onclick="if(event.target === this) closeEditGoalPlayerModal()">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl max-h-[80vh] overflow-hidden flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white">Edit Goal Scorer</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Change the player who scored</p>
+                    </div>
+                    <button onclick="closeEditGoalPlayerModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <input type="hidden" id="edit-goal-index">
+
+                <!-- Player List for Editing -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2" id="edit-goal-player-list">
+                    <div class="text-center py-8 text-slate-400">
+                        <p>No players in roster</p>
+                    </div>
+                </div>
+
+                <!-- Clear/Cancel Buttons -->
+                <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex gap-3">
+                    <button onclick="clearGoalPlayer()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 font-medium rounded-lg transition-colors">
+                        Clear Player
+                    </button>
+                    <button onclick="closeEditGoalPlayerModal()" class="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors">
+                        Done
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -1030,6 +1207,12 @@
             // Initialize app UI (set date, clock display)
             initializeApp();
 
+            // Initialize player tracking UI
+            initializePlayerTracking();
+
+            // Load roster from Supabase
+            loadRoster();
+
             // Load user's saved games from Supabase
             loadHistoryView();
         }
@@ -1134,8 +1317,481 @@
         let wakeLock = null;
         let wakeLockEnabled = localStorage.getItem('wakeLockEnabled') === 'true';
 
+        // Roster state
+        let roster = []; // Array of { id, name, number }
+        let playerTrackingEnabled = localStorage.getItem('playerTrackingEnabled') === 'true';
+        let rosterTeam = localStorage.getItem('rosterTeam') || 'home'; // Which team the roster belongs to
+        let pendingGoalForPlayer = null; // Stores pending goal data when player selection is needed
+
         // Saved games storage key
         const STORAGE_KEY = 'soccer-shot-tracker-games';
+
+        // =====================================================
+        // ROSTER MANAGEMENT
+        // =====================================================
+
+        // Load roster from Supabase
+        async function loadRoster() {
+            try {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) return;
+
+                const { data, error } = await supabaseClient
+                    .from('players')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('number', { ascending: true, nullsFirst: false });
+
+                if (error) {
+                    console.error('Error loading roster:', error);
+                    return;
+                }
+
+                roster = data || [];
+                updateRosterDisplay();
+                updateRosterCount();
+            } catch (err) {
+                console.error('Error loading roster:', err);
+            }
+        }
+
+        // Add a new player
+        window.addPlayer = async function() {
+            const nameInput = document.getElementById('player-name-input');
+            const numberInput = document.getElementById('player-number-input');
+            const errorEl = document.getElementById('roster-error');
+
+            const name = nameInput.value.trim();
+            const number = numberInput.value ? parseInt(numberInput.value) : null;
+
+            // Validation
+            if (!name) {
+                errorEl.textContent = 'Please enter a player name';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (number !== null && (number < 1 || number > 99)) {
+                errorEl.textContent = 'Number must be between 1 and 99';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            // Check for duplicate number
+            if (number !== null && roster.some(p => p.number === number)) {
+                errorEl.textContent = `Number ${number} is already assigned`;
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            errorEl.classList.add('hidden');
+
+            try {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) return;
+
+                const { data, error } = await supabaseClient
+                    .from('players')
+                    .insert([{ user_id: user.id, name, number }])
+                    .select()
+                    .single();
+
+                if (error) {
+                    errorEl.textContent = error.message;
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+
+                roster.push(data);
+                roster.sort((a, b) => {
+                    if (a.number === null && b.number === null) return 0;
+                    if (a.number === null) return 1;
+                    if (b.number === null) return -1;
+                    return a.number - b.number;
+                });
+
+                nameInput.value = '';
+                numberInput.value = '';
+                updateRosterDisplay();
+                updateRosterCount();
+            } catch (err) {
+                errorEl.textContent = 'Failed to add player';
+                errorEl.classList.remove('hidden');
+                console.error('Error adding player:', err);
+            }
+        }
+
+        // Delete a player
+        window.deletePlayer = async function(playerId) {
+            if (!confirm('Remove this player from your roster?')) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('players')
+                    .delete()
+                    .eq('id', playerId);
+
+                if (error) {
+                    console.error('Error deleting player:', error);
+                    return;
+                }
+
+                roster = roster.filter(p => p.id !== playerId);
+                updateRosterDisplay();
+                updateRosterCount();
+            } catch (err) {
+                console.error('Error deleting player:', err);
+            }
+        }
+
+        // Open edit player modal
+        window.openEditPlayerModal = function(playerId) {
+            const player = roster.find(p => p.id === playerId);
+            if (!player) return;
+
+            document.getElementById('edit-player-id').value = playerId;
+            document.getElementById('edit-player-name').value = player.name;
+            document.getElementById('edit-player-number').value = player.number || '';
+            document.getElementById('edit-player-error').classList.add('hidden');
+
+            const modal = document.getElementById('edit-player-modal-overlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // Close edit player modal
+        window.closeEditPlayerModal = function() {
+            const modal = document.getElementById('edit-player-modal-overlay');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Save player edit
+        window.savePlayerEdit = async function() {
+            const playerId = document.getElementById('edit-player-id').value;
+            const name = document.getElementById('edit-player-name').value.trim();
+            const numberInput = document.getElementById('edit-player-number').value;
+            const number = numberInput ? parseInt(numberInput) : null;
+            const errorEl = document.getElementById('edit-player-error');
+
+            if (!name) {
+                errorEl.textContent = 'Please enter a player name';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (number !== null && (number < 1 || number > 99)) {
+                errorEl.textContent = 'Number must be between 1 and 99';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            // Check for duplicate number (excluding current player)
+            if (number !== null && roster.some(p => p.id !== playerId && p.number === number)) {
+                errorEl.textContent = `Number ${number} is already assigned`;
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            errorEl.classList.add('hidden');
+
+            try {
+                const { error } = await supabaseClient
+                    .from('players')
+                    .update({ name, number })
+                    .eq('id', playerId);
+
+                if (error) {
+                    errorEl.textContent = error.message;
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+
+                const playerIndex = roster.findIndex(p => p.id === playerId);
+                if (playerIndex !== -1) {
+                    roster[playerIndex].name = name;
+                    roster[playerIndex].number = number;
+                }
+
+                roster.sort((a, b) => {
+                    if (a.number === null && b.number === null) return 0;
+                    if (a.number === null) return 1;
+                    if (b.number === null) return -1;
+                    return a.number - b.number;
+                });
+
+                closeEditPlayerModal();
+                updateRosterDisplay();
+            } catch (err) {
+                errorEl.textContent = 'Failed to update player';
+                errorEl.classList.remove('hidden');
+                console.error('Error updating player:', err);
+            }
+        }
+
+        // Update roster display in modal
+        function updateRosterDisplay() {
+            const container = document.getElementById('roster-list');
+
+            if (roster.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <p>No players added yet</p>
+                        <p class="text-sm mt-1">Add players to your roster above</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = roster.map(player => `
+                <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl mb-2 group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center">
+                            <span class="text-emerald-700 dark:text-emerald-400 font-bold text-sm">${player.number || '-'}</span>
+                        </div>
+                        <span class="font-medium text-slate-800 dark:text-white">${escapeHtml(player.name)}</span>
+                    </div>
+                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="openEditPlayerModal('${player.id}')" class="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                        </button>
+                        <button onclick="deletePlayer('${player.id}')" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update roster count
+        function updateRosterCount() {
+            const countEl = document.getElementById('roster-count');
+            countEl.textContent = `${roster.length} player${roster.length !== 1 ? 's' : ''}`;
+        }
+
+        // Open roster modal
+        window.openRosterModal = function() {
+            const modal = document.getElementById('roster-modal-overlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            loadRoster();
+        }
+
+        // Close roster modal
+        window.closeRosterModal = function() {
+            const modal = document.getElementById('roster-modal-overlay');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Toggle player tracking
+        window.togglePlayerTracking = function() {
+            playerTrackingEnabled = !playerTrackingEnabled;
+            localStorage.setItem('playerTrackingEnabled', playerTrackingEnabled);
+
+            const toggle = document.getElementById('player-tracking-toggle');
+            const dot = document.getElementById('player-tracking-toggle-dot');
+            const teamAssignment = document.getElementById('roster-team-assignment');
+
+            if (playerTrackingEnabled) {
+                toggle.classList.remove('bg-slate-300', 'dark:bg-slate-600');
+                toggle.classList.add('bg-emerald-500');
+                dot.style.transform = 'translateX(20px)';
+                teamAssignment.style.display = 'block';
+            } else {
+                toggle.classList.add('bg-slate-300', 'dark:bg-slate-600');
+                toggle.classList.remove('bg-emerald-500');
+                dot.style.transform = 'translateX(0)';
+                teamAssignment.style.display = 'none';
+            }
+        }
+
+        // Set roster team assignment
+        window.setRosterTeam = function(team) {
+            rosterTeam = team;
+            localStorage.setItem('rosterTeam', team);
+
+            const homeBtn = document.getElementById('roster-team-home-btn');
+            const awayBtn = document.getElementById('roster-team-away-btn');
+
+            if (team === 'home') {
+                homeBtn.classList.add('border-emerald-500', 'bg-emerald-500', 'text-white');
+                homeBtn.classList.remove('border-slate-200', 'dark:border-slate-600', 'bg-white', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-300');
+                awayBtn.classList.remove('border-blue-500', 'bg-blue-500', 'text-white');
+                awayBtn.classList.add('border-slate-200', 'dark:border-slate-600', 'bg-white', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-300');
+            } else {
+                awayBtn.classList.add('border-blue-500', 'bg-blue-500', 'text-white');
+                awayBtn.classList.remove('border-slate-200', 'dark:border-slate-600', 'bg-white', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-300');
+                homeBtn.classList.remove('border-emerald-500', 'bg-emerald-500', 'text-white');
+                homeBtn.classList.add('border-slate-200', 'dark:border-slate-600', 'bg-white', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-300');
+            }
+        }
+
+        // Initialize player tracking toggle on page load
+        function initializePlayerTracking() {
+            const toggle = document.getElementById('player-tracking-toggle');
+            const dot = document.getElementById('player-tracking-toggle-dot');
+            const teamAssignment = document.getElementById('roster-team-assignment');
+
+            if (playerTrackingEnabled) {
+                toggle.classList.remove('bg-slate-300', 'dark:bg-slate-600');
+                toggle.classList.add('bg-emerald-500');
+                dot.style.transform = 'translateX(20px)';
+                teamAssignment.style.display = 'block';
+            }
+
+            // Set initial team button state
+            setRosterTeam(rosterTeam);
+        }
+
+        // Show player selection modal for goals
+        function showPlayerSelectionModal() {
+            const container = document.getElementById('player-select-list');
+
+            if (roster.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <p>No players in roster</p>
+                        <p class="text-sm mt-1">Add players in Manage Roster</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = roster.map(player => `
+                    <button onclick="selectPlayerForGoal('${player.id}')" class="w-full flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-xl mb-2 transition-colors text-left">
+                        <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-emerald-700 dark:text-emerald-400 font-bold text-sm">${player.number || '-'}</span>
+                        </div>
+                        <span class="font-medium text-slate-800 dark:text-white">${escapeHtml(player.name)}</span>
+                    </button>
+                `).join('');
+            }
+
+            const modal = document.getElementById('player-select-modal-overlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // Select player for goal
+        window.selectPlayerForGoal = function(playerId) {
+            if (pendingGoalForPlayer) {
+                pendingGoalForPlayer.playerId = playerId;
+                pendingGoalForPlayer.playerName = roster.find(p => p.id === playerId)?.name || null;
+                finishGoalRecording();
+            }
+            closePlayerSelectionModal();
+        }
+
+        // Skip player selection
+        window.skipPlayerSelection = function() {
+            if (pendingGoalForPlayer) {
+                pendingGoalForPlayer.playerId = null;
+                pendingGoalForPlayer.playerName = null;
+                finishGoalRecording();
+            }
+            closePlayerSelectionModal();
+        }
+
+        // Close player selection modal
+        function closePlayerSelectionModal() {
+            const modal = document.getElementById('player-select-modal-overlay');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Finish goal recording after player selection
+        function finishGoalRecording() {
+            if (!pendingGoalForPlayer) return;
+
+            // Add player info to pending shot
+            pendingShot.playerId = pendingGoalForPlayer.playerId;
+            pendingShot.playerName = pendingGoalForPlayer.playerName;
+            pendingGoalForPlayer = null;
+
+            if (shotMapEnabled) {
+                showShotMapModal(pendingShot.team, pendingShot.teamName, pendingShot.type);
+            } else {
+                completeShotRecording();
+            }
+        }
+
+        // Open edit goal player modal
+        window.openEditGoalPlayerModal = function(logIndex) {
+            document.getElementById('edit-goal-index').value = logIndex;
+
+            const container = document.getElementById('edit-goal-player-list');
+            const currentPlayerId = gameState.log[logIndex]?.playerId;
+
+            if (roster.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <p>No players in roster</p>
+                        <p class="text-sm mt-1">Add players in Manage Roster</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = roster.map(player => `
+                    <button onclick="updateGoalPlayer('${player.id}')" class="w-full flex items-center gap-3 p-3 ${currentPlayerId === player.id ? 'bg-emerald-100 dark:bg-emerald-900/50' : 'bg-slate-50 dark:bg-slate-700/50'} hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-xl mb-2 transition-colors text-left">
+                        <div class="w-10 h-10 ${currentPlayerId === player.id ? 'bg-emerald-500' : 'bg-emerald-100 dark:bg-emerald-900/50'} rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="${currentPlayerId === player.id ? 'text-white' : 'text-emerald-700 dark:text-emerald-400'} font-bold text-sm">${player.number || '-'}</span>
+                        </div>
+                        <span class="font-medium text-slate-800 dark:text-white">${escapeHtml(player.name)}</span>
+                        ${currentPlayerId === player.id ? '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-500 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>' : ''}
+                    </button>
+                `).join('');
+            }
+
+            const modal = document.getElementById('edit-goal-player-modal-overlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // Update goal player
+        window.updateGoalPlayer = function(playerId) {
+            const logIndex = parseInt(document.getElementById('edit-goal-index').value);
+            const player = roster.find(p => p.id === playerId);
+
+            if (gameState.log[logIndex]) {
+                gameState.log[logIndex].playerId = playerId;
+                gameState.log[logIndex].playerName = player?.name || null;
+                updateDisplay();
+            }
+
+            closeEditGoalPlayerModal();
+        }
+
+        // Clear goal player
+        window.clearGoalPlayer = function() {
+            const logIndex = parseInt(document.getElementById('edit-goal-index').value);
+
+            if (gameState.log[logIndex]) {
+                gameState.log[logIndex].playerId = null;
+                gameState.log[logIndex].playerName = null;
+                updateDisplay();
+            }
+
+            closeEditGoalPlayerModal();
+        }
+
+        // Close edit goal player modal
+        window.closeEditGoalPlayerModal = function() {
+            const modal = document.getElementById('edit-goal-player-modal-overlay');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         // Toggle shot map setting
         window.toggleShotMap = function() {
@@ -2125,10 +2781,23 @@
                 half: gameState.currentHalf,
                 gameTime: getGameTime(),
                 clockSeconds: clockState.seconds,
-                position: null
+                position: null,
+                playerId: null,
+                playerName: null
             };
 
-            if (shotMapEnabled) {
+            // Check if this is a goal and player tracking is enabled for this team
+            if (type === 'goal' && playerTrackingEnabled && team === rosterTeam && roster.length > 0) {
+                // Store pending goal data for player selection
+                pendingGoalForPlayer = {
+                    team: team,
+                    teamName: teamName,
+                    type: shotTypeLabel,
+                    playerId: null,
+                    playerName: null
+                };
+                showPlayerSelectionModal();
+            } else if (shotMapEnabled) {
                 // Show shot map modal
                 showShotMapModal(team, teamName, shotTypeLabel);
             } else {
@@ -2570,15 +3239,30 @@
                     </div>
                 `;
             } else {
-                logContainer.innerHTML = gameState.log.map((entry, index) => `
+                logContainer.innerHTML = gameState.log.map((entry, index) => {
+                    const isGoal = entry.type === 'GOAL!';
+                    const hasPlayer = entry.playerName;
+                    const canEditPlayer = isGoal && entry.team === rosterTeam && roster.length > 0;
+
+                    const playerDisplay = hasPlayer
+                        ? `<span class="text-emerald-600 dark:text-emerald-400 font-medium ml-1">(${escapeHtml(entry.playerName)})</span>`
+                        : (canEditPlayer ? `<button onclick="openEditGoalPlayerModal(${index})" class="text-slate-400 hover:text-emerald-500 ml-1 text-xs underline">+ add player</button>` : '');
+
+                    const editPlayerBtn = hasPlayer && canEditPlayer
+                        ? `<button class="text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 px-2 py-1 rounded text-xs transition-colors" onclick="openEditGoalPlayerModal(${index})">Edit</button>`
+                        : '';
+
+                    return `
                     <div class="log-entry ${entry.team} flex justify-between items-center p-3 rounded-xl mb-2 border-l-4" style="background: ${entry.team === 'home' ? hexToRgba(document.getElementById('home-color').value, 0.1) : hexToRgba(document.getElementById('away-color').value, 0.1)}; border-left-color: ${entry.team === 'home' ? document.getElementById('home-color').value : document.getElementById('away-color').value};">
-                        <span class="flex-1"><span class="font-semibold">${entry.teamName}</span> <span class="text-slate-500">- ${entry.type}</span></span>
-                        <div class="flex items-center gap-3">
+                        <span class="flex-1"><span class="font-semibold">${entry.teamName}</span> <span class="text-slate-500 dark:text-slate-400">- ${entry.type}</span>${playerDisplay}</span>
+                        <div class="flex items-center gap-2">
                             <span class="text-slate-400 text-sm">${entry.half ? (entry.half === 1 ? '1st' : '2nd') + ' · ' : ''}${entry.gameTime || entry.time || ''}</span>
-                            <button class="text-slate-400 hover:text-red-500 hover:bg-red-50 px-2 py-1 rounded text-xs transition-colors" onclick="deleteLogEntry(${index})">Delete</button>
+                            ${editPlayerBtn}
+                            <button class="text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 px-2 py-1 rounded text-xs transition-colors" onclick="deleteLogEntry(${index})">Delete</button>
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
             }
 
             // Update undo button state
@@ -3021,6 +3705,45 @@
                                 </div>
                             </div>
                             ` : ''}
+                            ${(() => {
+                                // Calculate player stats for goals
+                                const playerGoals = {};
+                                (game.log || []).forEach(shot => {
+                                    if (shot.type === 'GOAL!' && shot.playerName) {
+                                        const key = shot.playerId || shot.playerName;
+                                        if (!playerGoals[key]) {
+                                            playerGoals[key] = { name: shot.playerName, goals: 0 };
+                                        }
+                                        playerGoals[key].goals++;
+                                    }
+                                });
+                                const playerStatsList = Object.values(playerGoals).sort((a, b) => b.goals - a.goals);
+
+                                if (playerStatsList.length === 0) return '';
+
+                                return `
+                            <!-- Player Stats -->
+                            <div class="mt-5 pt-5 border-t border-slate-200 dark:border-slate-600">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div class="text-sm font-semibold text-slate-700 dark:text-slate-200">Goal Scorers</div>
+                                    <span class="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 text-[10px] font-bold uppercase rounded">BETA</span>
+                                </div>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                    ${playerStatsList.map(player => `
+                                        <div class="flex items-center gap-2 p-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600">
+                                            <div class="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <span class="text-emerald-700 dark:text-emerald-400 font-bold text-xs">⚽</span>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="text-sm font-medium text-slate-800 dark:text-white truncate">${player.name}</div>
+                                                <div class="text-xs text-slate-500 dark:text-slate-400">${player.goals} goal${player.goals !== 1 ? 's' : ''}</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                                `;
+                            })()}
                             ${(game.notes && game.notes.length > 0) ? `
                             <!-- Game Notes -->
                             <div class="mt-5 pt-5 border-t border-slate-200 dark:border-slate-600">
