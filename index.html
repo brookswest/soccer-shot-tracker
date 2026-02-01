@@ -2899,8 +2899,9 @@
 
             // Calculate density for each grid cell
             validShots.forEach(shot => {
-                const x = shot.position.x;
-                const y = shot.position.y;
+                // Normalize second-half shots to face the same goal as first-half shots
+                const x = shot.half === 2 ? (105 - shot.position.x) : shot.position.x;
+                const y = shot.half === 2 ? (68 - shot.position.y) : shot.position.y;
 
                 // Determine shot weight based on type
                 let weight = 1.0;
@@ -4005,8 +4006,9 @@
                     const isGoal = shot.type === 'GOAL!';
                     const isOnTarget = shot.type === 'Shot On Target';
                     const isOffTarget = shot.type === 'Shot Off Target';
-                    const x = shot.position.x;
-                    const y = shot.position.y;
+                    // Normalize second-half shots to face the same goal as first-half shots
+                    const x = shot.half === 2 ? (105 - shot.position.x) : shot.position.x;
+                    const y = shot.half === 2 ? (68 - shot.position.y) : shot.position.y;
 
                     if (isGoal) {
                         return `
@@ -4431,8 +4433,9 @@
                 const isGoal = shot.type === 'GOAL!';
                 const isOnTarget = shot.type === 'Shot On Target';
                 const isOffTarget = shot.type === 'Shot Off Target';
-                const x = shot.position.x;
-                const y = shot.position.y;
+                // Normalize second-half shots to face the same goal as first-half shots
+                const x = shot.half === 2 ? (105 - shot.position.x) : shot.position.x;
+                const y = shot.half === 2 ? (68 - shot.position.y) : shot.position.y;
 
                 if (isGoal) {
                     return `
