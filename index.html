@@ -803,6 +803,40 @@
             </div>
         </div>
 
+        <!-- History Edit Goal Player Modal -->
+        <div class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" id="history-edit-goal-player-modal-overlay" onclick="if(event.target === this) closeHistoryEditGoalPlayerModal()">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl max-h-[80vh] overflow-hidden flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white">Edit Goal Scorer</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Change the player who scored</p>
+                    </div>
+                    <button onclick="closeHistoryEditGoalPlayerModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Player List for History Editing -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2" id="history-edit-goal-player-list">
+                    <div class="text-center py-8 text-slate-400">
+                        <p>No players in roster</p>
+                    </div>
+                </div>
+
+                <!-- Clear/Cancel Buttons -->
+                <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex gap-3">
+                    <button onclick="clearHistoryGoalPlayer()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 font-medium rounded-lg transition-colors">
+                        Clear Player
+                    </button>
+                    <button onclick="closeHistoryEditGoalPlayerModal()" class="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Shot Map Modal -->
         <div class="shot-map-modal fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4" id="shot-map-modal">
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -908,8 +942,8 @@
                         </g>
 
                         <!-- Team labels -->
-                        <text x="13" y="5" fill="white" font-size="4" font-weight="bold" opacity="0.7" id="field-home-label">HOME</text>
-                        <text x="79" y="5" fill="white" font-size="4" font-weight="bold" opacity="0.7" id="field-away-label">AWAY</text>
+                        <text x="2" y="5" fill="white" font-size="3" font-weight="bold" opacity="0.7" text-anchor="start" id="field-home-label">HOME</text>
+                        <text x="103" y="5" fill="white" font-size="3" font-weight="bold" opacity="0.7" text-anchor="end" id="field-away-label">AWAY</text>
 
                         <!-- Shot marker (hidden initially) -->
                         <g id="shot-marker" style="display: none;">
@@ -1449,6 +1483,13 @@
         let playerTrackingEnabled = localStorage.getItem('playerTrackingEnabled') === 'true';
         let rosterTeam = localStorage.getItem('rosterTeam') || 'home'; // Which team the roster belongs to
         let pendingGoalForPlayer = null; // Stores pending goal data when player selection is needed
+
+        // History goal editing state
+        let historyEditGameId = null;
+        let historyEditLogIndex = null;
+        let historyEditRosterId = null;
+        let historyEditPlayers = [];
+        let historyGamesCache = null; // Cache of games for re-rendering after edits
 
         // Saved games storage key
         const STORAGE_KEY = 'soccer-shot-tracker-games';
@@ -2274,6 +2315,181 @@
             modal.classList.remove('flex');
         }
 
+        // =====================================================
+        // HISTORY GOAL EDITING
+        // =====================================================
+
+        // Load players for a roster in history context (doesn't affect global roster state)
+        async function loadHistoryRosterPlayers(rosterId) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('players')
+                    .select('*')
+                    .eq('roster_id', rosterId)
+                    .order('number', { ascending: true, nullsFirst: false });
+
+                if (error) {
+                    console.error('Error loading history roster players:', error);
+                    return [];
+                }
+
+                return data || [];
+            } catch (err) {
+                console.error('Error loading history roster players:', err);
+                return [];
+            }
+        }
+
+        // Select a roster for history goal editing
+        window.selectHistoryRoster = async function(rosterId, gameId) {
+            historyEditRosterId = rosterId;
+            historyEditPlayers = await loadHistoryRosterPlayers(rosterId);
+
+            // Update the roster selector buttons
+            const selectorContainer = document.getElementById(`history-roster-selector-${gameId}`);
+            if (selectorContainer) {
+                const buttons = selectorContainer.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    if (btn.dataset.rosterId === rosterId) {
+                        btn.classList.remove('bg-slate-100', 'dark:bg-slate-700', 'text-slate-600', 'dark:text-slate-300');
+                        btn.classList.add('bg-emerald-100', 'dark:bg-emerald-900/50', 'text-emerald-700', 'dark:text-emerald-400', 'ring-1', 'ring-emerald-300', 'dark:ring-emerald-700');
+                    } else {
+                        btn.classList.remove('bg-emerald-100', 'dark:bg-emerald-900/50', 'text-emerald-700', 'dark:text-emerald-400', 'ring-1', 'ring-emerald-300', 'dark:ring-emerald-700');
+                        btn.classList.add('bg-slate-100', 'dark:bg-slate-700', 'text-slate-600', 'dark:text-slate-300');
+                    }
+                });
+            }
+
+            // Update goal rows to show clickable state
+            const goalRows = document.querySelectorAll(`.history-goal-row-${gameId}`);
+            goalRows.forEach(row => {
+                row.classList.add('cursor-pointer', 'hover:ring-2', 'hover:ring-emerald-300', 'dark:hover:ring-emerald-700');
+            });
+        }
+
+        // Open history edit goal player modal
+        window.openHistoryEditGoalPlayerModal = function(gameId, logIndex, currentPlayerId) {
+            if (!historyEditRosterId || historyEditPlayers.length === 0) return;
+
+            historyEditGameId = gameId;
+            historyEditLogIndex = logIndex;
+
+            const container = document.getElementById('history-edit-goal-player-list');
+
+            container.innerHTML = historyEditPlayers.map(player => `
+                <button onclick="updateHistoryGoalPlayer('${player.id}')" class="w-full flex items-center gap-3 p-3 ${currentPlayerId === player.id ? 'bg-emerald-100 dark:bg-emerald-900/50' : 'bg-slate-50 dark:bg-slate-700/50'} hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-xl mb-2 transition-colors text-left">
+                    <div class="w-10 h-10 ${currentPlayerId === player.id ? 'bg-emerald-500' : 'bg-emerald-100 dark:bg-emerald-900/50'} rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="${currentPlayerId === player.id ? 'text-white' : 'text-emerald-700 dark:text-emerald-400'} font-bold text-sm">${player.number || '-'}</span>
+                    </div>
+                    <span class="font-medium text-slate-800 dark:text-white">${escapeHtml(player.name)}</span>
+                    ${currentPlayerId === player.id ? '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-500 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>' : ''}
+                </button>
+            `).join('');
+
+            const modal = document.getElementById('history-edit-goal-player-modal-overlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // Update goal player in history
+        window.updateHistoryGoalPlayer = async function(playerId) {
+            if (!historyEditGameId || historyEditLogIndex === null) return;
+
+            const player = historyEditPlayers.find(p => p.id === playerId);
+            if (!player) return;
+
+            // Find the game in cache
+            const game = historyGamesCache?.find(g => g.id === historyEditGameId);
+            if (!game || !game.log[historyEditLogIndex]) return;
+
+            // Update in memory
+            game.log[historyEditLogIndex].playerId = playerId;
+            game.log[historyEditLogIndex].playerName = player.name;
+
+            // Persist to Supabase
+            try {
+                const { error } = await supabaseClient
+                    .from('games')
+                    .update({ shot_log: game.log })
+                    .eq('id', historyEditGameId);
+
+                if (error) {
+                    console.error('Error updating goal scorer:', error);
+                }
+            } catch (err) {
+                console.error('Error updating goal scorer:', err);
+            }
+
+            // Re-render and close
+            updateGameList(historyGamesCache);
+            closeHistoryEditGoalPlayerModal();
+
+            // Re-expand the game details and re-select roster
+            setTimeout(async () => {
+                const gameItem = document.getElementById(`game-${historyEditGameId}`);
+                if (gameItem) {
+                    const expandedStats = gameItem.querySelector('.expanded-stats');
+                    if (expandedStats && expandedStats.classList.contains('hidden')) {
+                        toggleGameDetails(historyEditGameId);
+                    }
+                }
+                if (historyEditRosterId) {
+                    await selectHistoryRoster(historyEditRosterId, historyEditGameId);
+                }
+            }, 50);
+        }
+
+        // Clear goal player in history
+        window.clearHistoryGoalPlayer = async function() {
+            if (!historyEditGameId || historyEditLogIndex === null) return;
+
+            const game = historyGamesCache?.find(g => g.id === historyEditGameId);
+            if (!game || !game.log[historyEditLogIndex]) return;
+
+            // Update in memory
+            game.log[historyEditLogIndex].playerId = null;
+            game.log[historyEditLogIndex].playerName = null;
+
+            // Persist to Supabase
+            try {
+                const { error } = await supabaseClient
+                    .from('games')
+                    .update({ shot_log: game.log })
+                    .eq('id', historyEditGameId);
+
+                if (error) {
+                    console.error('Error clearing goal scorer:', error);
+                }
+            } catch (err) {
+                console.error('Error clearing goal scorer:', err);
+            }
+
+            // Re-render and close
+            updateGameList(historyGamesCache);
+            closeHistoryEditGoalPlayerModal();
+
+            // Re-expand the game details and re-select roster
+            setTimeout(async () => {
+                const gameItem = document.getElementById(`game-${historyEditGameId}`);
+                if (gameItem) {
+                    const expandedStats = gameItem.querySelector('.expanded-stats');
+                    if (expandedStats && expandedStats.classList.contains('hidden')) {
+                        toggleGameDetails(historyEditGameId);
+                    }
+                }
+                if (historyEditRosterId) {
+                    await selectHistoryRoster(historyEditRosterId, historyEditGameId);
+                }
+            }, 50);
+        }
+
+        // Close history edit goal player modal
+        window.closeHistoryEditGoalPlayerModal = function() {
+            const modal = document.getElementById('history-edit-goal-player-modal-overlay');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
         // Helper function to escape HTML
         function escapeHtml(text) {
             const div = document.createElement('div');
@@ -2425,11 +2641,11 @@
 
             // homeLabel is on the left, awayLabel is on the right
             if (fieldSidesFlipped) {
-                homeLabel.textContent = awayName.toUpperCase().slice(0, 10);
-                awayLabel.textContent = homeName.toUpperCase().slice(0, 10);
+                homeLabel.textContent = awayName.toUpperCase();
+                awayLabel.textContent = homeName.toUpperCase();
             } else {
-                homeLabel.textContent = homeName.toUpperCase().slice(0, 10);
-                awayLabel.textContent = awayName.toUpperCase().slice(0, 10);
+                homeLabel.textContent = homeName.toUpperCase();
+                awayLabel.textContent = awayName.toUpperCase();
             }
         }
 
@@ -3218,14 +3434,14 @@
 
             if (half === 1) {
                 half1Btn.classList.add('border-emerald-500', 'bg-emerald-500', 'text-white');
-                half1Btn.classList.remove('border-slate-200', 'bg-white', 'text-slate-500');
+                half1Btn.classList.remove('border-slate-200', 'bg-white', 'text-slate-500', 'dark:border-slate-600', 'dark:bg-slate-700', 'dark:text-slate-300');
                 half2Btn.classList.remove('border-emerald-500', 'bg-emerald-500', 'text-white');
-                half2Btn.classList.add('border-slate-200', 'bg-white', 'text-slate-500');
+                half2Btn.classList.add('border-slate-200', 'bg-white', 'text-slate-500', 'dark:border-slate-600', 'dark:bg-slate-700', 'dark:text-slate-300');
             } else {
                 half2Btn.classList.add('border-emerald-500', 'bg-emerald-500', 'text-white');
-                half2Btn.classList.remove('border-slate-200', 'bg-white', 'text-slate-500');
+                half2Btn.classList.remove('border-slate-200', 'bg-white', 'text-slate-500', 'dark:border-slate-600', 'dark:bg-slate-700', 'dark:text-slate-300');
                 half1Btn.classList.remove('border-emerald-500', 'bg-emerald-500', 'text-white');
-                half1Btn.classList.add('border-slate-200', 'bg-white', 'text-slate-500');
+                half1Btn.classList.add('border-slate-200', 'bg-white', 'text-slate-500', 'dark:border-slate-600', 'dark:bg-slate-700', 'dark:text-slate-300');
             }
         }
 
@@ -3308,11 +3524,11 @@
             const awayName = document.getElementById('away-team-input').value || 'AWAY';
             // homeLabel is on the left, awayLabel is on the right
             if (fieldSidesFlipped) {
-                homeLabel.textContent = awayName.toUpperCase().slice(0, 10);
-                awayLabel.textContent = homeName.toUpperCase().slice(0, 10);
+                homeLabel.textContent = awayName.toUpperCase();
+                awayLabel.textContent = homeName.toUpperCase();
             } else {
-                homeLabel.textContent = homeName.toUpperCase().slice(0, 10);
-                awayLabel.textContent = awayName.toUpperCase().slice(0, 10);
+                homeLabel.textContent = homeName.toUpperCase();
+                awayLabel.textContent = awayName.toUpperCase();
             }
 
             // Reset modal header text (in case it was in view mode)
@@ -3564,11 +3780,11 @@
             const awayName = document.getElementById('away-team-input').value || 'AWAY';
             // homeLabel is on the left, awayLabel is on the right
             if (fieldSidesFlipped) {
-                homeLabel.textContent = awayName.toUpperCase().slice(0, 10);
-                awayLabel.textContent = homeName.toUpperCase().slice(0, 10);
+                homeLabel.textContent = awayName.toUpperCase();
+                awayLabel.textContent = homeName.toUpperCase();
             } else {
-                homeLabel.textContent = homeName.toUpperCase().slice(0, 10);
-                awayLabel.textContent = awayName.toUpperCase().slice(0, 10);
+                homeLabel.textContent = homeName.toUpperCase();
+                awayLabel.textContent = awayName.toUpperCase();
             }
 
             // Set header info for view mode
@@ -3957,6 +4173,7 @@
         }
 
         function updateGameList(games) {
+            historyGamesCache = games;
             const container = document.getElementById('game-list');
 
             if (games.length === 0) {
@@ -4156,8 +4373,8 @@
                                             <path d="M 88 27.5 A 9.15 9.15 0 0 0 88 40.5"/>
                                         </g>
                                         <!-- Team labels -->
-                                        <text x="13" y="5" fill="white" font-size="4" font-weight="bold" opacity="0.7">${game.homeTeam.toUpperCase().slice(0, 10)}</text>
-                                        <text x="79" y="5" fill="white" font-size="4" font-weight="bold" opacity="0.7">${game.awayTeam.toUpperCase().slice(0, 10)}</text>
+                                        <text x="2" y="5" fill="white" font-size="3" font-weight="bold" opacity="0.7" text-anchor="start">${game.homeTeam.toUpperCase()}</text>
+                                        <text x="103" y="5" fill="white" font-size="3" font-weight="bold" opacity="0.7" text-anchor="end">${game.awayTeam.toUpperCase()}</text>
                                         <!-- Shot markers -->
                                         ${shotMarkersSvg}
                                     </svg>
@@ -4196,8 +4413,13 @@
                             </div>
                             ` : ''}
                             ${(() => {
-                                // Get all goals from the log
-                                const allGoals = (game.log || []).filter(shot => shot.type === 'GOAL!');
+                                // Get all goals from the log with their original indices
+                                const allGoals = [];
+                                (game.log || []).forEach((shot, idx) => {
+                                    if (shot.type === 'GOAL!') {
+                                        allGoals.push({ ...shot, _logIndex: idx });
+                                    }
+                                });
 
                                 if (allGoals.length === 0) return '';
 
@@ -4222,12 +4444,26 @@
                                     <div class="text-sm font-semibold text-slate-700 dark:text-slate-200">Goal Timeline</div>
                                     <span class="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 text-[10px] font-bold uppercase rounded">BETA</span>
                                 </div>
+                                ${rosters.length > 0 ? `
+                                <div class="mb-3">
+                                    <div class="text-xs text-slate-400 mb-1.5">Select roster to edit scorers:</div>
+                                    <div class="flex flex-wrap gap-1.5" id="history-roster-selector-${game.id}">
+                                        ${rosters.map(r => `
+                                            <button data-roster-id="${r.id}" onclick="selectHistoryRoster('${r.id}', '${game.id}')" class="px-2.5 py-1 text-xs font-medium rounded-full transition-colors bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30">
+                                                ${r.name}
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                ` : ''}
                                 <div class="space-y-2">
                                     ${allGoals.map(goal => {
                                         const teamColor = goal.team === 'home' ? homeColor : awayColor;
                                         const teamName = goal.team === 'home' ? game.homeTeam : game.awayTeam;
                                         return `
-                                        <div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600">
+                                        <div class="history-goal-row-${game.id} flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 transition-all"
+                                            onclick="openHistoryEditGoalPlayerModal('${game.id}', ${goal._logIndex}, ${goal.playerId ? '\\'' + goal.playerId + '\\'' : 'null'})"
+                                        >
                                             <div class="flex-shrink-0 w-14 text-center">
                                                 <div class="text-sm font-bold text-slate-700 dark:text-slate-200">${goal.gameTime || '--:--'}</div>
                                                 <div class="text-[10px] text-slate-400">${goal.half || ''}</div>
@@ -4742,8 +4978,8 @@
                                     <path d="M 88 27.5 A 9.15 9.15 0 0 0 88 40.5"/>
                                 </g>
                                 <!-- Team labels -->
-                                <text x="13" y="5" fill="white" font-size="4" font-weight="bold" opacity="0.7" font-family="Arial">${homeTeam.toUpperCase().slice(0, 10)}</text>
-                                <text x="79" y="5" fill="white" font-size="4" font-weight="bold" opacity="0.7" font-family="Arial">${awayTeam.toUpperCase().slice(0, 10)}</text>
+                                <text x="2" y="5" fill="white" font-size="3" font-weight="bold" opacity="0.7" text-anchor="start" font-family="Arial">${homeTeam.toUpperCase()}</text>
+                                <text x="103" y="5" fill="white" font-size="3" font-weight="bold" opacity="0.7" text-anchor="end" font-family="Arial">${awayTeam.toUpperCase()}</text>
                                 <!-- Shot markers -->
                                 ${pdfShotMarkers}
                             </svg>
