@@ -4270,8 +4270,8 @@
                                     ${game.notes.map(note => `
                                         <div class="bg-white dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-600">
                                             <div class="flex items-start gap-2">
-                                                <span class="text-xs font-mono text-slate-400 whitespace-nowrap">${note.timestamp || ''}</span>
-                                                <span class="text-sm text-slate-600 dark:text-slate-300">${note.text}</span>
+                                                <span class="text-xs font-mono text-slate-400 whitespace-nowrap">${note.gameTime || note.timestamp || ''}</span>
+                                                <span class="text-sm text-slate-600 dark:text-slate-300">${note.content || note.text || ''}</span>
                                             </div>
                                         </div>
                                     `).join('')}
@@ -4785,8 +4785,8 @@
                         <h2>Game Notes</h2>
                         ${game.notes.map(note => `
                             <div class="note-item">
-                                <span class="note-timestamp">${note.timestamp || ''}</span>
-                                <span class="note-text">${note.text}</span>
+                                <span class="note-timestamp">${note.gameTime || note.timestamp || ''}</span>
+                                <span class="note-text">${note.content || note.text || ''}</span>
                             </div>
                         `).join('')}
                     </div>
