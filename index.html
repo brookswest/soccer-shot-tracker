@@ -143,112 +143,57 @@
         </header>
 
         <div class="max-w-4xl mx-auto px-4 -mt-14 pb-10">
-            <nav class="flex bg-white dark:bg-slate-800 rounded-2xl p-1.5 mb-6 shadow-lg">
+            <nav id="main-nav" class="flex bg-white dark:bg-slate-800 rounded-2xl p-1.5 mb-6 shadow-lg" style="display: none;">
                 <button class="nav-tab active flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 bg-emerald-500 text-white shadow-sm" onclick="switchView('game')">Current Game</button>
                 <button class="nav-tab flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700" onclick="switchView('history')">Game History</button>
             </nav>
 
             <!-- Current Game View -->
-            <div id="game-view" class="view active">
-                <!-- Game Setup Card -->
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 mb-5 shadow-lg">
-                    <h2 class="text-lg font-semibold text-slate-800 dark:text-white mb-5">Game Setup</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label for="game-date" class="text-sm font-medium text-slate-500 dark:text-slate-400">Date</label>
-                            <input type="date" id="game-date" class="w-full px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10">
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Half</label>
-                            <div class="flex gap-2">
-                                <button type="button" class="half-btn active flex-1 py-2.5 px-4 border-2 border-emerald-500 bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-all duration-200" id="half-1-btn" onclick="setHalf(1)">1st Half</button>
-                                <button type="button" class="half-btn flex-1 py-2.5 px-4 border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500" id="half-2-btn" onclick="setHalf(2)">2nd Half</button>
+            <div id="game-view" class="view hidden">
+                <!-- Hidden inputs (keep for existing JS references) -->
+                <input type="hidden" id="game-date">
+                <input type="hidden" id="home-team-input">
+                <input type="hidden" id="home-color" value="#10b981">
+                <input type="hidden" id="away-team-input">
+                <input type="hidden" id="away-color" value="#3b82f6">
+
+                <!-- Hidden roster state (keep for existing JS references) -->
+                <div style="display: none;">
+                    <div id="selected-roster-display"><span class="text-slate-400">No roster selected</span></div>
+                    <div id="player-tracking-section">
+                        <button type="button" id="player-tracking-toggle" class="relative w-12 h-7 bg-slate-300 rounded-full">
+                            <span id="player-tracking-toggle-dot" class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow"></span>
+                        </button>
+                    </div>
+                    <div id="roster-team-assignment">
+                        <button type="button" id="roster-team-home-btn" onclick="setRosterTeam('home')">Home</button>
+                        <button type="button" id="roster-team-away-btn" onclick="setRosterTeam('away')">Away</button>
+                    </div>
+                    <button type="button" id="shot-map-toggle">
+                        <span id="shot-map-toggle-dot"></span>
+                    </button>
+                    <button type="button" id="wake-lock-toggle">
+                        <span id="wake-lock-toggle-dot"></span>
+                    </button>
+                </div>
+
+                <!-- Game Summary Bar -->
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 mb-5 shadow-lg">
+                    <div class="flex items-center justify-between flex-wrap gap-3">
+                        <div class="flex items-center gap-3">
+                            <button onclick="currentTeamId ? navigateToTeamDashboard(currentTeamId) : navigateToHome()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <div>
+                                <div class="text-sm text-slate-400" id="game-date-display"></div>
+                                <div class="font-semibold text-slate-800 dark:text-white text-sm" id="game-teams-display"></div>
                             </div>
                         </div>
-                        <div class="space-y-1.5">
-                            <label for="home-team-input" class="text-sm font-medium text-slate-500 dark:text-slate-400">Home Team</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="home-team-input" class="flex-1 px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="Home Team">
-                                <input type="color" id="home-color" class="color-picker w-11 h-11 border-2 border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer p-1 bg-white dark:bg-slate-700" value="#10b981" title="Home team color">
-                            </div>
-                        </div>
-                        <div class="space-y-1.5">
-                            <label for="away-team-input" class="text-sm font-medium text-slate-500 dark:text-slate-400">Away Team</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="away-team-input" class="flex-1 px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Away Team">
-                                <input type="color" id="away-color" class="color-picker w-11 h-11 border-2 border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer p-1 bg-white dark:bg-slate-700" value="#3b82f6" title="Away team color">
-                            </div>
-                        </div>
-                        <!-- Shot Map Toggle -->
-                        <div class="sm:col-span-2 mt-2 pt-4 border-t border-slate-200 dark:border-slate-700">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Shot Map</label>
-                                    <p class="text-xs text-slate-400 mt-0.5">Record shot locations on the field</p>
-                                </div>
-                                <button type="button" id="shot-map-toggle" onclick="toggleShotMap()" class="relative w-12 h-7 bg-slate-300 dark:bg-slate-600 rounded-full transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
-                                    <span id="shot-map-toggle-dot" class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
-                                </button>
-                            </div>
-                        </div>
-                        <!-- Wake Lock Toggle -->
-                        <div class="sm:col-span-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Keep Screen On</label>
-                                    <p class="text-xs text-slate-400 mt-0.5">Prevent screen from dimming</p>
-                                </div>
-                                <button type="button" id="wake-lock-toggle" onclick="toggleWakeLock()" class="relative w-12 h-7 bg-slate-300 dark:bg-slate-600 rounded-full transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
-                                    <span id="wake-lock-toggle-dot" class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
-                                </button>
-                            </div>
-                        </div>
-                        <!-- Roster Section -->
-                        <div class="sm:col-span-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center gap-2">
-                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Roster</label>
-                                    <span class="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 text-[10px] font-bold uppercase rounded">BETA</span>
-                                </div>
-                                <button type="button" onclick="openRostersModal()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                    </svg>
-                                    Manage Rosters
-                                </button>
-                            </div>
-                            <!-- Selected Roster Display -->
-                            <div class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Active Roster</label>
-                                        <p class="text-xs mt-0.5" id="selected-roster-display">
-                                            <span class="text-slate-400">No roster selected</span>
-                                        </p>
-                                    </div>
-                                    <button type="button" onclick="openSelectRosterModal()" class="px-3 py-1.5 border border-slate-300 dark:border-slate-600 hover:border-emerald-500 hover:text-emerald-500 text-slate-500 dark:text-slate-400 text-sm font-medium rounded-lg transition-colors">
-                                        Change
-                                    </button>
-                                </div>
-                            </div>
-                            <!-- Player Tracking Toggle -->
-                            <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl mt-3" id="player-tracking-section" style="display: none;">
-                                <div>
-                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Track Goal Scorers</label>
-                                    <p class="text-xs text-slate-400 mt-0.5">Select player when recording goals</p>
-                                </div>
-                                <button type="button" id="player-tracking-toggle" onclick="togglePlayerTracking()" class="relative w-12 h-7 bg-slate-300 dark:bg-slate-600 rounded-full transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
-                                    <span id="player-tracking-toggle-dot" class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
-                                </button>
-                            </div>
-                            <!-- Roster Team Assignment -->
-                            <div class="mt-3" id="roster-team-assignment" style="display: none;">
-                                <label class="text-xs font-medium text-slate-500 dark:text-slate-400 block mb-2">Assign roster to team:</label>
-                                <div class="flex gap-2">
-                                    <button type="button" class="roster-team-btn flex-1 py-2 px-3 border-2 border-emerald-500 bg-emerald-500 text-white rounded-lg text-sm font-medium transition-all duration-200" id="roster-team-home-btn" onclick="setRosterTeam('home')">Home</button>
-                                    <button type="button" class="roster-team-btn flex-1 py-2 px-3 border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-lg text-sm font-medium transition-all duration-200 hover:border-blue-500 hover:text-blue-500" id="roster-team-away-btn" onclick="setRosterTeam('away')">Away</button>
-                                </div>
-                            </div>
+                        <div class="flex gap-2">
+                            <button type="button" class="half-btn active py-2 px-4 border-2 border-emerald-500 bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-all duration-200" id="half-1-btn" onclick="setHalf(1)">1st Half</button>
+                            <button type="button" class="half-btn py-2 px-4 border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500" id="half-2-btn" onclick="setHalf(2)">2nd Half</button>
                         </div>
                     </div>
                 </div>
@@ -465,6 +410,190 @@
                             <p class="text-sm mt-2">Save your first game to see it here!</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Home View (Team Selection) -->
+            <div id="home-view" class="view hidden">
+                <div id="teams-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="text-center py-16 text-slate-400 col-span-full">
+                        <div class="text-5xl mb-3">&#9917;</div>
+                        <p class="font-medium">No teams available</p>
+                        <p class="text-sm mt-2">Contact your admin to be added to a team.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Dashboard View -->
+            <div id="team-view" class="view hidden">
+                <!-- Team Header -->
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 mb-5 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <button onclick="navigateToHome()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <div class="flex items-center gap-2">
+                                <span id="team-color-dot" class="w-4 h-4 rounded-full bg-emerald-500"></span>
+                                <h2 id="team-name-display" class="text-lg font-semibold text-slate-800 dark:text-white">Team Name</h2>
+                            </div>
+                        </div>
+                        <button onclick="navigateToGameSetup()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-sm">
+                            Start Game
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Team Tabs -->
+                <div class="flex bg-white dark:bg-slate-800 rounded-2xl p-1.5 mb-6 shadow-lg">
+                    <button class="team-tab active flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 bg-emerald-500 text-white shadow-sm" onclick="switchTeamTab('history')">Game History</button>
+                    <button class="team-tab flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700" onclick="switchTeamTab('roster')">Roster</button>
+                </div>
+
+                <!-- Team History Tab -->
+                <div id="team-history-tab">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="team-stats-dashboard">
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 text-center shadow-lg border border-slate-100 dark:border-slate-700">
+                            <div class="text-3xl font-bold text-emerald-500" id="team-total-games">0</div>
+                            <div class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-2">Games Played</div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 text-center shadow-lg border border-slate-100 dark:border-slate-700">
+                            <div class="text-3xl font-bold text-emerald-500" id="team-avg-goals">0</div>
+                            <div class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-2">Avg Goals/Game</div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 text-center shadow-lg border border-slate-100 dark:border-slate-700">
+                            <div class="text-3xl font-bold text-emerald-500" id="team-total-shots">0</div>
+                            <div class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-2">Total Shots</div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 text-center shadow-lg border border-slate-100 dark:border-slate-700">
+                            <div class="text-3xl font-bold text-emerald-500" id="team-avg-accuracy">0%</div>
+                            <div class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-2">Avg Accuracy</div>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+                        <h2 class="text-lg font-semibold text-slate-800 dark:text-white mb-5">Game History</h2>
+                        <div class="game-list flex flex-col gap-3" id="team-game-list">
+                            <div class="empty-state text-center py-10 text-slate-400">
+                                <div class="text-5xl mb-3">&#128202;</div>
+                                <p>No games yet</p>
+                                <p class="text-sm mt-2">Start a game to see it here!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Roster Tab -->
+                <div id="team-roster-tab" class="hidden">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+                        <div class="flex justify-between items-center mb-5">
+                            <h2 class="text-lg font-semibold text-slate-800 dark:text-white">Players</h2>
+                            <button onclick="openTeamPlayersModal()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-xl transition-colors text-sm flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add Player
+                            </button>
+                        </div>
+                        <div id="team-roster-list">
+                            <div class="text-center py-10 text-slate-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                                <p>No players added yet</p>
+                                <p class="text-sm mt-1">Add players to your roster</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Setup View -->
+            <div id="game-setup-view" class="view hidden">
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+                    <div class="flex items-center gap-3 mb-6">
+                        <button onclick="navigateToTeamDashboard(currentTeamId)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <h2 class="text-lg font-semibold text-slate-800 dark:text-white">Game Setup</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Game Date -->
+                        <div class="space-y-1.5">
+                            <label for="setup-game-date" class="text-sm font-medium text-slate-500 dark:text-slate-400">Game Date</label>
+                            <input type="date" id="setup-game-date" class="w-full px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10">
+                        </div>
+
+                        <!-- Spacer for grid alignment -->
+                        <div class="hidden sm:block"></div>
+
+                        <!-- Home Team -->
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Home Team</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="setup-home-team" class="flex-1 px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm bg-slate-50 dark:bg-slate-600 cursor-not-allowed" readonly>
+                                <input type="color" id="setup-home-color" class="color-picker w-11 h-11 border-2 border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer p-1 bg-white dark:bg-slate-700" value="#10b981" title="Home team color">
+                            </div>
+                        </div>
+
+                        <!-- Away Team -->
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Away Team</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="setup-away-team" class="flex-1 px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Away Team">
+                                <input type="color" id="setup-away-color" class="color-picker w-11 h-11 border-2 border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer p-1 bg-white dark:bg-slate-700" value="#3b82f6" title="Away team color">
+                            </div>
+                        </div>
+
+                        <!-- Shot Map Toggle -->
+                        <div class="sm:col-span-2 mt-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Shot Map</label>
+                                    <p class="text-xs text-slate-400 mt-0.5">Record shot locations on the field</p>
+                                </div>
+                                <button type="button" id="setup-shot-map-toggle" onclick="toggleSetupShotMap()" class="relative w-12 h-7 bg-slate-300 dark:bg-slate-600 rounded-full transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
+                                    <span id="setup-shot-map-toggle-dot" class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Wake Lock Toggle -->
+                        <div class="sm:col-span-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Keep Screen On</label>
+                                    <p class="text-xs text-slate-400 mt-0.5">Prevent screen from dimming</p>
+                                </div>
+                                <button type="button" id="setup-wake-lock-toggle" onclick="toggleSetupWakeLock()" class="relative w-12 h-7 bg-slate-300 dark:bg-slate-600 rounded-full transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
+                                    <span id="setup-wake-lock-toggle-dot" class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Player Tracking Toggle -->
+                        <div class="sm:col-span-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Track Goal Scorers</label>
+                                    <p class="text-xs text-slate-400 mt-0.5">Select player when recording goals</p>
+                                </div>
+                                <button type="button" id="setup-player-tracking-toggle" onclick="toggleSetupPlayerTracking()" class="relative w-12 h-7 bg-slate-300 dark:bg-slate-600 rounded-full transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
+                                    <span id="setup-player-tracking-toggle-dot" class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="setup-error" class="hidden mt-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl text-sm"></div>
+
+                    <button onclick="startGameFromSetup()" class="w-full mt-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl text-lg">
+                        Start Game
+                    </button>
                 </div>
             </div>
         </div>
@@ -1370,8 +1499,8 @@
             // Load rosters from Supabase
             loadRosters();
 
-            // Load user's saved games from Supabase
-            loadHistoryView();
+            // Navigate to team home page
+            navigateToHome();
         }
 
         // Show the auth screen (after logout or initial load)
@@ -1493,6 +1622,18 @@
 
         // Saved games storage key
         const STORAGE_KEY = 'soccer-shot-tracker-games';
+
+        // Team state
+        let teams = [];
+        let currentTeamId = null;
+        let currentTeam = null;
+        let teamRoster = [];      // players for selected team
+        let teamRosterId = null;  // the single roster ID for selected team
+        let gameSetupConfig = {
+            shotMapEnabled: localStorage.getItem('setupShotMapEnabled') === 'true',
+            wakeLockEnabled: localStorage.getItem('setupWakeLockEnabled') === 'true',
+            playerTrackingEnabled: localStorage.getItem('setupPlayerTrackingEnabled') === 'true'
+        };
 
         // =====================================================
         // ROSTER MANAGEMENT (Multiple Rosters)
@@ -1800,6 +1941,11 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             editingRosterId = null;
+
+            // If in team context, refresh the team roster display
+            if (currentTeamId) {
+                loadTeamRoster();
+            }
         }
 
         // Add a new player to current roster
@@ -3268,7 +3414,7 @@
         // Initialize the main app UI (called after successful login)
         function initializeApp() {
             try {
-                document.getElementById('game-date').valueAsDate = new Date();
+                document.getElementById('game-date').value = new Date().toISOString().split('T')[0];
                 updateClockDisplay();
 
                 // Restore wake lock state from localStorage
@@ -3443,6 +3589,579 @@
                 half1Btn.classList.remove('border-emerald-500', 'bg-emerald-500', 'text-white');
                 half1Btn.classList.add('border-slate-200', 'bg-white', 'text-slate-500', 'dark:border-slate-600', 'dark:bg-slate-700', 'dark:text-slate-300');
             }
+        }
+
+        // =====================================================
+        // NAVIGATION FUNCTIONS
+        // =====================================================
+
+        function hideAllViews() {
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+        }
+
+        function hideNavTabs() {
+            document.getElementById('main-nav').style.display = 'none';
+        }
+
+        function showNavTabs() {
+            document.getElementById('main-nav').style.display = 'flex';
+        }
+
+        window.navigateToHome = function() {
+            hideAllViews();
+            hideNavTabs();
+            document.getElementById('home-view').classList.remove('hidden');
+            currentTeamId = null;
+            currentTeam = null;
+            loadTeams();
+        }
+
+        window.navigateToTeamDashboard = async function(teamId) {
+            if (!teamId) return;
+            currentTeamId = teamId;
+            currentTeam = teams.find(t => t.id === teamId) || null;
+
+            hideAllViews();
+            hideNavTabs();
+            document.getElementById('team-view').classList.remove('hidden');
+
+            // Populate header
+            if (currentTeam) {
+                document.getElementById('team-name-display').textContent = currentTeam.name;
+                document.getElementById('team-color-dot').style.backgroundColor = currentTeam.color || '#10b981';
+            }
+
+            // Load data
+            await Promise.all([loadTeamRoster(), loadTeamGames()]);
+
+            // Default to history tab
+            switchTeamTab('history');
+        }
+
+        window.navigateToGameSetup = function() {
+            hideAllViews();
+            hideNavTabs();
+            document.getElementById('game-setup-view').classList.remove('hidden');
+
+            // Pre-fill form
+            document.getElementById('setup-game-date').valueAsDate = new Date();
+            document.getElementById('setup-home-team').value = currentTeam ? currentTeam.name : '';
+            document.getElementById('setup-home-color').value = currentTeam ? (currentTeam.color || '#10b981') : '#10b981';
+            document.getElementById('setup-away-team').value = '';
+            document.getElementById('setup-away-color').value = '#3b82f6';
+
+            // Hide error
+            document.getElementById('setup-error').classList.add('hidden');
+
+            // Restore toggle states from stored preferences
+            updateSetupToggles();
+        }
+
+        window.navigateToGame = function() {
+            hideAllViews();
+            showNavTabs();
+            document.getElementById('game-view').classList.remove('hidden');
+
+            // Activate the Current Game tab
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => {
+                tab.classList.remove('bg-emerald-500', 'text-white', 'shadow-sm');
+                tab.classList.add('text-slate-500');
+            });
+            navTabs[0].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
+            navTabs[0].classList.remove('text-slate-500');
+        }
+
+        window.switchTeamTab = function(tab) {
+            const tabs = document.querySelectorAll('.team-tab');
+            tabs.forEach(t => {
+                t.classList.remove('bg-emerald-500', 'text-white', 'shadow-sm');
+                t.classList.add('text-slate-500', 'dark:text-slate-400');
+            });
+
+            if (tab === 'history') {
+                tabs[0].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
+                tabs[0].classList.remove('text-slate-500', 'dark:text-slate-400');
+                document.getElementById('team-history-tab').classList.remove('hidden');
+                document.getElementById('team-roster-tab').classList.add('hidden');
+            } else {
+                tabs[1].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
+                tabs[1].classList.remove('text-slate-500', 'dark:text-slate-400');
+                document.getElementById('team-history-tab').classList.add('hidden');
+                document.getElementById('team-roster-tab').classList.remove('hidden');
+            }
+        }
+
+        // =====================================================
+        // TEAMS DATA FUNCTIONS
+        // =====================================================
+
+        async function loadTeams() {
+            if (!currentUser) return;
+
+            try {
+                // Get team IDs for current user
+                const { data: coachData, error: coachError } = await supabaseClient
+                    .from('team_coaches')
+                    .select('team_id')
+                    .eq('user_id', currentUser.id);
+
+                if (coachError) {
+                    console.error('Error loading team coaches:', coachError);
+                    teams = [];
+                    updateTeamsDisplay();
+                    return;
+                }
+
+                if (!coachData || coachData.length === 0) {
+                    teams = [];
+                    updateTeamsDisplay();
+                    return;
+                }
+
+                const teamIds = coachData.map(tc => tc.team_id);
+
+                const { data: teamsData, error: teamsError } = await supabaseClient
+                    .from('teams')
+                    .select('*')
+                    .in('id', teamIds)
+                    .order('name');
+
+                if (teamsError) {
+                    console.error('Error loading teams:', teamsError);
+                    teams = [];
+                } else {
+                    teams = teamsData || [];
+                }
+
+                updateTeamsDisplay();
+            } catch (err) {
+                console.error('Error loading teams:', err);
+                teams = [];
+                updateTeamsDisplay();
+            }
+        }
+
+        function updateTeamsDisplay() {
+            const container = document.getElementById('teams-grid');
+
+            if (teams.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 text-slate-400 col-span-full">
+                        <div class="text-5xl mb-3">&#9917;</div>
+                        <p class="font-medium">No teams available</p>
+                        <p class="text-sm mt-2">Contact your admin to be added to a team.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = teams.map(team => {
+                const color = team.color || '#10b981';
+                return `
+                    <button onclick="navigateToTeamDashboard('${team.id}')" class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border-2 border-slate-100 dark:border-slate-700 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 text-left group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-md" style="background-color: ${color};">
+                                ${team.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold text-slate-800 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">${team.name}</h3>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-300 dark:text-slate-600 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        // =====================================================
+        // TEAM ROSTER FUNCTIONS
+        // =====================================================
+
+        async function loadTeamRoster() {
+            if (!currentTeamId || !currentUser) return;
+
+            try {
+                // Find or create roster for this team
+                let { data: rosterData, error: rosterError } = await supabaseClient
+                    .from('rosters')
+                    .select('*')
+                    .eq('team_id', currentTeamId)
+                    .limit(1)
+                    .maybeSingle();
+
+                if (rosterError) {
+                    console.error('Error loading team roster:', rosterError);
+                    return;
+                }
+
+                // Auto-create roster if none exists
+                if (!rosterData) {
+                    const teamName = currentTeam ? currentTeam.name : 'Team';
+                    const { data: newRoster, error: createError } = await supabaseClient
+                        .from('rosters')
+                        .insert([{ name: teamName + ' Roster', user_id: currentUser.id, team_id: currentTeamId }])
+                        .select()
+                        .single();
+
+                    if (createError) {
+                        console.error('Error creating team roster:', createError);
+                        return;
+                    }
+                    rosterData = newRoster;
+                }
+
+                teamRosterId = rosterData.id;
+
+                // Load players for this roster
+                const { data: playersData, error: playersError } = await supabaseClient
+                    .from('players')
+                    .select('*')
+                    .eq('roster_id', teamRosterId)
+                    .order('number', { ascending: true, nullsFirst: false });
+
+                if (playersError) {
+                    console.error('Error loading team players:', playersError);
+                    teamRoster = [];
+                } else {
+                    teamRoster = playersData || [];
+                }
+
+                updateTeamRosterDisplay();
+            } catch (err) {
+                console.error('Error loading team roster:', err);
+            }
+        }
+
+        function updateTeamRosterDisplay() {
+            const container = document.getElementById('team-roster-list');
+
+            if (teamRoster.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <p>No players added yet</p>
+                        <p class="text-sm mt-1">Add players to your roster</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = teamRoster.map(player => `
+                <div class="flex items-center justify-between py-3 px-2 border-b border-slate-100 dark:border-slate-700 last:border-0">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center text-sm font-bold">
+                            ${player.number || '-'}
+                        </span>
+                        <span class="font-medium text-slate-800 dark:text-white">${player.name}</span>
+                    </div>
+                    <button onclick="confirmDeleteTeamPlayer('${player.id}')" class="text-slate-400 hover:text-red-500 transition-colors p-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        window.openTeamPlayersModal = async function() {
+            // Reuse the existing players modal by setting editingRosterId
+            editingRosterId = teamRosterId;
+
+            // Clear inputs
+            document.getElementById('player-name-input').value = '';
+            document.getElementById('player-number-input').value = '';
+            document.getElementById('roster-error').classList.add('hidden');
+
+            // Load players
+            await loadRosterPlayers(teamRosterId);
+
+            // Open players modal
+            const modal = document.getElementById('roster-players-modal-overlay');
+            document.getElementById('roster-players-title').textContent = (currentTeam ? currentTeam.name : 'Team') + ' Players';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        window.confirmDeleteTeamPlayer = function(playerId) {
+            showModal('Delete Player', 'Are you sure you want to remove this player from the roster?', async () => {
+                try {
+                    const { error } = await supabaseClient
+                        .from('players')
+                        .delete()
+                        .eq('id', playerId);
+
+                    if (error) {
+                        console.error('Error deleting player:', error);
+                        return;
+                    }
+
+                    await loadTeamRoster();
+                } catch (err) {
+                    console.error('Error deleting player:', err);
+                }
+                closeModal();
+            });
+        }
+
+        // =====================================================
+        // TEAM GAMES FUNCTIONS
+        // =====================================================
+
+        async function loadTeamGames() {
+            if (!currentTeamId) return;
+
+            const games = await getSavedGames(currentTeamId);
+            updateTeamStatsDisplay(games);
+            updateTeamGameList(games);
+        }
+
+        function updateTeamStatsDisplay(games) {
+            if (games.length === 0) {
+                document.getElementById('team-total-games').textContent = '0';
+                document.getElementById('team-avg-goals').textContent = '0';
+                document.getElementById('team-total-shots').textContent = '0';
+                document.getElementById('team-avg-accuracy').textContent = '0%';
+                return;
+            }
+
+            let totalGoals = 0;
+            let totalShots = 0;
+            let totalOnTarget = 0;
+
+            games.forEach(game => {
+                totalGoals += game.home.goals + game.away.goals;
+                totalShots += game.home.onTarget + game.home.offTarget + game.away.onTarget + game.away.offTarget;
+                totalOnTarget += game.home.onTarget + game.away.onTarget;
+            });
+
+            const avgGoals = (totalGoals / games.length).toFixed(1);
+            const avgAccuracy = totalShots > 0 ? Math.round((totalOnTarget / totalShots) * 100) : 0;
+
+            document.getElementById('team-total-games').textContent = games.length;
+            document.getElementById('team-avg-goals').textContent = avgGoals;
+            document.getElementById('team-total-shots').textContent = totalShots;
+            document.getElementById('team-avg-accuracy').textContent = avgAccuracy + '%';
+        }
+
+        function updateTeamGameList(games) {
+            const container = document.getElementById('team-game-list');
+
+            if (games.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state text-center py-10 text-slate-400">
+                        <div class="text-5xl mb-3">&#128202;</div>
+                        <p>No games yet</p>
+                        <p class="text-sm mt-2">Start a game to see it here!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = games.map(game => {
+                const homeTotalShots = game.home.onTarget + game.home.offTarget;
+                const awayTotalShots = game.away.onTarget + game.away.offTarget;
+                const homeColor = game.homeColor || '#10b981';
+                const awayColor = game.awayColor || '#3b82f6';
+
+                const formattedDate = new Date(game.date).toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                return `
+                    <div class="game-item bg-slate-50 dark:bg-slate-700 rounded-xl p-5 border border-slate-200 dark:border-slate-600 hover:border-emerald-300 hover:shadow-md transition-all duration-200">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="flex-1">
+                                <div class="text-sm text-slate-400 mb-1">${formattedDate}</div>
+                                <div class="font-semibold text-slate-800 dark:text-white">${game.homeTeam} vs ${game.awayTeam}</div>
+                            </div>
+                            <div class="text-2xl font-bold px-4">
+                                <span style="color: ${homeColor};">${game.home.goals}</span>
+                                <span class="text-slate-300 dark:text-slate-500 mx-1">-</span>
+                                <span style="color: ${awayColor};">${game.away.goals}</span>
+                            </div>
+                            <div class="flex gap-4 text-sm text-slate-500 dark:text-slate-400">
+                                <span>Shots: ${homeTotalShots + awayTotalShots}</span>
+                                <span>On Target: ${game.home.onTarget + game.away.onTarget}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // =====================================================
+        // GAME SETUP FUNCTIONS
+        // =====================================================
+
+        window.toggleSetupShotMap = function() {
+            gameSetupConfig.shotMapEnabled = !gameSetupConfig.shotMapEnabled;
+            localStorage.setItem('setupShotMapEnabled', gameSetupConfig.shotMapEnabled);
+            updateSetupToggles();
+        }
+
+        window.toggleSetupWakeLock = function() {
+            gameSetupConfig.wakeLockEnabled = !gameSetupConfig.wakeLockEnabled;
+            localStorage.setItem('setupWakeLockEnabled', gameSetupConfig.wakeLockEnabled);
+            updateSetupToggles();
+        }
+
+        window.toggleSetupPlayerTracking = function() {
+            gameSetupConfig.playerTrackingEnabled = !gameSetupConfig.playerTrackingEnabled;
+            localStorage.setItem('setupPlayerTrackingEnabled', gameSetupConfig.playerTrackingEnabled);
+            updateSetupToggles();
+        }
+
+        function updateSetupToggles() {
+            // Shot Map toggle
+            const smToggle = document.getElementById('setup-shot-map-toggle');
+            const smDot = document.getElementById('setup-shot-map-toggle-dot');
+            if (smToggle && smDot) {
+                if (gameSetupConfig.shotMapEnabled) {
+                    smToggle.classList.remove('bg-slate-300', 'dark:bg-slate-600');
+                    smToggle.classList.add('bg-emerald-500');
+                    smDot.style.transform = 'translateX(20px)';
+                } else {
+                    smToggle.classList.add('bg-slate-300', 'dark:bg-slate-600');
+                    smToggle.classList.remove('bg-emerald-500');
+                    smDot.style.transform = 'translateX(0)';
+                }
+            }
+
+            // Wake Lock toggle
+            const wlToggle = document.getElementById('setup-wake-lock-toggle');
+            const wlDot = document.getElementById('setup-wake-lock-toggle-dot');
+            if (wlToggle && wlDot) {
+                if (gameSetupConfig.wakeLockEnabled) {
+                    wlToggle.classList.remove('bg-slate-300', 'dark:bg-slate-600');
+                    wlToggle.classList.add('bg-emerald-500');
+                    wlDot.style.transform = 'translateX(20px)';
+                } else {
+                    wlToggle.classList.add('bg-slate-300', 'dark:bg-slate-600');
+                    wlToggle.classList.remove('bg-emerald-500');
+                    wlDot.style.transform = 'translateX(0)';
+                }
+            }
+
+            // Player Tracking toggle
+            const ptToggle = document.getElementById('setup-player-tracking-toggle');
+            const ptDot = document.getElementById('setup-player-tracking-toggle-dot');
+            if (ptToggle && ptDot) {
+                if (gameSetupConfig.playerTrackingEnabled) {
+                    ptToggle.classList.remove('bg-slate-300', 'dark:bg-slate-600');
+                    ptToggle.classList.add('bg-emerald-500');
+                    ptDot.style.transform = 'translateX(20px)';
+                } else {
+                    ptToggle.classList.add('bg-slate-300', 'dark:bg-slate-600');
+                    ptToggle.classList.remove('bg-emerald-500');
+                    ptDot.style.transform = 'translateX(0)';
+                }
+            }
+        }
+
+        window.startGameFromSetup = function() {
+            const awayTeam = document.getElementById('setup-away-team').value.trim();
+            if (!awayTeam) {
+                const errorEl = document.getElementById('setup-error');
+                errorEl.textContent = 'Please enter an away team name.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            // Set the existing game view inputs
+            document.getElementById('home-team-input').value = document.getElementById('setup-home-team').value;
+            document.getElementById('away-team-input').value = awayTeam;
+            document.getElementById('home-color').value = document.getElementById('setup-home-color').value;
+            document.getElementById('away-color').value = document.getElementById('setup-away-color').value;
+            document.getElementById('game-date').value = document.getElementById('setup-game-date').value;
+
+            // Trigger the input events to update display names
+            document.getElementById('home-team-input').dispatchEvent(new Event('input'));
+            document.getElementById('away-team-input').dispatchEvent(new Event('input'));
+            document.getElementById('home-color').dispatchEvent(new Event('input'));
+            document.getElementById('away-color').dispatchEvent(new Event('input'));
+
+            // Apply toggle states to global vars
+            shotMapEnabled = gameSetupConfig.shotMapEnabled;
+            // Update shot map toggle UI in game view
+            const smToggleGame = document.getElementById('shot-map-toggle');
+            const smDotGame = document.getElementById('shot-map-toggle-dot');
+            if (smToggleGame && smDotGame) {
+                if (shotMapEnabled) {
+                    smToggleGame.classList.remove('bg-slate-300');
+                    smToggleGame.classList.add('bg-emerald-500');
+                    smDotGame.style.transform = 'translateX(20px)';
+                } else {
+                    smToggleGame.classList.add('bg-slate-300');
+                    smToggleGame.classList.remove('bg-emerald-500');
+                    smDotGame.style.transform = 'translateX(0)';
+                }
+            }
+
+            wakeLockEnabled = gameSetupConfig.wakeLockEnabled;
+            localStorage.setItem('wakeLockEnabled', wakeLockEnabled);
+            updateWakeLockToggleUI();
+            if (wakeLockEnabled) {
+                requestWakeLock();
+            }
+
+            playerTrackingEnabled = gameSetupConfig.playerTrackingEnabled;
+            localStorage.setItem('playerTrackingEnabled', playerTrackingEnabled);
+
+            // Set roster for this game
+            currentRosterId = teamRosterId;
+            localStorage.setItem('currentRosterId', currentRosterId);
+            roster = [...teamRoster];
+            rosterTeam = 'home';
+            localStorage.setItem('rosterTeam', 'home');
+
+            // Update roster display in game view
+            if (currentRosterId && roster.length > 0) {
+                const rosterName = currentTeam ? currentTeam.name : 'Team';
+                document.getElementById('selected-roster-display').innerHTML =
+                    `<span class="text-emerald-600 dark:text-emerald-400 font-medium">${rosterName} Roster</span>
+                     <span class="text-slate-400 ml-1">(${roster.length} players)</span>`;
+                document.getElementById('player-tracking-section').style.display = 'flex';
+                document.getElementById('roster-team-assignment').style.display = 'block';
+            }
+
+            // Update player tracking toggle UI in game view
+            const ptToggleGame = document.getElementById('player-tracking-toggle');
+            const ptDotGame = document.getElementById('player-tracking-toggle-dot');
+            if (ptToggleGame && ptDotGame) {
+                if (playerTrackingEnabled) {
+                    ptToggleGame.classList.remove('bg-slate-300', 'dark:bg-slate-600');
+                    ptToggleGame.classList.add('bg-emerald-500');
+                    ptDotGame.style.transform = 'translateX(20px)';
+                } else {
+                    ptToggleGame.classList.add('bg-slate-300', 'dark:bg-slate-600');
+                    ptToggleGame.classList.remove('bg-emerald-500');
+                    ptDotGame.style.transform = 'translateX(0)';
+                }
+            }
+
+            // Reset game state
+            resetGameState();
+            updateDisplay();
+
+            // Update game summary bar
+            const homeTeamName = document.getElementById('setup-home-team').value || 'Home Team';
+            const gameDateVal = document.getElementById('setup-game-date').value;
+            const formattedDate = gameDateVal ? new Date(gameDateVal + 'T12:00:00').toLocaleDateString('en-US', {
+                weekday: 'short', month: 'short', day: 'numeric'
+            }) : '';
+            document.getElementById('game-date-display').textContent = formattedDate;
+            document.getElementById('game-teams-display').textContent = `${homeTeamName} vs ${awayTeam}`;
+
+            // Navigate to game
+            navigateToGame();
         }
 
         // View switching
@@ -4042,6 +4761,7 @@
             // The 'id' will be auto-generated by Supabase (UUID)
             const gameData = {
                 user_id: currentUser.id,  // Link game to current user
+                team_id: currentTeamId || null,  // Link game to team if in team context
                 game_date: gameDate,
                 home_team: homeTeam,
                 away_team: awayTeam,
@@ -4089,6 +4809,15 @@
 
                 showModal('Game Saved!', `${homeTeam} ${gameData.home_stats.goals} - ${gameData.away_stats.goals} ${awayTeam} has been saved to your history.`, null);
 
+                // If in team context, navigate back to team dashboard after a brief delay
+                if (currentTeamId) {
+                    const savedTeamId = currentTeamId;
+                    setTimeout(() => {
+                        closeModal();
+                        navigateToTeamDashboard(savedTeamId);
+                    }, 1500);
+                }
+
             } catch (err) {
                 console.error('Save error:', err);
                 showModal('Save Failed', 'An unexpected error occurred while saving.', null);
@@ -4097,17 +4826,24 @@
 
         // Get saved games from Supabase
         // This is now an async function - callers need to await it
-        async function getSavedGames() {
+        async function getSavedGames(teamId) {
             if (!currentUser) {
                 return [];
             }
 
             try {
-                // Query games for the current user, ordered by creation date (newest first)
-                const { data, error } = await supabaseClient
+                // Query games, filtered by team if provided, otherwise by user
+                let query = supabaseClient
                     .from('games')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
+                    .select('*');
+
+                if (teamId) {
+                    query = query.eq('team_id', teamId);
+                } else {
+                    query = query.eq('user_id', currentUser.id);
+                }
+
+                const { data, error } = await query
                     .order('created_at', { ascending: false });
 
                 if (error) {
@@ -4139,7 +4875,7 @@
 
         // Load history view (async because getSavedGames is async)
         async function loadHistoryView() {
-            const games = await getSavedGames();
+            const games = await getSavedGames(currentTeamId);
             updateStatsDisplay(games);
             updateGameList(games);
         }
@@ -4596,7 +5332,7 @@
             document.getElementById('away-name-display').textContent = 'Away Team';
             document.getElementById('home-panel-title').innerHTML = '<span class="w-3 h-3 rounded-full bg-emerald-500 inline-block mr-2"></span>Home Team';
             document.getElementById('away-panel-title').innerHTML = '<span class="w-3 h-3 rounded-full bg-blue-500 inline-block mr-2"></span>Away Team';
-            document.getElementById('game-date').valueAsDate = new Date();
+            document.getElementById('game-date').value = new Date().toISOString().split('T')[0];
             document.getElementById('note-input').value = '';
 
             // Reset half selector
