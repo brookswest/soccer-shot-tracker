@@ -438,6 +438,11 @@
                             <div class="flex items-center gap-2">
                                 <span id="team-color-dot" class="w-4 h-4 rounded-full bg-emerald-500"></span>
                                 <h2 id="team-name-display" class="text-lg font-semibold text-slate-800 dark:text-white">Team Name</h2>
+                                <button onclick="openEditTeamModal()" class="text-slate-400 hover:text-emerald-500 transition-colors p-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                         <button onclick="navigateToGameSetup()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg text-sm">
@@ -602,6 +607,43 @@
             <p class="text-lg italic font-medium">This app inspired by Coach Adolpho</p>
             <p class="text-xs mt-1" id="version-app"></p>
         </footer>
+
+        <!-- Team Edit/Create Modal -->
+        <div class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" id="team-modal-overlay" onclick="if(event.target === this) closeTeamModal()">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-slate-800 dark:text-white" id="team-modal-title">Create Team</h3>
+                    <button onclick="closeTeamModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <input type="hidden" id="team-modal-id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm font-medium text-slate-600 dark:text-slate-400 block mb-1.5">Team Name</label>
+                        <input type="text" id="team-modal-name" class="w-full px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="e.g., U12 Eagles">
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-slate-600 dark:text-slate-400 block mb-1.5">Team Color</label>
+                        <div class="flex items-center gap-3">
+                            <input type="color" id="team-modal-color" class="color-picker w-11 h-11 border-2 border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer p-1 bg-white dark:bg-slate-700" value="#10b981">
+                            <div id="team-modal-color-preview" class="flex-1 h-11 rounded-xl" style="background-color: #10b981;"></div>
+                        </div>
+                    </div>
+                    <div id="team-modal-error" class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-2 rounded-xl text-sm"></div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeTeamModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-colors">Cancel</button>
+                    <button onclick="saveTeamModal()" id="team-modal-save-btn" class="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-colors">Create</button>
+                </div>
+                <!-- Delete button (only shown when editing) -->
+                <button onclick="confirmDeleteTeam()" id="team-modal-delete-btn" class="hidden w-full mt-3 py-2.5 border-2 border-red-200 dark:border-red-800 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 font-medium rounded-xl transition-colors">
+                    Delete Team
+                </button>
+            </div>
+        </div>
 
         <!-- Confirmation Modal -->
         <div class="modal-overlay fixed inset-0 bg-black/50 z-50 hidden items-center justify-center" id="modal-overlay">
@@ -3745,14 +3787,23 @@
         function updateTeamsDisplay() {
             const container = document.getElementById('teams-grid');
 
-            if (teams.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-16 text-slate-400 col-span-full">
-                        <div class="text-5xl mb-3">&#9917;</div>
-                        <p class="font-medium">No teams available</p>
-                        <p class="text-sm mt-2">Contact your admin to be added to a team.</p>
+            const createBtn = `
+                <button onclick="openCreateTeamModal()" class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 text-left group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30 group-hover:text-emerald-500 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Create Team</h3>
+                        </div>
                     </div>
-                `;
+                </button>
+            `;
+
+            if (teams.length === 0) {
+                container.innerHTML = createBtn;
                 return;
             }
 
@@ -3773,7 +3824,180 @@
                         </div>
                     </button>
                 `;
-            }).join('');
+            }).join('') + createBtn;
+        }
+
+        // =====================================================
+        // TEAM CREATE / EDIT / DELETE FUNCTIONS
+        // =====================================================
+
+        window.openCreateTeamModal = function() {
+            document.getElementById('team-modal-title').textContent = 'Create Team';
+            document.getElementById('team-modal-id').value = '';
+            document.getElementById('team-modal-name').value = '';
+            document.getElementById('team-modal-color').value = '#10b981';
+            document.getElementById('team-modal-color-preview').style.backgroundColor = '#10b981';
+            document.getElementById('team-modal-error').classList.add('hidden');
+            document.getElementById('team-modal-save-btn').textContent = 'Create';
+            document.getElementById('team-modal-delete-btn').classList.add('hidden');
+
+            const modal = document.getElementById('team-modal-overlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            // Sync color preview on change
+            document.getElementById('team-modal-color').oninput = function() {
+                document.getElementById('team-modal-color-preview').style.backgroundColor = this.value;
+            };
+
+            document.getElementById('team-modal-name').focus();
+        }
+
+        window.openEditTeamModal = function() {
+            if (!currentTeam) return;
+
+            document.getElementById('team-modal-title').textContent = 'Edit Team';
+            document.getElementById('team-modal-id').value = currentTeam.id;
+            document.getElementById('team-modal-name').value = currentTeam.name;
+            document.getElementById('team-modal-color').value = currentTeam.color || '#10b981';
+            document.getElementById('team-modal-color-preview').style.backgroundColor = currentTeam.color || '#10b981';
+            document.getElementById('team-modal-error').classList.add('hidden');
+            document.getElementById('team-modal-save-btn').textContent = 'Save';
+            document.getElementById('team-modal-delete-btn').classList.remove('hidden');
+
+            const modal = document.getElementById('team-modal-overlay');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            // Sync color preview on change
+            document.getElementById('team-modal-color').oninput = function() {
+                document.getElementById('team-modal-color-preview').style.backgroundColor = this.value;
+            };
+
+            document.getElementById('team-modal-name').focus();
+        }
+
+        window.closeTeamModal = function() {
+            const modal = document.getElementById('team-modal-overlay');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        window.saveTeamModal = async function() {
+            const name = document.getElementById('team-modal-name').value.trim();
+            const color = document.getElementById('team-modal-color').value;
+            const teamId = document.getElementById('team-modal-id').value;
+            const errorEl = document.getElementById('team-modal-error');
+
+            if (!name) {
+                errorEl.textContent = 'Please enter a team name.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            errorEl.classList.add('hidden');
+
+            try {
+                if (teamId) {
+                    // Update existing team
+                    const { error } = await supabaseClient
+                        .from('teams')
+                        .update({ name, color })
+                        .eq('id', teamId);
+
+                    if (error) {
+                        errorEl.textContent = 'Failed to update team: ' + error.message;
+                        errorEl.classList.remove('hidden');
+                        return;
+                    }
+
+                    // Update local state
+                    if (currentTeam && currentTeam.id === teamId) {
+                        currentTeam.name = name;
+                        currentTeam.color = color;
+                        document.getElementById('team-name-display').textContent = name;
+                        document.getElementById('team-color-dot').style.backgroundColor = color;
+                    }
+                    const teamIdx = teams.findIndex(t => t.id === teamId);
+                    if (teamIdx !== -1) {
+                        teams[teamIdx].name = name;
+                        teams[teamIdx].color = color;
+                    }
+                } else {
+                    // Create new team
+                    const { data: newTeam, error: teamError } = await supabaseClient
+                        .from('teams')
+                        .insert([{ name, color }])
+                        .select()
+                        .single();
+
+                    if (teamError) {
+                        errorEl.textContent = 'Failed to create team: ' + teamError.message;
+                        errorEl.classList.remove('hidden');
+                        return;
+                    }
+
+                    // Link current user as coach
+                    const { error: coachError } = await supabaseClient
+                        .from('team_coaches')
+                        .insert([{ team_id: newTeam.id, user_id: currentUser.id }]);
+
+                    if (coachError) {
+                        errorEl.textContent = 'Team created but failed to add you as coach: ' + coachError.message;
+                        errorEl.classList.remove('hidden');
+                        return;
+                    }
+
+                    teams.push(newTeam);
+                }
+
+                closeTeamModal();
+                updateTeamsDisplay();
+            } catch (err) {
+                console.error('Team save error:', err);
+                errorEl.textContent = 'An unexpected error occurred.';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        window.confirmDeleteTeam = function() {
+            const teamId = document.getElementById('team-modal-id').value;
+            if (!teamId) return;
+
+            const teamName = document.getElementById('team-modal-name').value || 'this team';
+            closeTeamModal();
+
+            showModal('Delete Team', `Are you sure you want to delete "${teamName}"? All games and roster data linked to this team will be unlinked.`, async () => {
+                try {
+                    const { error } = await supabaseClient
+                        .from('teams')
+                        .delete()
+                        .eq('id', teamId);
+
+                    if (error) {
+                        console.error('Delete team error:', error);
+                        closeModal();
+                        showModal('Error', 'Failed to delete team: ' + error.message, null);
+                        return;
+                    }
+
+                    // Remove from local state
+                    teams = teams.filter(t => t.id !== teamId);
+
+                    // If we were viewing this team, go back to home
+                    if (currentTeamId === teamId) {
+                        currentTeamId = null;
+                        currentTeam = null;
+                    }
+
+                    closeModal();
+                    navigateToHome();
+                } catch (err) {
+                    console.error('Delete team error:', err);
+                    closeModal();
+                    showModal('Error', 'An unexpected error occurred while deleting.', null);
+                }
+            });
         }
 
         // =====================================================
