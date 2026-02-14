@@ -2969,10 +2969,14 @@
         }
 
         // Render heat map on canvas
-        // Helper function to check if a position is inside the penalty box (18-yard box)
-        // Penalty box: x >= 88, y between 13.84 and 54.16 (attacking toward right goal)
+        // Helper function to check if a position is inside either penalty box (18-yard box)
+        // Left penalty box: x <= 17, y between 13.84 and 54.16
+        // Right penalty box: x >= 88, y between 13.84 and 54.16
         function isInPenaltyBox(x, y) {
-            return x >= 88 && y >= 13.84 && y <= 54.16;
+            const inYRange = y >= 13.84 && y <= 54.16;
+            const inLeftBox = x <= 17 && inYRange;
+            const inRightBox = x >= 88 && inYRange;
+            return inLeftBox || inRightBox;
         }
 
         // Helper function to check if a shot is clustered (has nearby shots)
