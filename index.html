@@ -2969,6 +2969,27 @@
         }
 
         // Render heat map on canvas
+        // Helper function to check if a position is inside the penalty box (18-yard box)
+        // Penalty box: x >= 88, y between 13.84 and 54.16 (attacking toward right goal)
+        function isInPenaltyBox(x, y) {
+            return x >= 88 && y >= 13.84 && y <= 54.16;
+        }
+
+        // Helper function to check if a shot is clustered (has nearby shots)
+        // Returns true if at least 1 other shot is within clusterRadius
+        function isClusteredShot(shotIndex, allShotPositions, clusterRadius = 9) {
+            const shot = allShotPositions[shotIndex];
+            for (let i = 0; i < allShotPositions.length; i++) {
+                if (i === shotIndex) continue;
+                const other = allShotPositions[i];
+                const distance = Math.sqrt(Math.pow(other.x - shot.x, 2) + Math.pow(other.y - shot.y, 2));
+                if (distance <= clusterRadius) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function renderHeatMap(shots = null) {
             const canvas = document.getElementById('heat-map-canvas');
             if (!canvas) return;
@@ -3018,13 +3039,17 @@
             const gridSize = 3; // Size of each grid cell in field units
             const radius = 12; // Influence radius for each shot
             const maxIntensity = 8; // Cap for color scaling
+            const clusterRadius = 9; // Distance to consider shots as clustered (~9 yards)
+            const isolatedShotMultiplier = 0.35; // Reduce isolated shots to 35% intensity
+            const penaltyBoxMultiplier = 1.5; // Boost for shots in penalty box
 
             // Create density grid
             const cols = Math.ceil(fieldWidth / gridSize);
             const rows = Math.ceil(fieldHeight / gridSize);
             const grid = Array(rows).fill(null).map(() => Array(cols).fill(0));
 
-            // Calculate density for each grid cell
+            // Preprocess shot positions (apply flips, filter invalid)
+            const processedShots = [];
             shotData.forEach(shot => {
                 let x = shot.position.x;
                 let y = shot.position.y;
@@ -3035,15 +3060,32 @@
                     y = 68 - y;
                 }
 
-                // Determine shot weight based on type
-                // Goals and shots on target have full weight, off-target shots reduced
+                const isOffTarget = shot.type === 'Shot Off Target';
+                // Skip off-target shots not in the attacking half (x > 52.5)
+                if (isOffTarget && x <= 52.5) return;
+
+                processedShots.push({ x, y, type: shot.type });
+            });
+
+            // Calculate density for each grid cell
+            processedShots.forEach((shot, index) => {
+                // Determine base weight based on shot type
+                // Goals and shots on target have full weight, off-target shots at 0.6
                 let weight = 1.0;
                 const isOffTarget = shot.type === 'Shot Off Target';
-
                 if (isOffTarget) {
-                    // Skip off-target shots not in the attacking half (x > 52.5)
-                    if (x <= 52.5) return;
-                    weight = 0.4; // Reduced weight for off-target shots
+                    weight = 0.6; // Increased weight for off-target shots (was 0.4)
+                }
+
+                // Apply cluster multiplier (isolated shots reduced to 35%)
+                const isClustered = isClusteredShot(index, processedShots, clusterRadius);
+                if (!isClustered) {
+                    weight *= isolatedShotMultiplier;
+                }
+
+                // Apply penalty box multiplier (1.5x for shots in the box)
+                if (isInPenaltyBox(shot.x, shot.y)) {
+                    weight *= penaltyBoxMultiplier;
                 }
 
                 // Add influence to nearby grid cells
@@ -3051,7 +3093,7 @@
                     for (let col = 0; col < cols; col++) {
                         const cellX = (col + 0.5) * gridSize;
                         const cellY = (row + 0.5) * gridSize;
-                        const distance = Math.sqrt(Math.pow(cellX - x, 2) + Math.pow(cellY - y, 2));
+                        const distance = Math.sqrt(Math.pow(cellX - shot.x, 2) + Math.pow(cellY - shot.y, 2));
 
                         if (distance < radius) {
                             // Gaussian-like falloff, weighted by shot type
@@ -3309,33 +3351,55 @@
             const gridSize = 3;
             const radius = 12;
             const maxIntensity = 8;
+            const clusterRadius = 9; // Distance to consider shots as clustered (~9 yards)
+            const isolatedShotMultiplier = 0.35; // Reduce isolated shots to 35% intensity
+            const penaltyBoxMultiplier = 1.5; // Boost for shots in penalty box
 
             // Create density grid
             const cols = Math.ceil(fieldWidth / gridSize);
             const rows = Math.ceil(fieldHeight / gridSize);
             const grid = Array(rows).fill(null).map(() => Array(cols).fill(0));
 
-            // Calculate density for each grid cell
+            // Preprocess shot positions (normalize half, filter invalid)
+            const processedShots = [];
             validShots.forEach(shot => {
                 // Normalize second-half shots to face the same goal as first-half shots
                 const x = shot.half === 2 ? (105 - shot.position.x) : shot.position.x;
                 const y = shot.half === 2 ? (68 - shot.position.y) : shot.position.y;
 
-                // Determine shot weight based on type
+                const isOffTarget = shot.type === 'Shot Off Target';
+                // Skip off-target shots not in the attacking half (x > 52.5)
+                if (isOffTarget && x <= 52.5) return;
+
+                processedShots.push({ x, y, type: shot.type });
+            });
+
+            // Calculate density for each grid cell
+            processedShots.forEach((shot, index) => {
+                // Determine base weight based on shot type
+                // Goals and shots on target have full weight, off-target shots at 0.6
                 let weight = 1.0;
                 const isOffTarget = shot.type === 'Shot Off Target';
-
                 if (isOffTarget) {
-                    // Skip off-target shots not in the attacking half (x > 52.5)
-                    if (x <= 52.5) return;
-                    weight = 0.4;
+                    weight = 0.6; // Increased weight for off-target shots (was 0.4)
+                }
+
+                // Apply cluster multiplier (isolated shots reduced to 35%)
+                const isClustered = isClusteredShot(index, processedShots, clusterRadius);
+                if (!isClustered) {
+                    weight *= isolatedShotMultiplier;
+                }
+
+                // Apply penalty box multiplier (1.5x for shots in the box)
+                if (isInPenaltyBox(shot.x, shot.y)) {
+                    weight *= penaltyBoxMultiplier;
                 }
 
                 for (let row = 0; row < rows; row++) {
                     for (let col = 0; col < cols; col++) {
                         const cellX = (col + 0.5) * gridSize;
                         const cellY = (row + 0.5) * gridSize;
-                        const distance = Math.sqrt(Math.pow(cellX - x, 2) + Math.pow(cellY - y, 2));
+                        const distance = Math.sqrt(Math.pow(cellX - shot.x, 2) + Math.pow(cellY - shot.y, 2));
 
                         if (distance < radius) {
                             const influence = Math.exp(-Math.pow(distance / (radius / 2), 2)) * weight;
