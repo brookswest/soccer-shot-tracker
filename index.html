@@ -5022,7 +5022,7 @@
                     // Create new team
                     const { data: newTeam, error: teamError } = await supabaseClient
                         .from('teams')
-                        .insert([{ name, color }])
+                        .insert([{ name, color, created_by: currentUser.id }])
                         .select()
                         .single();
 
