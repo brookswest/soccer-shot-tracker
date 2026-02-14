@@ -3087,8 +3087,9 @@
                     weight *= isolatedShotMultiplier;
                 }
 
-                // Apply penalty box multiplier (1.5x for shots in the box)
-                if (isInPenaltyBox(shot.x, shot.y)) {
+                // Apply penalty box multiplier (1.5x for goals and on-target shots in the box)
+                // Off-target shots do not get the penalty box boost
+                if (!isOffTarget && isInPenaltyBox(shot.x, shot.y)) {
                     weight *= penaltyBoxMultiplier;
                 }
 
@@ -3394,8 +3395,9 @@
                     weight *= isolatedShotMultiplier;
                 }
 
-                // Apply penalty box multiplier (1.5x for shots in the box)
-                if (isInPenaltyBox(shot.x, shot.y)) {
+                // Apply penalty box multiplier (1.5x for goals and on-target shots in the box)
+                // Off-target shots do not get the penalty box boost
+                if (!isOffTarget && isInPenaltyBox(shot.x, shot.y)) {
                     weight *= penaltyBoxMultiplier;
                 }
 
