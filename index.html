@@ -511,6 +511,19 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Invite Fan Section -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg mt-6">
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-4">Invite a Fan</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Send an invitation to someone to follow your team as a fan. They'll be able to watch live games and view game history.</p>
+                        <div class="flex gap-3">
+                            <input type="email" id="coach-invite-fan-email" placeholder="Enter email address" class="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-white">
+                            <button onclick="sendFanInvitationFromCoach()" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-xl transition-colors text-sm whitespace-nowrap">
+                                Send Invite
+                            </button>
+                        </div>
+                        <p id="coach-invite-status" class="text-sm mt-3 hidden"></p>
+                    </div>
                 </div>
             </div>
 
@@ -608,6 +621,93 @@
                     <button onclick="startGameFromSetup()" class="w-full mt-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl text-lg">
                         Start Game
                     </button>
+                </div>
+            </div>
+
+            <!-- =====================================================
+                 FAN DASHBOARD VIEW
+                 ===================================================== -->
+            <div id="fan-dashboard-view" class="view hidden">
+                <!-- Fan Header -->
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 mb-5 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span id="fan-team-color-dot" class="w-5 h-5 rounded-full bg-emerald-500"></span>
+                            <h2 id="fan-team-name-header" class="text-xl font-semibold text-slate-800 dark:text-white">Team Name</h2>
+                        </div>
+                        <span class="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-sm font-semibold rounded-full">Fan</span>
+                    </div>
+                </div>
+
+                <!-- Fan Tab Navigation -->
+                <div class="flex bg-white dark:bg-slate-800 rounded-2xl p-1.5 mb-5 shadow-lg">
+                    <button class="fan-nav-tab flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 bg-emerald-500 text-white shadow-sm" onclick="switchFanTab('live')">Live Game</button>
+                    <button class="fan-nav-tab flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200" onclick="switchFanTab('history')">History</button>
+                    <button class="fan-nav-tab flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200" onclick="switchFanTab('team')">Team</button>
+                </div>
+
+                <!-- Connection Warning Banner -->
+                <div id="fan-connection-warning" class="hidden bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 px-4 py-3 rounded-xl text-sm mb-5 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span>Connection lost. Attempting to reconnect...</span>
+                </div>
+
+                <!-- Live Game Tab -->
+                <div id="fan-live-tab">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+
+                <!-- History Tab -->
+                <div id="fan-history-tab" class="hidden">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-5">Game History</h3>
+                        <div id="fan-game-list" class="flex flex-col gap-3">
+                            <!-- Game history will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Tab -->
+                <div id="fan-team-tab" class="hidden">
+                    <!-- Team Info Card -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg mb-5">
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-4">Team Info</h3>
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-xl flex items-center justify-center" id="fan-team-color-badge" style="background-color: #10b981;">
+                                <span class="text-2xl font-bold text-white" id="fan-team-initial">T</span>
+                            </div>
+                            <div>
+                                <div class="text-xl font-semibold text-slate-800 dark:text-white" id="fan-team-name-info">Team Name</div>
+                                <div class="text-sm text-slate-500 dark:text-slate-400">You're following this team</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Roster Card -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-4">Roster</h3>
+                        <div id="fan-roster-list" class="space-y-2">
+                            <!-- Roster will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invite Fan Section -->
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 mt-5 shadow-lg">
+                    <h3 class="text-md font-semibold text-slate-800 dark:text-white mb-3">Invite a Fan</h3>
+                    <p class="text-xs text-slate-400 mb-3">Share your team with friends and family</p>
+                    <div class="flex gap-2">
+                        <input type="email" id="fan-invite-email" placeholder="fan@example.com" class="flex-1 px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+                        <button onclick="sendFanInvitationFromFan()" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-colors text-sm">Invite</button>
+                    </div>
+                    <div id="fan-invite-status" class="hidden mt-3 text-sm px-3 py-2 rounded-lg"></div>
+                </div>
+
+                <!-- Sign Out -->
+                <div class="mt-5 text-center">
+                    <button onclick="handleLogout()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-sm transition-colors">Sign Out</button>
                 </div>
             </div>
         </div>
@@ -1529,7 +1629,7 @@
         initializeTheme();
 
         // Show the main app (after successful login)
-        function showApp(user) {
+        async function showApp(user) {
             currentUser = user;
 
             // Hide auth container, show app
@@ -1544,14 +1644,28 @@
             // Initialize app UI (set date, clock display)
             initializeApp();
 
-            // Initialize player tracking UI
-            initializePlayerTracking();
+            // Determine user role and navigate appropriately
+            const role = await determineUserRole();
 
-            // Load rosters from Supabase
-            loadRosters();
-
-            // Navigate to team home page
-            navigateToHome();
+            if (role === 'coach') {
+                // Initialize coach-specific features
+                initializePlayerTracking();
+                loadRosters();
+                navigateToHome();
+            } else if (role === 'fan') {
+                // Navigate to fan dashboard
+                navigateToFanDashboard();
+            } else {
+                // No role - check URL for invitation token
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('invite');
+                if (token) {
+                    await processInvitationToken(token);
+                } else {
+                    // Show no role message - user needs to be invited
+                    showNoRoleMessage();
+                }
+            }
         }
 
         // Show the auth screen (after logout or initial load)
@@ -1573,6 +1687,199 @@
             document.getElementById('signup-password').value = '';
             document.getElementById('signup-confirm').value = '';
             hideAuthMessages();
+        }
+
+        // =====================================================
+        // ROLE DETERMINATION
+        // =====================================================
+
+        // Determine if user is a coach or fan
+        async function determineUserRole() {
+            if (!currentUser) {
+                currentUserRole = null;
+                return null;
+            }
+
+            try {
+                // Check if user is a coach (has entries in team_coaches)
+                const { data: coachData, error: coachError } = await supabaseClient
+                    .from('team_coaches')
+                    .select('team_id')
+                    .eq('user_id', currentUser.id);
+
+                if (!coachError && coachData && coachData.length > 0) {
+                    currentUserRole = 'coach';
+                    console.log('User role: coach');
+                    return 'coach';
+                }
+
+                // Check if user is a fan (has entry in team_fans)
+                const { data: fanData, error: fanError } = await supabaseClient
+                    .from('team_fans')
+                    .select('team_id, teams(id, name, color)')
+                    .eq('fan_id', currentUser.id)
+                    .single();
+
+                if (!fanError && fanData) {
+                    currentUserRole = 'fan';
+                    fanTeamId = fanData.team_id;
+                    fanTeamData = fanData.teams;
+                    console.log('User role: fan, team:', fanTeamData?.name);
+                    return 'fan';
+                }
+
+                // User has no role
+                currentUserRole = null;
+                console.log('User has no role');
+                return null;
+
+            } catch (err) {
+                console.error('Error determining role:', err);
+                currentUserRole = null;
+                return null;
+            }
+        }
+
+        // Show message when user has no role (not a coach or fan)
+        function showNoRoleMessage() {
+            hideAllViews();
+            hideNavTabs();
+
+            // Create or show no-role view
+            let noRoleView = document.getElementById('no-role-view');
+            if (!noRoleView) {
+                noRoleView = document.createElement('div');
+                noRoleView.id = 'no-role-view';
+                noRoleView.className = 'view';
+                noRoleView.innerHTML = `
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-lg text-center">
+                        <div class="text-6xl mb-4">👋</div>
+                        <h2 class="text-xl font-semibold text-slate-800 dark:text-white mb-3">Welcome!</h2>
+                        <p class="text-slate-500 dark:text-slate-400 mb-6">
+                            You're not currently associated with any team.<br>
+                            Ask a coach or fan to invite you to follow their team.
+                        </p>
+                        <button onclick="handleLogout()" class="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                            Sign Out
+                        </button>
+                    </div>
+                `;
+                document.getElementById('app-container').appendChild(noRoleView);
+            }
+            noRoleView.classList.remove('hidden');
+        }
+
+        // Process invitation token from URL
+        async function processInvitationToken(token) {
+            try {
+                // Fetch invitation details
+                const { data: invitation, error } = await supabaseClient
+                    .from('fan_invitations')
+                    .select('*, teams(name, color)')
+                    .eq('token', token)
+                    .eq('status', 'pending')
+                    .single();
+
+                if (error || !invitation) {
+                    console.error('Invalid invitation:', error);
+                    showInvalidInvitationMessage();
+                    return;
+                }
+
+                // Check if expired
+                if (new Date(invitation.expires_at) < new Date()) {
+                    await supabaseClient
+                        .from('fan_invitations')
+                        .update({ status: 'expired' })
+                        .eq('id', invitation.id);
+                    showExpiredInvitationMessage();
+                    return;
+                }
+
+                // User is logged in and has valid invitation - add them as a fan
+                const { error: fanError } = await supabaseClient
+                    .from('team_fans')
+                    .insert({ fan_id: currentUser.id, team_id: invitation.team_id });
+
+                if (fanError) {
+                    console.error('Failed to add fan:', fanError);
+                    showNoRoleMessage();
+                    return;
+                }
+
+                // Update invitation status
+                await supabaseClient
+                    .from('fan_invitations')
+                    .update({ status: 'accepted' })
+                    .eq('id', invitation.id);
+
+                // Clear URL params
+                window.history.replaceState({}, document.title, window.location.pathname);
+
+                // Set role and navigate
+                currentUserRole = 'fan';
+                fanTeamId = invitation.team_id;
+                fanTeamData = invitation.teams;
+                navigateToFanDashboard();
+
+            } catch (err) {
+                console.error('Error processing invitation:', err);
+                showNoRoleMessage();
+            }
+        }
+
+        function showInvalidInvitationMessage() {
+            hideAllViews();
+            hideNavTabs();
+
+            let view = document.getElementById('invalid-invite-view');
+            if (!view) {
+                view = document.createElement('div');
+                view.id = 'invalid-invite-view';
+                view.className = 'view';
+                view.innerHTML = `
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-lg text-center">
+                        <div class="text-6xl mb-4">❌</div>
+                        <h2 class="text-xl font-semibold text-slate-800 dark:text-white mb-3">Invalid Invitation</h2>
+                        <p class="text-slate-500 dark:text-slate-400 mb-6">
+                            This invitation link is invalid or has already been used.<br>
+                            Please request a new invitation.
+                        </p>
+                        <button onclick="handleLogout()" class="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                            Sign Out
+                        </button>
+                    </div>
+                `;
+                document.getElementById('app-container').appendChild(view);
+            }
+            view.classList.remove('hidden');
+        }
+
+        function showExpiredInvitationMessage() {
+            hideAllViews();
+            hideNavTabs();
+
+            let view = document.getElementById('expired-invite-view');
+            if (!view) {
+                view = document.createElement('div');
+                view.id = 'expired-invite-view';
+                view.className = 'view';
+                view.innerHTML = `
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-lg text-center">
+                        <div class="text-6xl mb-4">⏰</div>
+                        <h2 class="text-xl font-semibold text-slate-800 dark:text-white mb-3">Invitation Expired</h2>
+                        <p class="text-slate-500 dark:text-slate-400 mb-6">
+                            This invitation has expired.<br>
+                            Please request a new invitation from the team.
+                        </p>
+                        <button onclick="handleLogout()" class="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                            Sign Out
+                        </button>
+                    </div>
+                `;
+                document.getElementById('app-container').appendChild(view);
+            }
+            view.classList.remove('hidden');
         }
 
         // Check authentication state on page load
@@ -1681,6 +1988,12 @@
         let teamRoster = [];      // players for selected team
         let teamRosterId = null;  // the single roster ID for selected team
         let teamGamesCache = null;
+
+        // Fan role state
+        let currentUserRole = null; // 'coach' | 'fan' | null
+        let fanTeamId = null;       // For fans - their single team ID
+        let fanTeamData = null;     // For fans - their team object
+        let activeGameSubscription = null; // Supabase Realtime subscription
         let gameSetupConfig = {
             shotMapEnabled: localStorage.getItem('setupShotMapEnabled') === 'true',
             wakeLockEnabled: localStorage.getItem('setupWakeLockEnabled') === 'true',
@@ -3472,6 +3785,8 @@
             } else {
                 startClock();
             }
+            // Sync clock state to active_games for fans
+            debouncedSyncToActiveGame();
         }
 
         // Start the clock
@@ -3725,6 +4040,8 @@
                 half1Btn.classList.remove('border-emerald-500', 'bg-emerald-500', 'text-white');
                 half1Btn.classList.add('border-slate-200', 'bg-white', 'text-slate-500', 'dark:border-slate-600', 'dark:bg-slate-700', 'dark:text-slate-300');
             }
+            // Sync half change to active_games for fans
+            debouncedSyncToActiveGame();
         }
 
         // =====================================================
@@ -3810,6 +4127,686 @@
             });
             navTabs[0].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
             navTabs[0].classList.remove('text-slate-500');
+        }
+
+        // =====================================================
+        // FAN DASHBOARD NAVIGATION
+        // =====================================================
+
+        window.navigateToFanDashboard = async function() {
+            if (!fanTeamId) {
+                console.error('No fan team ID');
+                showNoRoleMessage();
+                return;
+            }
+
+            hideAllViews();
+            hideNavTabs();
+            document.getElementById('fan-dashboard-view').classList.remove('hidden');
+
+            // Load team info if not already loaded
+            if (!fanTeamData) {
+                const { data: teamData, error } = await supabaseClient
+                    .from('teams')
+                    .select('*')
+                    .eq('id', fanTeamId)
+                    .single();
+
+                if (!error && teamData) {
+                    fanTeamData = teamData;
+                }
+            }
+
+            // Update header
+            if (fanTeamData) {
+                document.getElementById('fan-team-name-header').textContent = fanTeamData.name;
+                document.getElementById('fan-team-color-dot').style.backgroundColor = fanTeamData.color || '#10b981';
+            }
+
+            // Subscribe to active game updates
+            subscribeToActiveGame(fanTeamId);
+
+            // Default to live tab
+            switchFanTab('live');
+        }
+
+        window.switchFanTab = function(tab) {
+            const tabs = document.querySelectorAll('.fan-nav-tab');
+            tabs.forEach(t => {
+                t.classList.remove('bg-emerald-500', 'text-white', 'shadow-sm');
+                t.classList.add('text-slate-500', 'dark:text-slate-400');
+            });
+
+            document.getElementById('fan-live-tab').classList.add('hidden');
+            document.getElementById('fan-history-tab').classList.add('hidden');
+            document.getElementById('fan-team-tab').classList.add('hidden');
+
+            if (tab === 'live') {
+                tabs[0].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
+                tabs[0].classList.remove('text-slate-500', 'dark:text-slate-400');
+                document.getElementById('fan-live-tab').classList.remove('hidden');
+                loadActiveGame(fanTeamId);
+            } else if (tab === 'history') {
+                tabs[1].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
+                tabs[1].classList.remove('text-slate-500', 'dark:text-slate-400');
+                document.getElementById('fan-history-tab').classList.remove('hidden');
+                loadFanGameHistory();
+            } else if (tab === 'team') {
+                tabs[2].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
+                tabs[2].classList.remove('text-slate-500', 'dark:text-slate-400');
+                document.getElementById('fan-team-tab').classList.remove('hidden');
+                loadFanTeamInfo();
+            }
+        }
+
+        // =====================================================
+        // COACH REAL-TIME SYNC (for fans to receive updates)
+        // =====================================================
+
+        let syncDebounceTimer = null;
+        const SYNC_DEBOUNCE_MS = 500;
+
+        // Sync current game state to active_games table for fans to receive
+        async function syncToActiveGame() {
+            // Only sync if user is a coach with a team
+            if (currentUserRole !== 'coach' || !currentTeamId) {
+                return;
+            }
+
+            const homeTeam = document.getElementById('home-team-input').value || 'Home Team';
+            const awayTeam = document.getElementById('away-team-input').value || 'Away Team';
+
+            const gameStateToSync = {
+                home: { ...gameState.home },
+                away: { ...gameState.away },
+                log: [...gameState.log],
+                notes: [...gameState.notes],
+                currentHalf: gameState.currentHalf
+            };
+
+            const metadata = {
+                homeTeam,
+                awayTeam,
+                homeColor: document.getElementById('home-color').value,
+                awayColor: document.getElementById('away-color').value,
+                gameDate: document.getElementById('game-date').value,
+                clockSeconds: clockState.seconds,
+                clockRunning: clockState.isRunning
+            };
+
+            try {
+                const { error } = await supabaseClient
+                    .from('active_games')
+                    .upsert({
+                        team_id: currentTeamId,
+                        game_state: gameStateToSync,
+                        game_metadata: metadata,
+                        started_by: currentUser.id,
+                        updated_at: new Date().toISOString()
+                    }, {
+                        onConflict: 'team_id'
+                    });
+
+                if (error) {
+                    console.error('Error syncing active game:', error);
+                }
+            } catch (err) {
+                console.error('Exception syncing active game:', err);
+            }
+        }
+
+        // Debounced version to prevent excessive updates
+        function debouncedSyncToActiveGame() {
+            if (syncDebounceTimer) {
+                clearTimeout(syncDebounceTimer);
+            }
+            syncDebounceTimer = setTimeout(() => {
+                syncToActiveGame();
+            }, SYNC_DEBOUNCE_MS);
+        }
+
+        // Clear active game when game is saved or reset
+        async function clearActiveGame() {
+            if (currentUserRole !== 'coach' || !currentTeamId) {
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('active_games')
+                    .delete()
+                    .eq('team_id', currentTeamId);
+
+                if (error) {
+                    console.error('Error clearing active game:', error);
+                }
+            } catch (err) {
+                console.error('Exception clearing active game:', err);
+            }
+        }
+
+        // =====================================================
+        // FAN REAL-TIME SUBSCRIPTIONS
+        // =====================================================
+
+        let fanReconnectAttempts = 0;
+        const FAN_MAX_RECONNECT_ATTEMPTS = 5;
+
+        function subscribeToActiveGame(teamId) {
+            if (activeGameSubscription) {
+                activeGameSubscription.unsubscribe();
+            }
+
+            activeGameSubscription = supabaseClient
+                .channel(`active_game_${teamId}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'active_games',
+                        filter: `team_id=eq.${teamId}`
+                    },
+                    (payload) => {
+                        console.log('Active game update:', payload.eventType);
+                        handleActiveGameUpdate(payload);
+                    }
+                )
+                .subscribe((status) => {
+                    console.log('Realtime subscription status:', status);
+                    if (status === 'SUBSCRIBED') {
+                        fanReconnectAttempts = 0;
+                        showFanConnectionWarning(false);
+                        loadActiveGame(teamId);
+                    } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+                        handleRealtimeDisconnect();
+                    }
+                });
+        }
+
+        function handleRealtimeDisconnect() {
+            console.log('Realtime disconnected');
+            showFanConnectionWarning(true);
+
+            if (fanReconnectAttempts < FAN_MAX_RECONNECT_ATTEMPTS) {
+                const delay = Math.pow(2, fanReconnectAttempts) * 1000;
+                setTimeout(() => {
+                    fanReconnectAttempts++;
+                    if (fanTeamId) {
+                        subscribeToActiveGame(fanTeamId);
+                    }
+                }, delay);
+            }
+        }
+
+        function showFanConnectionWarning(show) {
+            const warning = document.getElementById('fan-connection-warning');
+            if (warning) {
+                warning.classList.toggle('hidden', !show);
+            }
+        }
+
+        async function loadActiveGame(teamId) {
+            if (!teamId) return;
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('active_games')
+                    .select('*')
+                    .eq('team_id', teamId)
+                    .single();
+
+                if (error) {
+                    if (error.code === 'PGRST116') {
+                        // No active game
+                        showNoActiveGame();
+                    } else {
+                        console.error('Error loading active game:', error);
+                    }
+                    return;
+                }
+
+                if (data) {
+                    updateFanGameDisplay(data.game_state, data.game_metadata);
+                }
+            } catch (err) {
+                console.error('Error loading active game:', err);
+                showNoActiveGame();
+            }
+        }
+
+        function handleActiveGameUpdate(payload) {
+            if (payload.eventType === 'DELETE') {
+                showNoActiveGame();
+                return;
+            }
+
+            const { game_state, game_metadata } = payload.new;
+            updateFanGameDisplay(game_state, game_metadata);
+        }
+
+        function showNoActiveGame() {
+            document.getElementById('fan-live-tab').innerHTML = `
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-lg text-center">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-lg font-medium text-slate-600 dark:text-slate-400">No Game in Progress</p>
+                    <p class="text-sm text-slate-400 dark:text-slate-500 mt-2">Check back when the coach starts a game</p>
+                    <button onclick="loadActiveGame(fanTeamId)" class="mt-4 px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                        Refresh
+                    </button>
+                </div>
+            `;
+        }
+
+        function updateFanGameDisplay(gameState, metadata) {
+            if (!gameState || !metadata) {
+                showNoActiveGame();
+                return;
+            }
+
+            const homeColor = metadata.homeColor || '#10b981';
+            const awayColor = metadata.awayColor || '#3b82f6';
+            const clockDisplay = formatTime(metadata.clockSeconds || 0);
+            const halfText = metadata.currentHalf === 2 ? '2nd Half' : '1st Half';
+            const isRunning = metadata.isRunning;
+
+            // Calculate stats
+            const homeStats = gameState.home || { goals: 0, onTarget: 0, offTarget: 0, firstHalf: {}, secondHalf: {} };
+            const awayStats = gameState.away || { goals: 0, onTarget: 0, offTarget: 0, firstHalf: {}, secondHalf: {} };
+
+            const homeTotalShots = (homeStats.onTarget || 0) + (homeStats.offTarget || 0);
+            const awayTotalShots = (awayStats.onTarget || 0) + (awayStats.offTarget || 0);
+            const homeAccuracy = homeTotalShots > 0 ? Math.round((homeStats.onTarget / homeTotalShots) * 100) : 0;
+            const awayAccuracy = awayTotalShots > 0 ? Math.round((awayStats.onTarget / awayTotalShots) * 100) : 0;
+
+            document.getElementById('fan-live-tab').innerHTML = `
+                <!-- Live Indicator -->
+                <div class="flex items-center justify-center gap-2 mb-4">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span class="text-sm font-medium text-green-500">LIVE</span>
+                </div>
+
+                <!-- Clock -->
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 mb-5 shadow-lg">
+                    <div class="text-center">
+                        <div class="text-5xl font-bold font-mono text-white">${clockDisplay}</div>
+                        <div class="flex items-center justify-center gap-2 mt-2">
+                            <span class="w-2 h-2 rounded-full ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-amber-500'}"></span>
+                            <span class="text-sm text-slate-400">${isRunning ? 'Running' : 'Paused'} - ${halfText}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scoreboard -->
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 mb-5 shadow-xl">
+                    <div class="flex justify-around items-center">
+                        <div class="text-center flex-1">
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase mb-2" style="background-color: ${homeColor}20; color: ${homeColor};">Home</span>
+                            <div class="text-lg font-semibold text-white mb-2">${metadata.homeTeam || 'Home'}</div>
+                            <div class="text-5xl font-extrabold" style="color: ${homeColor};">${homeStats.goals || 0}</div>
+                        </div>
+                        <div class="px-4">
+                            <span class="text-slate-500 font-semibold text-lg">VS</span>
+                        </div>
+                        <div class="text-center flex-1">
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase mb-2" style="background-color: ${awayColor}20; color: ${awayColor};">Away</span>
+                            <div class="text-lg font-semibold text-white mb-2">${metadata.awayTeam || 'Away'}</div>
+                            <div class="text-5xl font-extrabold" style="color: ${awayColor};">${awayStats.goals || 0}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Panels -->
+                <div class="grid grid-cols-2 gap-4 mb-5">
+                    <!-- Home Stats -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-lg border-t-4" style="border-color: ${homeColor};">
+                        <h4 class="text-sm font-semibold mb-3" style="color: ${homeColor};">${metadata.homeTeam || 'Home'}</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">On Target</span><span class="font-semibold dark:text-white">${homeStats.onTarget || 0}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">Off Target</span><span class="font-semibold dark:text-white">${homeStats.offTarget || 0}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">Total Shots</span><span class="font-semibold dark:text-white">${homeTotalShots}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">Accuracy</span><span class="font-semibold dark:text-white">${homeAccuracy}%</span></div>
+                        </div>
+                    </div>
+                    <!-- Away Stats -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-lg border-t-4" style="border-color: ${awayColor};">
+                        <h4 class="text-sm font-semibold mb-3" style="color: ${awayColor};">${metadata.awayTeam || 'Away'}</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">On Target</span><span class="font-semibold dark:text-white">${awayStats.onTarget || 0}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">Off Target</span><span class="font-semibold dark:text-white">${awayStats.offTarget || 0}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">Total Shots</span><span class="font-semibold dark:text-white">${awayTotalShots}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">Accuracy</span><span class="font-semibold dark:text-white">${awayAccuracy}%</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Half Stats -->
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-lg mb-5">
+                    <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">Stats by Half</h4>
+                    <div class="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <div class="font-semibold text-slate-400 mb-2">1st Half</div>
+                            <div class="space-y-1">
+                                <div class="flex justify-between"><span style="color: ${homeColor};">${metadata.homeTeam || 'Home'}</span><span class="dark:text-white">${homeStats.firstHalf?.goals || 0} goals, ${(homeStats.firstHalf?.onTarget || 0) + (homeStats.firstHalf?.offTarget || 0)} shots</span></div>
+                                <div class="flex justify-between"><span style="color: ${awayColor};">${metadata.awayTeam || 'Away'}</span><span class="dark:text-white">${awayStats.firstHalf?.goals || 0} goals, ${(awayStats.firstHalf?.onTarget || 0) + (awayStats.firstHalf?.offTarget || 0)} shots</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-slate-400 mb-2">2nd Half</div>
+                            <div class="space-y-1">
+                                <div class="flex justify-between"><span style="color: ${homeColor};">${metadata.homeTeam || 'Home'}</span><span class="dark:text-white">${homeStats.secondHalf?.goals || 0} goals, ${(homeStats.secondHalf?.onTarget || 0) + (homeStats.secondHalf?.offTarget || 0)} shots</span></div>
+                                <div class="flex justify-between"><span style="color: ${awayColor};">${metadata.awayTeam || 'Away'}</span><span class="dark:text-white">${awayStats.secondHalf?.goals || 0} goals, ${(awayStats.secondHalf?.onTarget || 0) + (awayStats.secondHalf?.offTarget || 0)} shots</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keep Screen On Toggle -->
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-sm font-medium text-slate-700 dark:text-slate-200">Keep Screen On</span>
+                            <p class="text-xs text-slate-400 mt-0.5">Prevent screen from dimming</p>
+                        </div>
+                        <button type="button" id="fan-wake-lock-toggle" onclick="toggleFanWakeLock()" class="relative w-12 h-7 bg-slate-300 dark:bg-slate-600 rounded-full transition-colors duration-200 focus:outline-none">
+                            <span id="fan-wake-lock-dot" class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"></span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Update wake lock toggle state
+            updateFanWakeLockUI();
+        }
+
+        // Fan wake lock toggle
+        let fanWakeLockEnabled = false;
+
+        window.toggleFanWakeLock = function() {
+            fanWakeLockEnabled = !fanWakeLockEnabled;
+            updateFanWakeLockUI();
+
+            if (fanWakeLockEnabled && 'wakeLock' in navigator) {
+                requestWakeLock();
+            } else if (!fanWakeLockEnabled && wakeLock) {
+                wakeLock.release();
+                wakeLock = null;
+            }
+        }
+
+        function updateFanWakeLockUI() {
+            const toggle = document.getElementById('fan-wake-lock-toggle');
+            const dot = document.getElementById('fan-wake-lock-dot');
+            if (toggle && dot) {
+                if (fanWakeLockEnabled) {
+                    toggle.classList.remove('bg-slate-300', 'dark:bg-slate-600');
+                    toggle.classList.add('bg-emerald-500');
+                    dot.style.transform = 'translateX(20px)';
+                } else {
+                    toggle.classList.remove('bg-emerald-500');
+                    toggle.classList.add('bg-slate-300', 'dark:bg-slate-600');
+                    dot.style.transform = 'translateX(0)';
+                }
+            }
+        }
+
+        // =====================================================
+        // FAN DATA LOADING
+        // =====================================================
+
+        async function loadFanGameHistory() {
+            if (!fanTeamId) return;
+
+            const container = document.getElementById('fan-game-list');
+            container.innerHTML = '<div class="text-center py-4 text-slate-400">Loading...</div>';
+
+            try {
+                const games = await getSavedGames(fanTeamId);
+
+                if (games.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-10 text-slate-400">
+                            <div class="text-4xl mb-3">📊</div>
+                            <p>No games yet</p>
+                            <p class="text-sm mt-2">Game history will appear here</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = games.map(game => {
+                    const formattedDate = new Date(game.date).toLocaleDateString('en-US', {
+                        weekday: 'short', month: 'short', day: 'numeric'
+                    });
+                    const homeColor = game.homeColor || '#10b981';
+                    const awayColor = game.awayColor || '#3b82f6';
+
+                    return `
+                        <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 border-l-4" style="border-color: ${homeColor};">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs text-slate-400">${formattedDate}</span>
+                                <span class="text-xs text-slate-400">${game.finalTime || ''}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="flex-1">
+                                    <span class="font-semibold text-slate-700 dark:text-white">${game.homeTeam}</span>
+                                    <span class="text-2xl font-bold ml-2" style="color: ${homeColor};">${game.home.goals}</span>
+                                </div>
+                                <span class="text-slate-400 mx-2">-</span>
+                                <div class="flex-1 text-right">
+                                    <span class="text-2xl font-bold mr-2" style="color: ${awayColor};">${game.away.goals}</span>
+                                    <span class="font-semibold text-slate-700 dark:text-white">${game.awayTeam}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error('Error loading fan game history:', err);
+                container.innerHTML = '<div class="text-center py-4 text-red-500">Failed to load games</div>';
+            }
+        }
+
+        async function loadFanTeamInfo() {
+            if (!fanTeamData) return;
+
+            // Update team info display
+            document.getElementById('fan-team-name-info').textContent = fanTeamData.name;
+            document.getElementById('fan-team-color-badge').style.backgroundColor = fanTeamData.color || '#10b981';
+            document.getElementById('fan-team-initial').textContent = fanTeamData.name.charAt(0).toUpperCase();
+
+            // Load roster
+            await loadFanRoster();
+        }
+
+        async function loadFanRoster() {
+            if (!fanTeamId) return;
+
+            const container = document.getElementById('fan-roster-list');
+            container.innerHTML = '<div class="text-center py-4 text-slate-400">Loading...</div>';
+
+            try {
+                // Get roster for team
+                const { data: roster, error: rosterError } = await supabaseClient
+                    .from('rosters')
+                    .select('id')
+                    .eq('team_id', fanTeamId)
+                    .single();
+
+                if (rosterError || !roster) {
+                    container.innerHTML = '<div class="text-center py-4 text-slate-400">No roster available</div>';
+                    return;
+                }
+
+                // Get players
+                const { data: players, error: playersError } = await supabaseClient
+                    .from('players')
+                    .select('*')
+                    .eq('roster_id', roster.id)
+                    .order('number', { ascending: true });
+
+                if (playersError || !players || players.length === 0) {
+                    container.innerHTML = '<div class="text-center py-4 text-slate-400">No players in roster</div>';
+                    return;
+                }
+
+                container.innerHTML = players.map(player => `
+                    <div class="flex items-center gap-3 py-2 px-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                        <span class="w-8 h-8 flex items-center justify-center bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-full text-sm font-bold">
+                            ${player.number || '-'}
+                        </span>
+                        <span class="text-slate-700 dark:text-white font-medium">${player.name}</span>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                console.error('Error loading fan roster:', err);
+                container.innerHTML = '<div class="text-center py-4 text-red-500">Failed to load roster</div>';
+            }
+        }
+
+        // =====================================================
+        // FAN INVITATION
+        // =====================================================
+
+        window.sendFanInvitationFromFan = async function() {
+            const emailInput = document.getElementById('fan-invite-email');
+            const statusEl = document.getElementById('fan-invite-status');
+            const email = emailInput.value.trim().toLowerCase();
+
+            if (!email || !email.includes('@')) {
+                showFanInviteStatus(statusEl, 'error', 'Please enter a valid email');
+                return;
+            }
+
+            try {
+                // Create invitation
+                const { data: invitation, error } = await supabaseClient
+                    .from('fan_invitations')
+                    .insert({
+                        team_id: fanTeamId,
+                        email: email,
+                        invited_by: currentUser.id
+                    })
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error('Invitation error:', error);
+                    showFanInviteStatus(statusEl, 'error', 'Failed to create invitation');
+                    return;
+                }
+
+                // Generate invite URL
+                const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=${invitation.token}`;
+
+                // Try to send email via Supabase OTP (magic link)
+                const { error: emailError } = await supabaseClient.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        shouldCreateUser: false,
+                        emailRedirectTo: inviteUrl
+                    }
+                });
+
+                if (emailError) {
+                    // Email might fail for non-existing users, show manual link
+                    showFanInviteStatus(statusEl, 'success',
+                        `Invitation created! Share this link: <br><code class="text-xs bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded break-all">${inviteUrl}</code>`
+                    );
+                } else {
+                    showFanInviteStatus(statusEl, 'success', 'Invitation sent!');
+                }
+
+                emailInput.value = '';
+
+            } catch (err) {
+                console.error('Error sending invitation:', err);
+                showFanInviteStatus(statusEl, 'error', 'Failed to send invitation');
+            }
+        }
+
+        function showFanInviteStatus(el, type, message) {
+            el.classList.remove('hidden', 'bg-green-50', 'text-green-600', 'bg-red-50', 'text-red-600', 'dark:bg-green-900/30', 'dark:text-green-400', 'dark:bg-red-900/30', 'dark:text-red-400');
+
+            if (type === 'success') {
+                el.classList.add('bg-green-50', 'text-green-600', 'dark:bg-green-900/30', 'dark:text-green-400');
+            } else {
+                el.classList.add('bg-red-50', 'text-red-600', 'dark:bg-red-900/30', 'dark:text-red-400');
+            }
+
+            el.innerHTML = message;
+
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                el.classList.add('hidden');
+            }, 10000);
+        }
+
+        // Coach sends fan invitation
+        window.sendFanInvitationFromCoach = async function() {
+            const emailInput = document.getElementById('coach-invite-fan-email');
+            const statusEl = document.getElementById('coach-invite-status');
+            const email = emailInput.value.trim().toLowerCase();
+
+            if (!email || !email.includes('@')) {
+                showFanInviteStatus(statusEl, 'error', 'Please enter a valid email');
+                return;
+            }
+
+            if (!currentTeamId) {
+                showFanInviteStatus(statusEl, 'error', 'No team selected');
+                return;
+            }
+
+            try {
+                // Create invitation
+                const { data: invitation, error } = await supabaseClient
+                    .from('fan_invitations')
+                    .insert({
+                        team_id: currentTeamId,
+                        email: email,
+                        invited_by: currentUser.id
+                    })
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error('Invitation error:', error);
+                    showFanInviteStatus(statusEl, 'error', 'Failed to create invitation');
+                    return;
+                }
+
+                // Generate invite URL
+                const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=${invitation.token}`;
+
+                // Try to send email via Supabase OTP (magic link)
+                const { error: emailError } = await supabaseClient.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        shouldCreateUser: false,
+                        emailRedirectTo: inviteUrl
+                    }
+                });
+
+                if (emailError) {
+                    // Email might fail for non-existing users, show manual link
+                    showFanInviteStatus(statusEl, 'success',
+                        `Invitation created! Share this link: <br><code class="text-xs bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded break-all">${inviteUrl}</code>`
+                    );
+                } else {
+                    showFanInviteStatus(statusEl, 'success', 'Invitation sent!');
+                }
+
+                emailInput.value = '';
+
+            } catch (err) {
+                console.error('Error sending invitation:', err);
+                showFanInviteStatus(statusEl, 'error', 'Failed to send invitation');
+            }
         }
 
         window.switchTeamTab = function(tab) {
@@ -4809,6 +5806,9 @@
             document.getElementById('game-date-display').textContent = formattedDate;
             document.getElementById('game-teams-display').textContent = `${homeTeamName} vs ${awayTeamName}`;
 
+            // Sync initial game state to active_games for fans
+            syncToActiveGame();
+
             // Navigate to game
             navigateToGame();
         }
@@ -5136,6 +6136,9 @@
 
             pendingShot = null;
             updateDisplay();
+
+            // Sync to active_games for fans
+            debouncedSyncToActiveGame();
         }
 
         // View shot map (read-only mode to see all recorded positions)
@@ -5231,6 +6234,9 @@
             }
 
             updateDisplay();
+
+            // Sync undo to active_games for fans
+            debouncedSyncToActiveGame();
         }
 
         // Delete a specific log entry
@@ -5262,6 +6268,9 @@
             gameState.log.splice(index, 1);
 
             updateDisplay();
+
+            // Sync deletion to active_games for fans
+            debouncedSyncToActiveGame();
         }
 
         function updateDisplay() {
@@ -5451,6 +6460,9 @@
                     showModal('Save Failed', 'Failed to save game: ' + error.message, null);
                     return;
                 }
+
+                // Clear active game for fans (game is saved, no longer live)
+                await clearActiveGame();
 
                 // Reset after saving
                 resetGameState();
