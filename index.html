@@ -4717,22 +4717,8 @@
             // Store game date before reset
             const gameDateValue = document.getElementById('setup-game-date').value;
 
-            // Apply toggle states to global vars
-            shotMapEnabled = gameSetupConfig.shotMapEnabled;
-            // Update shot map toggle UI in game view
-            const smToggleGame = document.getElementById('shot-map-toggle');
-            const smDotGame = document.getElementById('shot-map-toggle-dot');
-            if (smToggleGame && smDotGame) {
-                if (shotMapEnabled) {
-                    smToggleGame.classList.remove('bg-slate-300');
-                    smToggleGame.classList.add('bg-emerald-500');
-                    smDotGame.style.transform = 'translateX(20px)';
-                } else {
-                    smToggleGame.classList.add('bg-slate-300');
-                    smToggleGame.classList.remove('bg-emerald-500');
-                    smDotGame.style.transform = 'translateX(0)';
-                }
-            }
+            // Store toggle states before reset (they will be applied after resetGameState)
+            const shouldEnableShotMap = gameSetupConfig.shotMapEnabled;
 
             wakeLockEnabled = gameSetupConfig.wakeLockEnabled;
             localStorage.setItem('wakeLockEnabled', wakeLockEnabled);
@@ -4796,6 +4782,22 @@
             // Apply team colors
             document.getElementById('home-color').dispatchEvent(new Event('input'));
             document.getElementById('away-color').dispatchEvent(new Event('input'));
+
+            // Apply shot map toggle state AFTER reset
+            shotMapEnabled = shouldEnableShotMap;
+            const smToggleGame = document.getElementById('shot-map-toggle');
+            const smDotGame = document.getElementById('shot-map-toggle-dot');
+            if (smToggleGame && smDotGame) {
+                if (shotMapEnabled) {
+                    smToggleGame.classList.remove('bg-slate-300');
+                    smToggleGame.classList.add('bg-emerald-500');
+                    smDotGame.style.transform = 'translateX(20px)';
+                } else {
+                    smToggleGame.classList.add('bg-slate-300');
+                    smToggleGame.classList.remove('bg-emerald-500');
+                    smDotGame.style.transform = 'translateX(0)';
+                }
+            }
 
             // Update game summary bar
             const gameDateVal = gameDateValue;
