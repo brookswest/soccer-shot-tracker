@@ -4714,18 +4714,8 @@
             const homeColor = isMyTeamHome ? myTeamColor : opponentColor;
             const awayColor = isMyTeamHome ? opponentColor : myTeamColor;
 
-            // Set the existing game view inputs
-            document.getElementById('home-team-input').value = homeTeamName;
-            document.getElementById('away-team-input').value = awayTeamName;
-            document.getElementById('home-color').value = homeColor;
-            document.getElementById('away-color').value = awayColor;
-            document.getElementById('game-date').value = document.getElementById('setup-game-date').value;
-
-            // Trigger the input events to update display names
-            document.getElementById('home-team-input').dispatchEvent(new Event('input'));
-            document.getElementById('away-team-input').dispatchEvent(new Event('input'));
-            document.getElementById('home-color').dispatchEvent(new Event('input'));
-            document.getElementById('away-color').dispatchEvent(new Event('input'));
+            // Store game date before reset
+            const gameDateValue = document.getElementById('setup-game-date').value;
 
             // Apply toggle states to global vars
             shotMapEnabled = gameSetupConfig.shotMapEnabled;
@@ -4790,8 +4780,25 @@
             resetGameState();
             updateDisplay();
 
+            // Set team names, colors, and date AFTER reset (so they don't get overwritten)
+            document.getElementById('home-team-input').value = homeTeamName;
+            document.getElementById('away-team-input').value = awayTeamName;
+            document.getElementById('home-color').value = homeColor;
+            document.getElementById('away-color').value = awayColor;
+            document.getElementById('game-date').value = gameDateValue;
+
+            // Update team name displays in the game view
+            document.getElementById('home-name-display').textContent = homeTeamName;
+            document.getElementById('away-name-display').textContent = awayTeamName;
+            document.getElementById('home-panel-title').innerHTML = `<span class="w-3 h-3 rounded-full inline-block mr-2" style="background-color: ${homeColor};"></span>${homeTeamName}`;
+            document.getElementById('away-panel-title').innerHTML = `<span class="w-3 h-3 rounded-full inline-block mr-2" style="background-color: ${awayColor};"></span>${awayTeamName}`;
+
+            // Apply team colors
+            document.getElementById('home-color').dispatchEvent(new Event('input'));
+            document.getElementById('away-color').dispatchEvent(new Event('input'));
+
             // Update game summary bar
-            const gameDateVal = document.getElementById('setup-game-date').value;
+            const gameDateVal = gameDateValue;
             const formattedDate = gameDateVal ? new Date(gameDateVal + 'T12:00:00').toLocaleDateString('en-US', {
                 weekday: 'short', month: 'short', day: 'numeric'
             }) : '';
