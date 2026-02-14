@@ -4608,6 +4608,7 @@
         window.toggleSetupShotMap = function() {
             gameSetupConfig.shotMapEnabled = !gameSetupConfig.shotMapEnabled;
             localStorage.setItem('setupShotMapEnabled', gameSetupConfig.shotMapEnabled);
+            console.log('toggleSetupShotMap - new value:', gameSetupConfig.shotMapEnabled);
             updateSetupToggles();
         }
 
@@ -4785,6 +4786,7 @@
 
             // Apply shot map toggle state AFTER reset
             shotMapEnabled = shouldEnableShotMap;
+            console.log('startGameFromSetup - setting shotMapEnabled to:', shouldEnableShotMap, 'gameSetupConfig.shotMapEnabled:', gameSetupConfig.shotMapEnabled);
             const smToggleGame = document.getElementById('shot-map-toggle');
             const smDotGame = document.getElementById('shot-map-toggle-dot');
             if (smToggleGame && smDotGame) {
@@ -4856,6 +4858,9 @@
                 playerId: null,
                 playerName: null
             };
+
+            // DEBUG: Log shotMapEnabled value
+            console.log('recordShot called - shotMapEnabled:', shotMapEnabled, 'gameSetupConfig.shotMapEnabled:', gameSetupConfig.shotMapEnabled);
 
             // Check if this is a goal and player tracking is enabled for this team
             if (type === 'goal' && playerTrackingEnabled && team === rosterTeam && roster.length > 0) {
