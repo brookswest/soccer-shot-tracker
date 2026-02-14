@@ -3156,15 +3156,22 @@
                     historyHeatMapFilters[gameId] = 'home';
                 }
 
-                // Find the game data and render
-                getSavedGames().then(games => {
-                    const game = games.find(g => g.id === gameId);
-                    if (game && game.log) {
-                        const shotsWithPositions = game.log.filter(s => s.position);
-                        updateHistoryHeatMapFilterButtons(gameId, shotsWithPositions);
-                        renderHistoryHeatMap(gameId, shotsWithPositions);
-                    }
-                });
+                // Find the game data and render (check team cache first, then fetch)
+                const cachedGame = (teamGamesCache || []).concat(historyGamesCache || []).find(g => g.id === gameId);
+                if (cachedGame && cachedGame.log) {
+                    const shotsWithPositions = cachedGame.log.filter(s => s.position);
+                    updateHistoryHeatMapFilterButtons(gameId, shotsWithPositions);
+                    renderHistoryHeatMap(gameId, shotsWithPositions);
+                } else {
+                    getSavedGames(currentTeamId).then(games => {
+                        const game = games.find(g => g.id === gameId);
+                        if (game && game.log) {
+                            const shotsWithPositions = game.log.filter(s => s.position);
+                            updateHistoryHeatMapFilterButtons(gameId, shotsWithPositions);
+                            renderHistoryHeatMap(gameId, shotsWithPositions);
+                        }
+                    });
+                }
             } else {
                 canvas.style.display = 'none';
                 if (teamFilterDiv) teamFilterDiv.style.display = 'none';
@@ -3191,14 +3198,20 @@
                 activeBtn.classList.add('bg-orange-500', 'text-white');
             }
 
-            // Re-render heat map
-            getSavedGames().then(games => {
-                const game = games.find(g => g.id === gameId);
-                if (game && game.log) {
-                    const shotsWithPositions = game.log.filter(s => s.position);
-                    renderHistoryHeatMap(gameId, shotsWithPositions);
-                }
-            });
+            // Re-render heat map (check caches first, then fetch)
+            const cachedGame = (teamGamesCache || []).concat(historyGamesCache || []).find(g => g.id === gameId);
+            if (cachedGame && cachedGame.log) {
+                const shotsWithPositions = cachedGame.log.filter(s => s.position);
+                renderHistoryHeatMap(gameId, shotsWithPositions);
+            } else {
+                getSavedGames(currentTeamId).then(games => {
+                    const game = games.find(g => g.id === gameId);
+                    if (game && game.log) {
+                        const shotsWithPositions = game.log.filter(s => s.position);
+                        renderHistoryHeatMap(gameId, shotsWithPositions);
+                    }
+                });
+            }
         }
 
         // Update history heat map filter buttons based on shot counts
@@ -4387,9 +4400,22 @@
                             ${hasShotMap ? `
                             <div class="mt-5 pt-5 border-t border-slate-200 dark:border-slate-600">
                                 <div class="mb-3">
-                                    <div class="text-sm font-semibold text-slate-700 dark:text-slate-200">Shot Map</div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-sm font-semibold text-slate-700 dark:text-slate-200">Shot Map</div>
+                                        ${shotsWithPositions.length >= 10 ? `
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <span class="text-xs text-slate-500 dark:text-slate-400">Heat Map</span>
+                                            <input type="checkbox" class="sr-only peer history-heat-map-toggle" data-game-id="${game.id}" onchange="toggleHistoryHeatMap('${game.id}', this.checked)">
+                                            <div class="w-8 h-4 bg-slate-300 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-orange-500 relative"></div>
+                                        </label>
+                                        ` : `<span class="text-xs text-slate-400">${shotsWithPositions.length}/10 shots for heat map</span>`}
+                                    </div>
+                                    <div class="flex items-center justify-center gap-1 mt-2" id="history-heat-map-filter-${game.id}" style="display: none;">
+                                        <button type="button" id="history-filter-home-${game.id}" onclick="setHistoryHeatMapFilter('${game.id}', 'home')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 bg-orange-500 text-white">${game.homeTeam}</button>
+                                        <button type="button" id="history-filter-away-${game.id}" onclick="setHistoryHeatMapFilter('${game.id}', 'away')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all duration-200 bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-500">${game.awayTeam}</button>
+                                    </div>
                                 </div>
-                                <div class="relative bg-emerald-600 rounded-xl overflow-hidden" style="aspect-ratio: 105/68;">
+                                <div class="relative bg-emerald-600 rounded-xl overflow-hidden" id="history-field-${game.id}" style="aspect-ratio: 105/68;">
                                     <svg viewBox="0 0 105 68" class="w-full h-full">
                                         <rect x="0" y="0" width="105" height="68" fill="#2d8a4e"/>
                                         <g fill="#3d9a5e" opacity="0.5">
@@ -4417,6 +4443,7 @@
                                         <text x="103" y="5" fill="white" font-size="3" font-weight="bold" opacity="0.7" text-anchor="end">${game.awayTeam.toUpperCase()}</text>
                                         ${shotMarkersSvg}
                                     </svg>
+                                    <canvas id="history-heat-map-${game.id}" class="absolute inset-0 w-full h-full pointer-events-none" style="display: none;"></canvas>
                                 </div>
                                 <div class="flex flex-wrap items-center justify-center gap-4 mt-3 text-xs text-slate-500 dark:text-slate-400">
                                     <div class="flex items-center gap-1.5">
