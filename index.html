@@ -533,24 +533,33 @@
                             <input type="date" id="setup-game-date" class="w-full px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10">
                         </div>
 
-                        <!-- Spacer for grid alignment -->
-                        <div class="hidden sm:block"></div>
-
-                        <!-- Home Team -->
+                        <!-- My Team Is Toggle -->
                         <div class="space-y-1.5">
-                            <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Home Team</label>
+                            <label class="text-sm font-medium text-slate-500 dark:text-slate-400">My Team Is</label>
                             <div class="flex gap-2">
-                                <input type="text" id="setup-home-team" class="flex-1 px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm bg-slate-50 dark:bg-slate-600 cursor-not-allowed" readonly>
-                                <input type="color" id="setup-home-color" class="color-picker w-11 h-11 border-2 border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer p-1 bg-white dark:bg-slate-700" value="#10b981" title="Home team color">
+                                <button type="button" id="setup-team-home-btn" onclick="setMyTeamDesignation('home')" class="flex-1 py-2.5 px-4 border-2 border-emerald-500 bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-all duration-200">Home</button>
+                                <button type="button" id="setup-team-away-btn" onclick="setMyTeamDesignation('away')" class="flex-1 py-2.5 px-4 border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500">Away</button>
                             </div>
                         </div>
 
-                        <!-- Away Team -->
+                        <!-- Spacer for grid alignment -->
+                        <div class="hidden sm:block"></div>
+
+                        <!-- Your Team -->
                         <div class="space-y-1.5">
-                            <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Away Team</label>
+                            <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Your Team</label>
                             <div class="flex gap-2">
-                                <input type="text" id="setup-away-team" class="flex-1 px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Away Team">
-                                <input type="color" id="setup-away-color" class="color-picker w-11 h-11 border-2 border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer p-1 bg-white dark:bg-slate-700" value="#3b82f6" title="Away team color">
+                                <input type="text" id="setup-my-team" class="flex-1 px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm bg-slate-50 dark:bg-slate-600 cursor-not-allowed" readonly>
+                                <input type="color" id="setup-my-team-color" class="color-picker w-11 h-11 border-2 border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer p-1 bg-white dark:bg-slate-700" value="#10b981" title="Your team color">
+                            </div>
+                        </div>
+
+                        <!-- Opponent -->
+                        <div class="space-y-1.5">
+                            <label class="text-sm font-medium text-slate-500 dark:text-slate-400">Opponent</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="setup-opponent" class="flex-1 px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-xl text-sm transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10" placeholder="Opponent name">
+                                <input type="color" id="setup-opponent-color" class="color-picker w-11 h-11 border-2 border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer p-1 bg-white dark:bg-slate-700" value="#3b82f6" title="Opponent color">
                             </div>
                         </div>
 
@@ -1675,7 +1684,8 @@
         let gameSetupConfig = {
             shotMapEnabled: localStorage.getItem('setupShotMapEnabled') === 'true',
             wakeLockEnabled: localStorage.getItem('setupWakeLockEnabled') === 'true',
-            playerTrackingEnabled: localStorage.getItem('setupPlayerTrackingEnabled') === 'true'
+            playerTrackingEnabled: localStorage.getItem('setupPlayerTrackingEnabled') === 'true',
+            myTeamDesignation: 'home' // 'home' or 'away' - defaults to home each game
         };
 
         // =====================================================
@@ -3771,10 +3781,14 @@
 
             // Pre-fill form
             document.getElementById('setup-game-date').valueAsDate = new Date();
-            document.getElementById('setup-home-team').value = currentTeam ? currentTeam.name : '';
-            document.getElementById('setup-home-color').value = currentTeam ? (currentTeam.color || '#10b981') : '#10b981';
-            document.getElementById('setup-away-team').value = '';
-            document.getElementById('setup-away-color').value = '#3b82f6';
+            document.getElementById('setup-my-team').value = currentTeam ? currentTeam.name : '';
+            document.getElementById('setup-my-team-color').value = currentTeam ? (currentTeam.color || '#10b981') : '#10b981';
+            document.getElementById('setup-opponent').value = '';
+            document.getElementById('setup-opponent-color').value = '#3b82f6';
+
+            // Reset team designation to home (default)
+            gameSetupConfig.myTeamDesignation = 'home';
+            updateMyTeamDesignationUI();
 
             // Hide error
             document.getElementById('setup-error').classList.add('hidden');
@@ -4609,6 +4623,29 @@
             updateSetupToggles();
         }
 
+        window.setMyTeamDesignation = function(designation) {
+            gameSetupConfig.myTeamDesignation = designation;
+            updateMyTeamDesignationUI();
+        }
+
+        function updateMyTeamDesignationUI() {
+            const homeBtn = document.getElementById('setup-team-home-btn');
+            const awayBtn = document.getElementById('setup-team-away-btn');
+            if (!homeBtn || !awayBtn) return;
+
+            if (gameSetupConfig.myTeamDesignation === 'home') {
+                homeBtn.classList.remove('border-slate-200', 'dark:border-slate-600', 'bg-white', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-300');
+                homeBtn.classList.add('border-emerald-500', 'bg-emerald-500', 'text-white');
+                awayBtn.classList.remove('border-emerald-500', 'bg-emerald-500', 'text-white');
+                awayBtn.classList.add('border-slate-200', 'dark:border-slate-600', 'bg-white', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-300');
+            } else {
+                awayBtn.classList.remove('border-slate-200', 'dark:border-slate-600', 'bg-white', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-300');
+                awayBtn.classList.add('border-emerald-500', 'bg-emerald-500', 'text-white');
+                homeBtn.classList.remove('border-emerald-500', 'bg-emerald-500', 'text-white');
+                homeBtn.classList.add('border-slate-200', 'dark:border-slate-600', 'bg-white', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-300');
+            }
+        }
+
         function updateSetupToggles() {
             // Shot Map toggle
             const smToggle = document.getElementById('setup-shot-map-toggle');
@@ -4657,19 +4694,31 @@
         }
 
         window.startGameFromSetup = function() {
-            const awayTeam = document.getElementById('setup-away-team').value.trim();
-            if (!awayTeam) {
+            const opponent = document.getElementById('setup-opponent').value.trim();
+            if (!opponent) {
                 const errorEl = document.getElementById('setup-error');
-                errorEl.textContent = 'Please enter an away team name.';
+                errorEl.textContent = 'Please enter an opponent name.';
                 errorEl.classList.remove('hidden');
                 return;
             }
 
+            // Get team info from setup form
+            const myTeamName = document.getElementById('setup-my-team').value;
+            const myTeamColor = document.getElementById('setup-my-team-color').value;
+            const opponentColor = document.getElementById('setup-opponent-color').value;
+            const isMyTeamHome = gameSetupConfig.myTeamDesignation === 'home';
+
+            // Assign teams to home/away based on designation
+            const homeTeamName = isMyTeamHome ? myTeamName : opponent;
+            const awayTeamName = isMyTeamHome ? opponent : myTeamName;
+            const homeColor = isMyTeamHome ? myTeamColor : opponentColor;
+            const awayColor = isMyTeamHome ? opponentColor : myTeamColor;
+
             // Set the existing game view inputs
-            document.getElementById('home-team-input').value = document.getElementById('setup-home-team').value;
-            document.getElementById('away-team-input').value = awayTeam;
-            document.getElementById('home-color').value = document.getElementById('setup-home-color').value;
-            document.getElementById('away-color').value = document.getElementById('setup-away-color').value;
+            document.getElementById('home-team-input').value = homeTeamName;
+            document.getElementById('away-team-input').value = awayTeamName;
+            document.getElementById('home-color').value = homeColor;
+            document.getElementById('away-color').value = awayColor;
             document.getElementById('game-date').value = document.getElementById('setup-game-date').value;
 
             // Trigger the input events to update display names
@@ -4705,12 +4754,12 @@
             playerTrackingEnabled = gameSetupConfig.playerTrackingEnabled;
             localStorage.setItem('playerTrackingEnabled', playerTrackingEnabled);
 
-            // Set roster for this game
+            // Set roster for this game (roster belongs to my team, which could be home or away)
             currentRosterId = teamRosterId;
             localStorage.setItem('currentRosterId', currentRosterId);
             roster = [...teamRoster];
-            rosterTeam = 'home';
-            localStorage.setItem('rosterTeam', 'home');
+            rosterTeam = isMyTeamHome ? 'home' : 'away';
+            localStorage.setItem('rosterTeam', rosterTeam);
 
             // Update roster display in game view
             if (currentRosterId && roster.length > 0) {
@@ -4742,13 +4791,12 @@
             updateDisplay();
 
             // Update game summary bar
-            const homeTeamName = document.getElementById('setup-home-team').value || 'Home Team';
             const gameDateVal = document.getElementById('setup-game-date').value;
             const formattedDate = gameDateVal ? new Date(gameDateVal + 'T12:00:00').toLocaleDateString('en-US', {
                 weekday: 'short', month: 'short', day: 'numeric'
             }) : '';
             document.getElementById('game-date-display').textContent = formattedDate;
-            document.getElementById('game-teams-display').textContent = `${homeTeamName} vs ${awayTeam}`;
+            document.getElementById('game-teams-display').textContent = `${homeTeamName} vs ${awayTeamName}`;
 
             // Navigate to game
             navigateToGame();
