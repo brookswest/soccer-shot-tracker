@@ -4001,13 +4001,39 @@
 
             // Apply initial colors
             applyTeamColors();
+
+            // Watch for dark mode changes to re-apply colors with correct contrast
+            const darkModeObserver = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.attributeName === 'class') {
+                        applyTeamColors();
+                        // Also refresh any dynamic content that uses team colors
+                        if (typeof loadTeamGames === 'function' && currentTeamId) {
+                            loadTeamGames();
+                        }
+                        // Refresh fan view if active
+                        if (typeof loadActiveGame === 'function' && typeof fanTeamId !== 'undefined' && fanTeamId) {
+                            loadActiveGame(fanTeamId);
+                        }
+                    }
+                });
+            });
+            darkModeObserver.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+
             console.log('Event listeners setup complete');
         }
 
         // Apply team colors to UI elements
         function applyTeamColors() {
-            const homeColor = document.getElementById('home-color').value;
-            const awayColor = document.getElementById('away-color').value;
+            const homeColorRaw = document.getElementById('home-color').value;
+            const awayColorRaw = document.getElementById('away-color').value;
+
+            // Get adjusted colors for current mode (contrast-safe)
+            const homeColor = getAdjustedTeamColor(homeColorRaw);
+            const awayColor = getAdjustedTeamColor(awayColorRaw);
 
             // Update home team elements
             const homePanel = document.querySelector('.team-panel.home');
@@ -4020,7 +4046,15 @@
                 homePanelTitle.style.color = homeColor;
                 // Update the bullet/dot color
                 const homeBullet = homePanelTitle.querySelector('span');
-                if (homeBullet) homeBullet.style.backgroundColor = homeColor;
+                if (homeBullet) {
+                    homeBullet.style.backgroundColor = homeColor;
+                    // Add subtle border for very light colors
+                    if (needsContrastBorder(homeColorRaw)) {
+                        homeBullet.style.boxShadow = 'inset 0 0 0 1px rgba(0,0,0,0.15)';
+                    } else {
+                        homeBullet.style.boxShadow = '';
+                    }
+                }
             }
             if (homeBadge) {
                 homeBadge.style.backgroundColor = hexToRgba(homeColor, 0.2);
@@ -4039,7 +4073,15 @@
                 awayPanelTitle.style.color = awayColor;
                 // Update the bullet/dot color
                 const awayBullet = awayPanelTitle.querySelector('span');
-                if (awayBullet) awayBullet.style.backgroundColor = awayColor;
+                if (awayBullet) {
+                    awayBullet.style.backgroundColor = awayColor;
+                    // Add subtle border for very light colors
+                    if (needsContrastBorder(awayColorRaw)) {
+                        awayBullet.style.boxShadow = 'inset 0 0 0 1px rgba(0,0,0,0.15)';
+                    } else {
+                        awayBullet.style.boxShadow = '';
+                    }
+                }
             }
             if (awayBadge) {
                 awayBadge.style.backgroundColor = hexToRgba(awayColor, 0.2);
@@ -4053,8 +4095,10 @@
 
         // Update log entry colors
         function updateLogColors() {
-            const homeColor = document.getElementById('home-color').value;
-            const awayColor = document.getElementById('away-color').value;
+            const homeColorRaw = document.getElementById('home-color').value;
+            const awayColorRaw = document.getElementById('away-color').value;
+            const homeColor = getAdjustedTeamColor(homeColorRaw);
+            const awayColor = getAdjustedTeamColor(awayColorRaw);
 
             document.querySelectorAll('.log-entry.home').forEach(entry => {
                 entry.style.background = hexToRgba(homeColor, 0.1);
@@ -4073,6 +4117,106 @@
             const g = parseInt(hex.slice(3, 5), 16);
             const b = parseInt(hex.slice(5, 7), 16);
             return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // =====================================================
+        // COLOR CONTRAST UTILITIES
+        // =====================================================
+
+        // Convert hex to RGB object
+        function hexToRgb(hex) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return { r, g, b };
+        }
+
+        // Convert RGB to hex
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(x => {
+                const hex = Math.round(Math.max(0, Math.min(255, x))).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        // Calculate relative luminance (0-1 scale, per WCAG formula)
+        function getColorLuminance(hex) {
+            const rgb = hexToRgb(hex);
+            const [r, g, b] = [rgb.r, rgb.g, rgb.b].map(v => {
+                v /= 255;
+                return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+            });
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        }
+
+        // Lighten a color by percentage
+        function lightenColor(hex, percent) {
+            const rgb = hexToRgb(hex);
+            const amount = percent / 100;
+            return rgbToHex(
+                rgb.r + (255 - rgb.r) * amount,
+                rgb.g + (255 - rgb.g) * amount,
+                rgb.b + (255 - rgb.b) * amount
+            );
+        }
+
+        // Darken a color by percentage
+        function darkenColor(hex, percent) {
+            const rgb = hexToRgb(hex);
+            const amount = 1 - (percent / 100);
+            return rgbToHex(
+                rgb.r * amount,
+                rgb.g * amount,
+                rgb.b * amount
+            );
+        }
+
+        // Adjust color for contrast based on luminance and mode
+        function adjustColorForContrast(hex, isDarkMode) {
+            const luminance = getColorLuminance(hex);
+
+            if (!isDarkMode) {
+                // Light mode: darken light colors
+                if (luminance > 0.85) {
+                    return darkenColor(hex, 30);
+                } else if (luminance > 0.7) {
+                    return darkenColor(hex, 20);
+                }
+            } else {
+                // Dark mode: lighten dark colors
+                if (luminance < 0.05) {
+                    return lightenColor(hex, 35);
+                } else if (luminance < 0.15) {
+                    return lightenColor(hex, 25);
+                }
+            }
+            return hex;
+        }
+
+        // Get adjusted team color for current mode
+        function getAdjustedTeamColor(hex) {
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            return adjustColorForContrast(hex, isDarkMode);
+        }
+
+        // Get adjusted team color for a specific mode (for PDF which always uses light mode)
+        function getAdjustedTeamColorForMode(hex, isDarkMode) {
+            return adjustColorForContrast(hex, isDarkMode);
+        }
+
+        // Check if a color needs a border/stroke for visibility (very light colors)
+        function needsContrastBorder(hex) {
+            const luminance = getColorLuminance(hex);
+            return luminance > 0.7;
+        }
+
+        // Get stroke color for shot markers (for light colors that need more definition)
+        function getShotMarkerStroke(hex) {
+            const luminance = getColorLuminance(hex);
+            if (luminance > 0.7) {
+                return darkenColor(hex, 40);
+            }
+            return 'white';
         }
 
         // Set current half
@@ -4142,7 +4286,11 @@
             // Populate header
             if (currentTeam) {
                 document.getElementById('team-name-display').textContent = currentTeam.name;
-                document.getElementById('team-color-dot').style.backgroundColor = currentTeam.color || '#10b981';
+                const teamColorRaw = currentTeam.color || '#10b981';
+                const teamColorAdj = getAdjustedTeamColor(teamColorRaw);
+                const teamColorDot = document.getElementById('team-color-dot');
+                teamColorDot.style.backgroundColor = teamColorAdj;
+                teamColorDot.style.boxShadow = needsContrastBorder(teamColorRaw) ? 'inset 0 0 0 1px rgba(0,0,0,0.15)' : '';
             }
 
             // Load data
@@ -4228,7 +4376,11 @@
             // Update header
             if (fanTeamData) {
                 document.getElementById('fan-team-name-header').textContent = fanTeamData.name;
-                document.getElementById('fan-team-color-dot').style.backgroundColor = fanTeamData.color || '#10b981';
+                const fanColorRaw = fanTeamData.color || '#10b981';
+                const fanColorAdj = getAdjustedTeamColor(fanColorRaw);
+                const fanColorDot = document.getElementById('fan-team-color-dot');
+                fanColorDot.style.backgroundColor = fanColorAdj;
+                fanColorDot.style.boxShadow = needsContrastBorder(fanColorRaw) ? 'inset 0 0 0 1px rgba(0,0,0,0.15)' : '';
             }
 
             // Subscribe to active game updates
@@ -4474,8 +4626,14 @@
                 return;
             }
 
-            const homeColor = metadata.homeColor || '#10b981';
-            const awayColor = metadata.awayColor || '#3b82f6';
+            const homeColorRaw = metadata.homeColor || '#10b981';
+            const awayColorRaw = metadata.awayColor || '#3b82f6';
+            // Get adjusted colors for current mode
+            const homeColor = getAdjustedTeamColor(homeColorRaw);
+            const awayColor = getAdjustedTeamColor(awayColorRaw);
+            // Get box shadow for light color dots
+            const homeBoxShadow = needsContrastBorder(homeColorRaw) ? 'box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);' : '';
+            const awayBoxShadow = needsContrastBorder(awayColorRaw) ? 'box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);' : '';
             const clockDisplay = formatTime(metadata.clockSeconds || 0);
             const halfText = metadata.currentHalf === 2 ? '2nd Half' : '1st Half';
             const isRunning = metadata.isRunning;
@@ -4648,8 +4806,10 @@
                     const formattedDate = new Date(game.date).toLocaleDateString('en-US', {
                         weekday: 'short', month: 'short', day: 'numeric'
                     });
-                    const homeColor = game.homeColor || '#10b981';
-                    const awayColor = game.awayColor || '#3b82f6';
+                    const homeColorRaw = game.homeColor || '#10b981';
+                    const awayColorRaw = game.awayColor || '#3b82f6';
+                    const homeColor = getAdjustedTeamColor(homeColorRaw);
+                    const awayColor = getAdjustedTeamColor(awayColorRaw);
 
                     return `
                         <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 border-l-4" style="border-color: ${homeColor};">
@@ -4683,7 +4843,15 @@
 
             // Update team info display
             document.getElementById('fan-team-name-info').textContent = fanTeamData.name;
-            document.getElementById('fan-team-color-badge').style.backgroundColor = fanTeamData.color || '#10b981';
+            const fanBadgeColorRaw = fanTeamData.color || '#10b981';
+            const fanBadgeColorAdj = getAdjustedTeamColor(fanBadgeColorRaw);
+            const fanBadge = document.getElementById('fan-team-color-badge');
+            fanBadge.style.backgroundColor = fanBadgeColorAdj;
+            if (needsContrastBorder(fanBadgeColorRaw)) {
+                fanBadge.style.boxShadow = 'inset 0 0 0 1px rgba(0,0,0,0.15)';
+            } else {
+                fanBadge.style.boxShadow = '';
+            }
             document.getElementById('fan-team-initial').textContent = fanTeamData.name.charAt(0).toUpperCase();
 
             // Load roster
@@ -5256,7 +5424,10 @@
                         currentTeam.name = name;
                         currentTeam.color = color;
                         document.getElementById('team-name-display').textContent = name;
-                        document.getElementById('team-color-dot').style.backgroundColor = color;
+                        const teamColorDotUpdate = document.getElementById('team-color-dot');
+                        const adjustedColorUpdate = getAdjustedTeamColor(color);
+                        teamColorDotUpdate.style.backgroundColor = adjustedColorUpdate;
+                        teamColorDotUpdate.style.boxShadow = needsContrastBorder(color) ? 'inset 0 0 0 1px rgba(0,0,0,0.15)' : '';
                     }
                     const teamIdx = teams.findIndex(t => t.id === teamId);
                     if (teamIdx !== -1) {
@@ -5532,8 +5703,14 @@
                 const awayTotalShots = game.away.onTarget + game.away.offTarget;
                 const homeAccuracy = homeTotalShots > 0 ? Math.round((game.home.onTarget / homeTotalShots) * 100) : 0;
                 const awayAccuracy = awayTotalShots > 0 ? Math.round((game.away.onTarget / awayTotalShots) * 100) : 0;
-                const homeColor = game.homeColor || '#10b981';
-                const awayColor = game.awayColor || '#3b82f6';
+                const homeColorRaw = game.homeColor || '#10b981';
+                const awayColorRaw = game.awayColor || '#3b82f6';
+                // Get adjusted colors for contrast
+                const homeColor = getAdjustedTeamColor(homeColorRaw);
+                const awayColor = getAdjustedTeamColor(awayColorRaw);
+                // Get box shadow for light color dots
+                const homeBoxShadow = needsContrastBorder(homeColorRaw) ? 'box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);' : '';
+                const awayBoxShadow = needsContrastBorder(awayColorRaw) ? 'box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);' : '';
 
                 const formattedDate = new Date(game.date).toLocaleDateString('en-US', {
                     weekday: 'short',
@@ -5552,18 +5729,20 @@
                 const hasShotMap = shotsWithPositions.length > 0;
 
                 const shotMarkersSvg = shotsWithPositions.map(shot => {
+                    const colorRaw = shot.team === 'home' ? homeColorRaw : awayColorRaw;
                     const color = shot.team === 'home' ? homeColor : awayColor;
+                    const stroke = getShotMarkerStroke(colorRaw);
                     const x = shot.half === 2 ? (105 - shot.position.x) : shot.position.x;
                     const y = shot.half === 2 ? (68 - shot.position.y) : shot.position.y;
 
                     if (shot.type === 'GOAL!') {
-                        return `<circle cx="${x}" cy="${y}" r="2.5" fill="${color}" stroke="white" stroke-width="0.3" opacity="0.85"/><text x="${x}" y="${y + 0.8}" fill="white" font-size="2.5" text-anchor="middle">\u2605</text>`;
+                        return `<circle cx="${x}" cy="${y}" r="2.5" fill="${color}" stroke="${stroke}" stroke-width="0.3" opacity="0.85"/><text x="${x}" y="${y + 0.8}" fill="white" font-size="2.5" text-anchor="middle">\u2605</text>`;
                     } else if (shot.type === 'Shot On Target') {
                         const size = 3;
-                        return `<rect x="${x - size/2}" y="${y - size/2}" width="${size}" height="${size}" fill="${color}" stroke="white" stroke-width="0.3" opacity="0.85"/>`;
+                        return `<rect x="${x - size/2}" y="${y - size/2}" width="${size}" height="${size}" fill="${color}" stroke="${stroke}" stroke-width="0.3" opacity="0.85"/>`;
                     } else if (shot.type === 'Shot Off Target') {
                         const size = 2;
-                        return `<polygon points="${x},${y - size} ${x - size},${y + size} ${x + size},${y + size}" fill="${color}" stroke="white" stroke-width="0.3" opacity="0.85"/>`;
+                        return `<polygon points="${x},${y - size} ${x - size},${y + size} ${x + size},${y + size}" fill="${color}" stroke="${stroke}" stroke-width="0.3" opacity="0.85"/>`;
                     }
                     return '';
                 }).join('');
@@ -5593,6 +5772,7 @@
                             <div class="space-y-2">
                                 ${allGoals.map(goal => {
                                     const teamColor = goal.team === 'home' ? homeColor : awayColor;
+                                    const teamBoxShadow = goal.team === 'home' ? homeBoxShadow : awayBoxShadow;
                                     const teamName = goal.team === 'home' ? game.homeTeam : game.awayTeam;
                                     return `
                                     <div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600">
@@ -5602,7 +5782,7 @@
                                         </div>
                                         <div class="w-px h-8 bg-slate-200 dark:bg-slate-600"></div>
                                         <div class="flex items-center gap-2 flex-1">
-                                            <div class="w-3 h-3 rounded-full flex-shrink-0" style="background: ${teamColor};"></div>
+                                            <div class="w-3 h-3 rounded-full flex-shrink-0" style="background: ${teamColor}; ${teamBoxShadow}"></div>
                                             <div class="flex-1 min-w-0">
                                                 <div class="text-sm font-medium text-slate-800 dark:text-white truncate">
                                                     ${goal.playerName ? goal.playerName : '<span class="text-slate-400 italic">Unknown scorer</span>'}
@@ -5773,11 +5953,11 @@
                                 </div>
                                 <div class="flex flex-wrap items-center justify-center gap-4 mt-3 text-xs text-slate-500 dark:text-slate-400">
                                     <div class="flex items-center gap-1.5">
-                                        <span class="w-3 h-3 rounded-full" style="background: ${homeColor};"></span>
+                                        <span class="w-3 h-3 rounded-full" style="background: ${homeColor}; ${homeBoxShadow}"></span>
                                         <span>${game.homeTeam}</span>
                                     </div>
                                     <div class="flex items-center gap-1.5">
-                                        <span class="w-3 h-3 rounded-full" style="background: ${awayColor};"></span>
+                                        <span class="w-3 h-3 rounded-full" style="background: ${awayColor}; ${awayBoxShadow}"></span>
                                         <span>${game.awayTeam}</span>
                                     </div>
                                     <div class="flex items-center gap-1.5">
@@ -6233,12 +6413,16 @@
             const container = document.getElementById('shot-map-previous-shots');
             container.innerHTML = '';
 
-            const homeColor = document.getElementById('home-color').value;
-            const awayColor = document.getElementById('away-color').value;
+            const homeColorRaw = document.getElementById('home-color').value;
+            const awayColorRaw = document.getElementById('away-color').value;
+            const homeColor = getAdjustedTeamColor(homeColorRaw);
+            const awayColor = getAdjustedTeamColor(awayColorRaw);
 
             gameState.log.forEach((shot, index) => {
                 if (shot.position) {
+                    const colorRaw = shot.team === 'home' ? homeColorRaw : awayColorRaw;
                     const color = shot.team === 'home' ? homeColor : awayColor;
+                    const stroke = getShotMarkerStroke(colorRaw);
                     const isGoal = shot.type === 'GOAL!';
                     const isOnTarget = shot.type === 'Shot On Target';
                     const isOffTarget = shot.type === 'Shot Off Target';
@@ -6256,7 +6440,7 @@
                         circle.setAttribute('r', '2');
                         circle.setAttribute('fill', color);
                         circle.setAttribute('opacity', '0.85');
-                        circle.setAttribute('stroke', 'white');
+                        circle.setAttribute('stroke', stroke);
                         circle.setAttribute('stroke-width', '0.3');
                         container.appendChild(circle);
 
@@ -6278,7 +6462,7 @@
                         rect.setAttribute('height', size);
                         rect.setAttribute('fill', color);
                         rect.setAttribute('opacity', '0.85');
-                        rect.setAttribute('stroke', 'white');
+                        rect.setAttribute('stroke', stroke);
                         rect.setAttribute('stroke-width', '0.3');
                         container.appendChild(rect);
                     } else if (isOffTarget) {
@@ -6289,7 +6473,7 @@
                         triangle.setAttribute('points', points);
                         triangle.setAttribute('fill', color);
                         triangle.setAttribute('opacity', '0.85');
-                        triangle.setAttribute('stroke', 'white');
+                        triangle.setAttribute('stroke', stroke);
                         triangle.setAttribute('stroke-width', '0.3');
                         container.appendChild(triangle);
                     }
@@ -6479,14 +6663,20 @@
             clickArea.onclick = null;
 
             // Update buttons for view mode
+            const homeColorRaw = document.getElementById('home-color').value;
+            const awayColorRaw = document.getElementById('away-color').value;
+            const homeColorView = getAdjustedTeamColor(homeColorRaw);
+            const awayColorView = getAdjustedTeamColor(awayColorRaw);
+            const homeBoxShadowView = needsContrastBorder(homeColorRaw) ? 'box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);' : '';
+            const awayBoxShadowView = needsContrastBorder(awayColorRaw) ? 'box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);' : '';
             document.getElementById('shot-position-display').innerHTML = `
                 <div class="flex items-center gap-4 text-xs">
                     <div class="flex items-center gap-1.5">
-                        <span class="w-3 h-3 rounded-full" style="background: ${document.getElementById('home-color').value};"></span>
+                        <span class="w-3 h-3 rounded-full" style="background: ${homeColorView}; ${homeBoxShadowView}"></span>
                         <span>${homeName}</span>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <span class="w-3 h-3 rounded-full" style="background: ${document.getElementById('away-color').value};"></span>
+                        <span class="w-3 h-3 rounded-full" style="background: ${awayColorView}; ${awayBoxShadowView}"></span>
                         <span>${awayName}</span>
                     </div>
                     <div class="flex items-center gap-1.5">
@@ -6892,8 +7082,14 @@
                 });
 
                 // Use saved colors or fallback to defaults
-                const homeColor = game.homeColor || '#10b981';
-                const awayColor = game.awayColor || '#3b82f6';
+                const homeColorRaw = game.homeColor || '#10b981';
+                const awayColorRaw = game.awayColor || '#3b82f6';
+                // Get adjusted colors for contrast
+                const homeColor = getAdjustedTeamColor(homeColorRaw);
+                const awayColor = getAdjustedTeamColor(awayColorRaw);
+                // Get box shadow for light color dots
+                const homeBoxShadow = needsContrastBorder(homeColorRaw) ? 'box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);' : '';
+                const awayBoxShadow = needsContrastBorder(awayColorRaw) ? 'box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);' : '';
 
                 // Get half stats with fallback for older saved games
                 const homeH1 = game.home.firstHalf || { goals: 0, onTarget: 0, offTarget: 0 };
@@ -6910,7 +7106,9 @@
 
                 // Generate shot markers SVG for the history view
                 const shotMarkersSvg = shotsWithPositions.map(shot => {
+                    const colorRaw = shot.team === 'home' ? homeColorRaw : awayColorRaw;
                     const color = shot.team === 'home' ? homeColor : awayColor;
+                    const stroke = getShotMarkerStroke(colorRaw);
                     const isGoal = shot.type === 'GOAL!';
                     const isOnTarget = shot.type === 'Shot On Target';
                     const isOffTarget = shot.type === 'Shot Off Target';
@@ -6920,15 +7118,15 @@
 
                     if (isGoal) {
                         return `
-                            <circle cx="${x}" cy="${y}" r="2.5" fill="${color}" stroke="white" stroke-width="0.3" opacity="0.85"/>
+                            <circle cx="${x}" cy="${y}" r="2.5" fill="${color}" stroke="${stroke}" stroke-width="0.3" opacity="0.85"/>
                             <text x="${x}" y="${y + 0.8}" fill="white" font-size="2.5" text-anchor="middle">★</text>
                         `;
                     } else if (isOnTarget) {
                         const size = 3;
-                        return `<rect x="${x - size/2}" y="${y - size/2}" width="${size}" height="${size}" fill="${color}" stroke="white" stroke-width="0.3" opacity="0.85"/>`;
+                        return `<rect x="${x - size/2}" y="${y - size/2}" width="${size}" height="${size}" fill="${color}" stroke="${stroke}" stroke-width="0.3" opacity="0.85"/>`;
                     } else if (isOffTarget) {
                         const size = 2;
-                        return `<polygon points="${x},${y - size} ${x - size},${y + size} ${x + size},${y + size}" fill="${color}" stroke="white" stroke-width="0.3" opacity="0.85"/>`;
+                        return `<polygon points="${x},${y - size} ${x - size},${y + size} ${x + size},${y + size}" fill="${color}" stroke="${stroke}" stroke-width="0.3" opacity="0.85"/>`;
                     }
                     return '';
                 }).join('');
@@ -7074,11 +7272,11 @@
                                 </div>
                                 <div class="flex flex-wrap items-center justify-center gap-4 mt-3 text-xs text-slate-500 dark:text-slate-400">
                                     <div class="flex items-center gap-1.5">
-                                        <span class="w-3 h-3 rounded-full" style="background: ${homeColor};"></span>
+                                        <span class="w-3 h-3 rounded-full" style="background: ${homeColor}; ${homeBoxShadow}"></span>
                                         <span>${game.homeTeam}</span>
                                     </div>
                                     <div class="flex items-center gap-1.5">
-                                        <span class="w-3 h-3 rounded-full" style="background: ${awayColor};"></span>
+                                        <span class="w-3 h-3 rounded-full" style="background: ${awayColor}; ${awayBoxShadow}"></span>
                                         <span>${game.awayTeam}</span>
                                     </div>
                                     <div class="flex items-center gap-1.5">
@@ -7150,6 +7348,7 @@
                                 <div class="space-y-2">
                                     ${allGoals.map(goal => {
                                         const teamColor = goal.team === 'home' ? homeColor : awayColor;
+                                        const teamBoxShadow = goal.team === 'home' ? homeBoxShadow : awayBoxShadow;
                                         const teamName = goal.team === 'home' ? game.homeTeam : game.awayTeam;
                                         return `
                                         <div class="history-goal-row-${game.id} flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 transition-all"
@@ -7162,7 +7361,7 @@
                                             </div>
                                             <div class="w-px h-8 bg-slate-200 dark:bg-slate-600"></div>
                                             <div class="flex items-center gap-2 flex-1">
-                                                <div class="w-3 h-3 rounded-full flex-shrink-0" style="background: ${teamColor};"></div>
+                                                <div class="w-3 h-3 rounded-full flex-shrink-0" style="background: ${teamColor}; ${teamBoxShadow}"></div>
                                                 <div class="flex-1 min-w-0">
                                                     <div class="text-sm font-medium text-slate-800 dark:text-white truncate">
                                                         ${goal.playerName ? goal.playerName : '<span class="text-slate-400 italic">Unknown scorer</span>'}
@@ -7330,8 +7529,17 @@
 
             const homeTeam = game.homeTeam;
             const awayTeam = game.awayTeam;
-            const homeColor = game.homeColor || '#10b981';
-            const awayColor = game.awayColor || '#3b82f6';
+            const homeColorRaw = game.homeColor || '#10b981';
+            const awayColorRaw = game.awayColor || '#3b82f6';
+            // PDF uses light mode (white background), so adjust for light mode
+            const homeColor = getAdjustedTeamColorForMode(homeColorRaw, false);
+            const awayColor = getAdjustedTeamColorForMode(awayColorRaw, false);
+            // Get stroke colors for shot markers
+            const homeStroke = getShotMarkerStroke(homeColorRaw);
+            const awayStroke = getShotMarkerStroke(awayColorRaw);
+            // Check if colors need border for legend dots
+            const homeBorder = needsContrastBorder(homeColorRaw) ? 'border: 1px solid rgba(0,0,0,0.15);' : '';
+            const awayBorder = needsContrastBorder(awayColorRaw) ? 'border: 1px solid rgba(0,0,0,0.15);' : '';
 
             const formattedDate = new Date(game.date).toLocaleDateString('en-US', {
                 weekday: 'long',
@@ -7359,6 +7567,7 @@
             // Generate shot markers for PDF
             const pdfShotMarkers = shotsWithPositions.map(shot => {
                 const color = shot.team === 'home' ? homeColor : awayColor;
+                const stroke = shot.team === 'home' ? homeStroke : awayStroke;
                 const isGoal = shot.type === 'GOAL!';
                 const isOnTarget = shot.type === 'Shot On Target';
                 const isOffTarget = shot.type === 'Shot Off Target';
@@ -7368,15 +7577,15 @@
 
                 if (isGoal) {
                     return `
-                        <circle cx="${x}" cy="${y}" r="2.5" fill="${color}" stroke="white" stroke-width="0.3" opacity="0.9"/>
+                        <circle cx="${x}" cy="${y}" r="2.5" fill="${color}" stroke="${stroke}" stroke-width="0.3" opacity="0.9"/>
                         <text x="${x}" y="${y + 1}" fill="white" font-size="2.5" text-anchor="middle" font-family="Arial">★</text>
                     `;
                 } else if (isOnTarget) {
                     const size = 3;
-                    return `<rect x="${x - size/2}" y="${y - size/2}" width="${size}" height="${size}" fill="${color}" stroke="white" stroke-width="0.3" opacity="0.9"/>`;
+                    return `<rect x="${x - size/2}" y="${y - size/2}" width="${size}" height="${size}" fill="${color}" stroke="${stroke}" stroke-width="0.3" opacity="0.9"/>`;
                 } else if (isOffTarget) {
                     const size = 2;
-                    return `<polygon points="${x},${y - size} ${x - size},${y + size} ${x + size},${y + size}" fill="${color}" stroke="white" stroke-width="0.3" opacity="0.9"/>`;
+                    return `<polygon points="${x},${y - size} ${x - size},${y + size} ${x + size},${y + size}" fill="${color}" stroke="${stroke}" stroke-width="0.3" opacity="0.9"/>`;
                 }
                 return '';
             }).join('');
@@ -7679,11 +7888,11 @@
                         </div>
                         <div class="shot-map-legend">
                             <div class="legend-item">
-                                <span class="legend-dot" style="background: ${homeColor};"></span>
+                                <span class="legend-dot" style="background: ${homeColor}; ${homeBorder}"></span>
                                 <span>${homeTeam}</span>
                             </div>
                             <div class="legend-item">
-                                <span class="legend-dot" style="background: ${awayColor};"></span>
+                                <span class="legend-dot" style="background: ${awayColor}; ${awayBorder}"></span>
                                 <span>${awayTeam}</span>
                             </div>
                             <div class="legend-item">
