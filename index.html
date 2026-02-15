@@ -617,6 +617,26 @@
                             </div>
                         </div>
 
+                        <!-- Starting Field Side (only shown when shot map is enabled) -->
+                        <div id="setup-field-side-container" class="sm:col-span-2 mt-2 hidden">
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Your team is attacking which goal in the 1st half?</label>
+                            <p class="text-xs text-slate-400 mt-0.5 mb-3">This will automatically swap at halftime</p>
+                            <div class="flex gap-3">
+                                <button type="button" id="setup-attack-left-btn" onclick="setAttackingDirection('left')" class="flex-1 py-3 px-4 border-2 border-emerald-500 bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                    </svg>
+                                    Left Goal
+                                </button>
+                                <button type="button" id="setup-attack-right-btn" onclick="setAttackingDirection('right')" class="flex-1 py-3 px-4 border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500 flex items-center justify-center gap-2">
+                                    Right Goal
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Wake Lock Toggle -->
                         <div class="sm:col-span-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                             <div class="flex items-center justify-between">
@@ -2026,8 +2046,12 @@
             shotMapEnabled: localStorage.getItem('setupShotMapEnabled') === 'true',
             wakeLockEnabled: localStorage.getItem('setupWakeLockEnabled') === 'true',
             playerTrackingEnabled: localStorage.getItem('setupPlayerTrackingEnabled') === 'true',
-            myTeamDesignation: 'home' // 'home' or 'away' - defaults to home each game
+            myTeamDesignation: 'home', // 'home' or 'away' - defaults to home each game
+            attackingDirection: 'left' // 'left' or 'right' - which goal your team attacks in 1st half
         };
+
+        // Track initial attacking direction for auto-flip at halftime
+        let initialAttackingRight = false;
 
         // =====================================================
         // ROSTER MANAGEMENT (Multiple Rosters)
@@ -4053,6 +4077,7 @@
 
         // Set current half
         window.setHalf = function(half) {
+            const previousHalf = gameState.currentHalf;
             gameState.currentHalf = half;
             const half1Btn = document.getElementById('half-1-btn');
             const half2Btn = document.getElementById('half-2-btn');
@@ -4068,6 +4093,14 @@
                 half1Btn.classList.remove('border-emerald-500', 'bg-emerald-500', 'text-white');
                 half1Btn.classList.add('border-slate-200', 'bg-white', 'text-slate-500', 'dark:border-slate-600', 'dark:bg-slate-700', 'dark:text-slate-300');
             }
+
+            // Auto-flip field sides when changing halves (only if actually changing)
+            if (previousHalf !== half && shotMapEnabled) {
+                // In 1st half: use initial direction
+                // In 2nd half: flip from initial direction
+                fieldSidesFlipped = (half === 1) ? initialAttackingRight : !initialAttackingRight;
+            }
+
             // Sync half change to active_games for fans
             debouncedSyncToActiveGame();
         }
@@ -4135,11 +4168,18 @@
             gameSetupConfig.myTeamDesignation = 'home';
             updateMyTeamDesignationUI();
 
+            // Reset attacking direction to left (default)
+            gameSetupConfig.attackingDirection = 'left';
+            updateAttackingDirectionUI();
+
             // Hide error
             document.getElementById('setup-error').classList.add('hidden');
 
             // Restore toggle states from stored preferences
             updateSetupToggles();
+
+            // Show/hide field side selector based on shot map toggle
+            updateFieldSideVisibility();
         }
 
         window.navigateToGame = function() {
@@ -5812,6 +5852,7 @@
             localStorage.setItem('setupShotMapEnabled', gameSetupConfig.shotMapEnabled);
             console.log('toggleSetupShotMap - new value:', gameSetupConfig.shotMapEnabled);
             updateSetupToggles();
+            updateFieldSideVisibility();
         }
 
         window.toggleSetupWakeLock = function() {
@@ -5829,6 +5870,39 @@
         window.setMyTeamDesignation = function(designation) {
             gameSetupConfig.myTeamDesignation = designation;
             updateMyTeamDesignationUI();
+        }
+
+        window.setAttackingDirection = function(direction) {
+            gameSetupConfig.attackingDirection = direction;
+            updateAttackingDirectionUI();
+        }
+
+        function updateAttackingDirectionUI() {
+            const leftBtn = document.getElementById('setup-attack-left-btn');
+            const rightBtn = document.getElementById('setup-attack-right-btn');
+
+            if (gameSetupConfig.attackingDirection === 'left') {
+                leftBtn.classList.add('border-emerald-500', 'bg-emerald-500', 'text-white');
+                leftBtn.classList.remove('border-slate-200', 'dark:border-slate-600', 'bg-white', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-300');
+                rightBtn.classList.remove('border-emerald-500', 'bg-emerald-500', 'text-white');
+                rightBtn.classList.add('border-slate-200', 'dark:border-slate-600', 'bg-white', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-300');
+            } else {
+                rightBtn.classList.add('border-emerald-500', 'bg-emerald-500', 'text-white');
+                rightBtn.classList.remove('border-slate-200', 'dark:border-slate-600', 'bg-white', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-300');
+                leftBtn.classList.remove('border-emerald-500', 'bg-emerald-500', 'text-white');
+                leftBtn.classList.add('border-slate-200', 'dark:border-slate-600', 'bg-white', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-300');
+            }
+        }
+
+        function updateFieldSideVisibility() {
+            const container = document.getElementById('setup-field-side-container');
+            if (container) {
+                if (gameSetupConfig.shotMapEnabled) {
+                    container.classList.remove('hidden');
+                } else {
+                    container.classList.add('hidden');
+                }
+            }
         }
 
         function updateMyTeamDesignationUI() {
@@ -6002,6 +6076,11 @@
                     smDotGame.style.transform = 'translateX(0)';
                 }
             }
+
+            // Set initial field side for shot map based on attacking direction
+            // attackingDirection 'right' means team shoots toward right goal, so fieldSidesFlipped should be true
+            initialAttackingRight = gameSetupConfig.attackingDirection === 'right';
+            fieldSidesFlipped = initialAttackingRight;
 
             // Update game summary bar
             const gameDateVal = gameDateValue;
@@ -7225,6 +7304,7 @@
 
             // Reset field sides
             fieldSidesFlipped = false;
+            initialAttackingRight = false;
             updateFieldSidesLabel();
 
             // Reset notes display
