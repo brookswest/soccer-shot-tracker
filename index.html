@@ -453,8 +453,9 @@
 
                 <!-- Team Tabs -->
                 <div class="flex bg-white dark:bg-slate-800 rounded-2xl p-1.5 mb-6 shadow-lg">
-                    <button class="team-tab active flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 bg-emerald-500 text-white shadow-sm" onclick="switchTeamTab('history')">Game History</button>
+                    <button class="team-tab active flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 bg-emerald-500 text-white shadow-sm" onclick="switchTeamTab('history')">History</button>
                     <button class="team-tab flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700" onclick="switchTeamTab('roster')">Roster</button>
+                    <button class="team-tab flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700" onclick="switchTeamTab('fans')">Fans</button>
                 </div>
 
                 <!-- Team History Tab -->
@@ -511,11 +512,14 @@
                             </div>
                         </div>
                     </div>
+                </div>
 
+                <!-- Team Fans Tab -->
+                <div id="team-fans-tab" class="hidden">
                     <!-- Invite Fan Section -->
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg mt-6">
-                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-4">Invite a Fan</h3>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Send an invitation to someone to follow your team as a fan. They'll be able to watch live games and view game history.</p>
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg mb-5">
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-2">Invite a Fan</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Send an invitation to someone to follow your team. They'll be able to watch live games and view game history.</p>
                         <div class="flex gap-3">
                             <input type="email" id="coach-invite-fan-email" placeholder="Enter email address" class="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-white">
                             <button onclick="sendFanInvitationFromCoach()" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-xl transition-colors text-sm whitespace-nowrap">
@@ -523,6 +527,30 @@
                             </button>
                         </div>
                         <p id="coach-invite-status" class="text-sm mt-3 hidden"></p>
+                    </div>
+
+                    <!-- Pending Invitations -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg mb-5">
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-4">Pending Invitations</h3>
+                        <div id="pending-invitations-list">
+                            <div class="text-center py-6 text-slate-400">
+                                <p class="text-sm">No pending invitations</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Fans -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-4">Team Fans</h3>
+                        <div id="team-fans-list">
+                            <div class="text-center py-6 text-slate-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                <p>No fans yet</p>
+                                <p class="text-sm mt-1">Invite fans to follow your team</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -4803,9 +4831,178 @@
 
                 emailInput.value = '';
 
+                // Refresh the pending invitations list
+                loadTeamFansData();
+
             } catch (err) {
                 console.error('Error sending invitation:', err);
                 showFanInviteStatus(statusEl, 'error', 'Failed to send invitation');
+            }
+        }
+
+        // Load team fans and pending invitations
+        async function loadTeamFansData() {
+            if (!currentTeamId) return;
+
+            // Load current fans
+            try {
+                const { data: fans, error: fansError } = await supabaseClient
+                    .from('team_fans')
+                    .select('*, fan:fan_id(email)')
+                    .eq('team_id', currentTeamId);
+
+                const fansList = document.getElementById('team-fans-list');
+
+                if (fansError) {
+                    console.error('Error loading fans:', fansError);
+                    fansList.innerHTML = '<p class="text-sm text-red-500">Failed to load fans</p>';
+                } else if (!fans || fans.length === 0) {
+                    fansList.innerHTML = `
+                        <div class="text-center py-6 text-slate-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <p>No fans yet</p>
+                            <p class="text-sm mt-1">Invite fans to follow your team</p>
+                        </div>
+                    `;
+                } else {
+                    fansList.innerHTML = fans.map(f => `
+                        <div class="flex items-center justify-between py-3 border-b border-slate-100 dark:border-slate-700 last:border-0">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">${(f.fan?.email || 'F').charAt(0).toUpperCase()}</span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-slate-700 dark:text-slate-200">${f.fan?.email || 'Unknown'}</p>
+                                    <p class="text-xs text-slate-400">Joined ${new Date(f.created_at).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                            <button onclick="removeFan('${f.id}')" class="text-slate-400 hover:text-red-500 transition-colors p-2" title="Remove fan">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error('Error loading fans:', err);
+            }
+
+            // Load pending invitations
+            try {
+                const { data: invitations, error: invError } = await supabaseClient
+                    .from('fan_invitations')
+                    .select('*')
+                    .eq('team_id', currentTeamId)
+                    .eq('status', 'pending')
+                    .order('created_at', { ascending: false });
+
+                const invList = document.getElementById('pending-invitations-list');
+
+                if (invError) {
+                    console.error('Error loading invitations:', invError);
+                    invList.innerHTML = '<p class="text-sm text-red-500">Failed to load invitations</p>';
+                } else if (!invitations || invitations.length === 0) {
+                    invList.innerHTML = `
+                        <div class="text-center py-6 text-slate-400">
+                            <p class="text-sm">No pending invitations</p>
+                        </div>
+                    `;
+                } else {
+                    invList.innerHTML = invitations.map(inv => {
+                        const expiresAt = new Date(inv.expires_at);
+                        const isExpired = expiresAt < new Date();
+                        const daysLeft = Math.ceil((expiresAt - new Date()) / (1000 * 60 * 60 * 24));
+
+                        return `
+                            <div class="flex items-center justify-between py-3 border-b border-slate-100 dark:border-slate-700 last:border-0">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-slate-700 dark:text-slate-200">${inv.email}</p>
+                                        <p class="text-xs ${isExpired ? 'text-red-400' : 'text-slate-400'}">
+                                            ${isExpired ? 'Expired' : `Expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="copyInviteLink('${inv.token}')" class="text-slate-400 hover:text-emerald-500 transition-colors p-2" title="Copy invite link">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                        </svg>
+                                    </button>
+                                    <button onclick="cancelInvitation('${inv.id}')" class="text-slate-400 hover:text-red-500 transition-colors p-2" title="Cancel invitation">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (err) {
+                console.error('Error loading invitations:', err);
+            }
+        }
+
+        // Remove a fan from the team
+        window.removeFan = async function(fanRecordId) {
+            if (!confirm('Are you sure you want to remove this fan from your team?')) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('team_fans')
+                    .delete()
+                    .eq('id', fanRecordId);
+
+                if (error) {
+                    console.error('Error removing fan:', error);
+                    alert('Failed to remove fan');
+                } else {
+                    loadTeamFansData();
+                }
+            } catch (err) {
+                console.error('Error removing fan:', err);
+            }
+        }
+
+        // Cancel a pending invitation
+        window.cancelInvitation = async function(invitationId) {
+            if (!confirm('Are you sure you want to cancel this invitation?')) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('fan_invitations')
+                    .delete()
+                    .eq('id', invitationId);
+
+                if (error) {
+                    console.error('Error canceling invitation:', error);
+                    alert('Failed to cancel invitation');
+                } else {
+                    loadTeamFansData();
+                }
+            } catch (err) {
+                console.error('Error canceling invitation:', err);
+            }
+        }
+
+        // Copy invite link to clipboard
+        window.copyInviteLink = async function(token) {
+            const inviteUrl = `${window.location.origin}${window.location.pathname}?invite=${token}`;
+            try {
+                await navigator.clipboard.writeText(inviteUrl);
+                alert('Invite link copied to clipboard!');
+            } catch (err) {
+                // Fallback for older browsers
+                prompt('Copy this invite link:', inviteUrl);
             }
         }
 
@@ -4816,16 +5013,24 @@
                 t.classList.add('text-slate-500', 'dark:text-slate-400');
             });
 
+            // Hide all tab content
+            document.getElementById('team-history-tab').classList.add('hidden');
+            document.getElementById('team-roster-tab').classList.add('hidden');
+            document.getElementById('team-fans-tab').classList.add('hidden');
+
             if (tab === 'history') {
                 tabs[0].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
                 tabs[0].classList.remove('text-slate-500', 'dark:text-slate-400');
                 document.getElementById('team-history-tab').classList.remove('hidden');
-                document.getElementById('team-roster-tab').classList.add('hidden');
-            } else {
+            } else if (tab === 'roster') {
                 tabs[1].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
                 tabs[1].classList.remove('text-slate-500', 'dark:text-slate-400');
-                document.getElementById('team-history-tab').classList.add('hidden');
                 document.getElementById('team-roster-tab').classList.remove('hidden');
+            } else if (tab === 'fans') {
+                tabs[2].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
+                tabs[2].classList.remove('text-slate-500', 'dark:text-slate-400');
+                document.getElementById('team-fans-tab').classList.remove('hidden');
+                loadTeamFansData();
             }
         }
 
