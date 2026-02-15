@@ -2050,8 +2050,8 @@
             attackingDirection: 'left' // 'left' or 'right' - which goal your team attacks in 1st half
         };
 
-        // Track initial attacking direction for auto-flip at halftime
-        let initialAttackingRight = false;
+        // Track initial field orientation for auto-flip at halftime
+        let initialFieldSidesFlipped = false;
 
         // =====================================================
         // ROSTER MANAGEMENT (Multiple Rosters)
@@ -4096,9 +4096,9 @@
 
             // Auto-flip field sides when changing halves (only if actually changing)
             if (previousHalf !== half && shotMapEnabled) {
-                // In 1st half: use initial direction
-                // In 2nd half: flip from initial direction
-                fieldSidesFlipped = (half === 1) ? initialAttackingRight : !initialAttackingRight;
+                // In 1st half: use initial orientation
+                // In 2nd half: flip from initial orientation (teams swap sides)
+                fieldSidesFlipped = (half === 1) ? initialFieldSidesFlipped : !initialFieldSidesFlipped;
             }
 
             // Sync half change to active_games for fans
@@ -6077,10 +6077,17 @@
                 }
             }
 
-            // Set initial field side for shot map based on attacking direction
-            // attackingDirection 'right' means team shoots toward right goal, so fieldSidesFlipped should be true
-            initialAttackingRight = gameSetupConfig.attackingDirection === 'right';
-            fieldSidesFlipped = initialAttackingRight;
+            // Set initial field side for shot map based on attacking direction AND home/away designation
+            // fieldSidesFlipped = true means Home team defends RIGHT (their goal is on right)
+            // fieldSidesFlipped = false means Home team defends LEFT (their goal is on left)
+            //
+            // Logic: If MY team attacks LEFT, opponent defends left, I defend right
+            //   - If I'm HOME: Home defends right → fieldSidesFlipped = true
+            //   - If I'm AWAY: Home defends left → fieldSidesFlipped = false
+            // Formula: fieldSidesFlipped = (isMyTeamHome === attackingLeft)
+            const attackingLeft = gameSetupConfig.attackingDirection === 'left';
+            initialFieldSidesFlipped = (isMyTeamHome === attackingLeft);
+            fieldSidesFlipped = initialFieldSidesFlipped;
 
             // Update game summary bar
             const gameDateVal = gameDateValue;
@@ -7304,7 +7311,7 @@
 
             // Reset field sides
             fieldSidesFlipped = false;
-            initialAttackingRight = false;
+            initialFieldSidesFlipped = false;
             updateFieldSidesLabel();
 
             // Reset notes display
