@@ -5940,7 +5940,16 @@
             teamGamesCache = games;
             const container = document.getElementById('team-game-list');
 
-            if (games.length === 0) {
+            // Check for in-progress game in localStorage
+            const inProgressGame = loadPersistedGame();
+            const hasInProgressGame = inProgressGame && inProgressGame.metadata.teamId === currentTeamId;
+
+            let inProgressHtml = '';
+            if (hasInProgressGame) {
+                inProgressHtml = renderInProgressGameCard(inProgressGame);
+            }
+
+            if (games.length === 0 && !hasInProgressGame) {
                 container.innerHTML = `
                     <div class="empty-state text-center py-10 text-slate-400">
                         <div class="text-5xl mb-3">&#128202;</div>
@@ -5951,7 +5960,12 @@
                 return;
             }
 
-            container.innerHTML = games.map(game => {
+            if (games.length === 0 && hasInProgressGame) {
+                container.innerHTML = inProgressHtml;
+                return;
+            }
+
+            container.innerHTML = inProgressHtml + games.map(game => {
                 const homeTotalShots = game.home.onTarget + game.home.offTarget;
                 const awayTotalShots = game.away.onTarget + game.away.offTarget;
                 const homeAccuracy = homeTotalShots > 0 ? Math.round((game.home.onTarget / homeTotalShots) * 100) : 0;
@@ -7365,6 +7379,10 @@
                 () => {
                     clearPersistedGame();
                     clearActiveGame();
+                    // Refresh both game lists (team dashboard and history view)
+                    if (currentTeamId) {
+                        loadTeamGames();
+                    }
                     loadHistoryView();
                     closeModal();
                 }
