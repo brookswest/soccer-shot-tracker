@@ -143,11 +143,6 @@
         </header>
 
         <div class="max-w-4xl mx-auto px-4 -mt-14 pb-10">
-            <nav id="main-nav" class="flex bg-white dark:bg-slate-800 rounded-2xl p-1.5 mb-6 shadow-lg" style="display: none;">
-                <button class="nav-tab active flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 bg-emerald-500 text-white shadow-sm" onclick="switchView('game')">Current Game</button>
-                <button class="nav-tab flex-1 py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700" onclick="switchView('history')">Game History</button>
-            </nav>
-
             <!-- Current Game View -->
             <div id="game-view" class="view hidden">
                 <!-- Hidden inputs (keep for existing JS references) -->
@@ -4301,11 +4296,11 @@
         }
 
         function hideNavTabs() {
-            document.getElementById('main-nav').style.display = 'none';
+            // Nav bar removed - function kept for compatibility
         }
 
         function showNavTabs() {
-            document.getElementById('main-nav').style.display = 'flex';
+            // Nav bar removed - function kept for compatibility
         }
 
         window.navigateToHome = function() {
@@ -4375,20 +4370,10 @@
 
         window.navigateToGame = function() {
             hideAllViews();
-            showNavTabs();
             document.getElementById('game-view').classList.remove('hidden');
 
             // Push history state for back button handling
             history.pushState({ view: 'game', teamId: currentTeamId }, '', window.location.href);
-
-            // Activate the Current Game tab
-            const navTabs = document.querySelectorAll('.nav-tab');
-            navTabs.forEach(tab => {
-                tab.classList.remove('bg-emerald-500', 'text-white', 'shadow-sm');
-                tab.classList.add('text-slate-500');
-            });
-            navTabs[0].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
-            navTabs[0].classList.remove('text-slate-500');
         }
 
         // =====================================================
@@ -6552,24 +6537,14 @@
             navigateToGame();
         }
 
-        // View switching
+        // View switching (nav bar removed - simplified)
         window.switchView = function(view) {
-            const navTabs = document.querySelectorAll('.nav-tab');
             const views = document.querySelectorAll('.view');
-
-            navTabs.forEach(tab => {
-                tab.classList.remove('bg-emerald-500', 'text-white', 'shadow-sm');
-                tab.classList.add('text-slate-500');
-            });
             views.forEach(v => v.classList.add('hidden'));
 
             if (view === 'game') {
-                navTabs[0].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
-                navTabs[0].classList.remove('text-slate-500');
                 document.getElementById('game-view').classList.remove('hidden');
             } else {
-                navTabs[1].classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
-                navTabs[1].classList.remove('text-slate-500');
                 document.getElementById('history-view').classList.remove('hidden');
                 loadHistoryView();
             }
