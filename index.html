@@ -4604,7 +4604,16 @@
         function exitGameSaveAndLeave() {
             // State already persisted via auto-save
             closeExitGameModal();
-            if (pendingNavigation) pendingNavigation();
+            if (pendingNavigation) {
+                pendingNavigation();
+            } else {
+                // Default navigation when triggered by browser back button
+                if (currentTeamId) {
+                    navigateToTeamDashboard(currentTeamId);
+                } else {
+                    navigateToHome();
+                }
+            }
         }
 
         function exitGameDiscard() {
@@ -4612,7 +4621,16 @@
             clearActiveGame();
             resetGameState();
             closeExitGameModal();
-            if (pendingNavigation) pendingNavigation();
+            if (pendingNavigation) {
+                pendingNavigation();
+            } else {
+                // Default navigation when triggered by browser back button
+                if (currentTeamId) {
+                    navigateToTeamDashboard(currentTeamId);
+                } else {
+                    navigateToHome();
+                }
+            }
         }
 
         // Safe navigation wrappers that check for active game
