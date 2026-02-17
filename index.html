@@ -7324,11 +7324,92 @@
             document.getElementById('avg-accuracy').textContent = avgAccuracy + '%';
         }
 
+        // Render in-progress game card for history view
+        function renderInProgressGameCard(savedGame) {
+            const { metadata, gameState: gs } = savedGame;
+            const homeTeam = metadata.homeTeam || 'Home Team';
+            const awayTeam = metadata.awayTeam || 'Away Team';
+            const homeColorRaw = metadata.homeColor || '#10b981';
+            const awayColorRaw = metadata.awayColor || '#3b82f6';
+            const homeColor = getAdjustedTeamColor(homeColorRaw);
+            const awayColor = getAdjustedTeamColor(awayColorRaw);
+
+            const homeTotalShots = gs.home.onTarget + gs.home.offTarget;
+            const awayTotalShots = gs.away.onTarget + gs.away.offTarget;
+
+            const formattedDate = metadata.gameDate ? new Date(metadata.gameDate).toLocaleDateString('en-US', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            }) : 'Today';
+
+            return `
+                <div class="game-item bg-amber-50 dark:bg-amber-900/20 rounded-xl p-5 border-2 border-amber-400 dark:border-amber-500 mb-4" id="game-in-progress">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-400 text-amber-900">
+                                    In Progress
+                                </span>
+                                <span class="text-sm text-slate-400">${formattedDate}</span>
+                            </div>
+                            <div class="font-semibold text-slate-800 dark:text-white">${homeTeam} vs ${awayTeam}</div>
+                        </div>
+                        <div class="text-2xl font-bold px-4">
+                            <span style="color: ${homeColor};">${gs.home.goals}</span>
+                            <span class="text-slate-300 dark:text-slate-500 mx-1">-</span>
+                            <span style="color: ${awayColor};">${gs.away.goals}</span>
+                        </div>
+                        <div class="flex gap-4 text-sm text-slate-500 dark:text-slate-400">
+                            <span>Shots: ${homeTotalShots + awayTotalShots}</span>
+                            <span>On Target: ${gs.home.onTarget + gs.away.onTarget}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-semibold transition-all duration-200" onclick="resumeInProgressGame()">Resume</button>
+                            <button class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition-all duration-200" onclick="confirmDiscardInProgressGame()">Discard</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Resume in-progress game from history view
+        window.resumeInProgressGame = function() {
+            const savedGame = loadPersistedGame();
+            if (savedGame) {
+                restoreGameState(savedGame);
+            }
+        }
+
+        // Confirm discard of in-progress game
+        window.confirmDiscardInProgressGame = function() {
+            showModal(
+                'Discard Game',
+                'Are you sure you want to discard this in-progress game? This action cannot be undone.',
+                () => {
+                    clearPersistedGame();
+                    clearActiveGame();
+                    loadHistoryView();
+                    closeModal();
+                }
+            );
+        }
+
         function updateGameList(games) {
             historyGamesCache = games;
             const container = document.getElementById('game-list');
 
-            if (games.length === 0) {
+            // Check for in-progress game in localStorage
+            const inProgressGame = loadPersistedGame();
+            const hasInProgressGame = inProgressGame && inProgressGame.metadata.teamId === currentTeamId;
+
+            let inProgressHtml = '';
+            if (hasInProgressGame) {
+                inProgressHtml = renderInProgressGameCard(inProgressGame);
+            }
+
+            if (games.length === 0 && !hasInProgressGame) {
                 container.innerHTML = `
                     <div class="empty-state text-center py-10 text-slate-400">
                         <div class="text-5xl mb-3">&#128202;</div>
@@ -7339,7 +7420,12 @@
                 return;
             }
 
-            container.innerHTML = games.map(game => {
+            if (games.length === 0 && hasInProgressGame) {
+                container.innerHTML = inProgressHtml;
+                return;
+            }
+
+            container.innerHTML = inProgressHtml + games.map(game => {
                 const homeTotalShots = game.home.onTarget + game.home.offTarget;
                 const awayTotalShots = game.away.onTarget + game.away.offTarget;
                 const homeAccuracy = homeTotalShots > 0 ? Math.round((game.home.onTarget / homeTotalShots) * 100) : 0;
