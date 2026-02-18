@@ -50,6 +50,21 @@
         .animate-spin-slow {
             animation: spin 1s linear infinite;
         }
+        /* Toast animations */
+        @keyframes slide-down {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        .animate-slide-down {
+            animation: slide-down 0.3s ease-out forwards;
+        }
+        @keyframes fade-out {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .animate-fade-out {
+            animation: fade-out 0.3s ease-out forwards;
+        }
         /* Color picker styling */
         .color-picker::-webkit-color-swatch-wrapper { padding: 0; }
         .color-picker::-webkit-color-swatch { border: none; border-radius: 6px; }
@@ -2008,12 +2023,17 @@
             currentHalf: 1
         };
 
-        // Clock state
+        // Clock state (timestamp-based for persistence across navigation/browser sessions)
         let clockState = {
-            seconds: 0,
+            startTimestamp: null,      // Date.now() when clock started
+            accumulatedSeconds: 0,     // Seconds accumulated before current run
             isRunning: false,
-            intervalId: null
+            intervalId: null,
+            maxSeconds: 7200           // 120 minutes max
         };
+
+        // Global clock manager interval ID (for updating history view clocks)
+        let globalClockIntervalId = null;
 
         // Shot Map state
         let shotMapEnabled = false;
@@ -3862,36 +3882,110 @@
             debouncedSyncToActiveGame();
         }
 
+        // Get current clock seconds (calculates from timestamp when running)
+        function getCurrentClockSeconds() {
+            let totalSeconds = clockState.accumulatedSeconds;
+            if (clockState.isRunning && clockState.startTimestamp) {
+                const elapsedMs = Date.now() - clockState.startTimestamp;
+                const elapsedSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
+                totalSeconds += elapsedSeconds;
+            }
+            return Math.min(totalSeconds, clockState.maxSeconds);
+        }
+
         // Start the clock
         function startClock() {
+            // Check if already at limit
+            if (getCurrentClockSeconds() >= clockState.maxSeconds) {
+                showClockLimitNotification();
+                return;
+            }
+
             clockState.isRunning = true;
+            clockState.startTimestamp = Date.now();
             clockState.intervalId = setInterval(() => {
-                clockState.seconds++;
-                updateClockDisplay();
+                const currentSeconds = getCurrentClockSeconds();
+                if (currentSeconds >= clockState.maxSeconds) {
+                    stopClockAtLimit();
+                } else {
+                    updateClockDisplay();
+                }
             }, 1000);
             updateClockDisplay();
+            persistGameToLocalStorage();
         }
 
         // Pause the clock
         function pauseClock() {
+            if (clockState.isRunning && clockState.startTimestamp) {
+                // Calculate elapsed time and add to accumulated
+                const elapsedMs = Date.now() - clockState.startTimestamp;
+                const elapsedSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
+                clockState.accumulatedSeconds = Math.min(
+                    clockState.accumulatedSeconds + elapsedSeconds,
+                    clockState.maxSeconds
+                );
+            }
             clockState.isRunning = false;
+            clockState.startTimestamp = null;
             if (clockState.intervalId) {
                 clearInterval(clockState.intervalId);
                 clockState.intervalId = null;
             }
             updateClockDisplay();
+            persistGameToLocalStorage();
         }
 
         // Reset the clock
         function resetClock() {
-            pauseClock();
-            clockState.seconds = 0;
+            if (clockState.intervalId) {
+                clearInterval(clockState.intervalId);
+                clockState.intervalId = null;
+            }
+            clockState.isRunning = false;
+            clockState.startTimestamp = null;
+            clockState.accumulatedSeconds = 0;
             updateClockDisplay();
+        }
+
+        // Stop clock at 120-minute limit
+        function stopClockAtLimit() {
+            clockState.accumulatedSeconds = clockState.maxSeconds;
+            clockState.isRunning = false;
+            clockState.startTimestamp = null;
+            if (clockState.intervalId) {
+                clearInterval(clockState.intervalId);
+                clockState.intervalId = null;
+            }
+            updateClockDisplay();
+            persistGameToLocalStorage();
+            showClockLimitNotification();
+        }
+
+        // Show notification when clock reaches 120-minute limit
+        function showClockLimitNotification() {
+            // Create toast notification
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-amber-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3 animate-slide-down';
+            toast.innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-semibold">Game clock stopped at 120:00 (maximum time)</span>
+            `;
+            document.body.appendChild(toast);
+
+            // Remove after 5 seconds with fade out
+            setTimeout(() => {
+                toast.classList.add('animate-fade-out');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
         }
 
         // Update clock display
         function updateClockDisplay() {
-            document.getElementById('clock-display').textContent = formatTime(clockState.seconds);
+            const currentSeconds = getCurrentClockSeconds();
+            document.getElementById('clock-display').textContent = formatTime(currentSeconds);
 
             const startBtn = document.getElementById('clock-start-btn');
             const statusDot = document.getElementById('clock-status-dot');
@@ -3905,14 +3999,14 @@
                 statusDot.classList.remove('bg-slate-500', 'bg-amber-500');
                 statusText.textContent = 'Running';
             } else {
-                startBtn.textContent = clockState.seconds > 0 ? 'Resume' : 'Start';
+                startBtn.textContent = currentSeconds > 0 ? 'Resume' : 'Start';
                 startBtn.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
                 startBtn.classList.remove('bg-amber-500', 'hover:bg-amber-600');
                 statusDot.classList.remove('bg-emerald-500', 'animate-pulse-dot');
-                if (clockState.seconds > 0) {
+                if (currentSeconds > 0) {
                     statusDot.classList.add('bg-amber-500');
                     statusDot.classList.remove('bg-slate-500');
-                    statusText.textContent = 'Paused';
+                    statusText.textContent = currentSeconds >= clockState.maxSeconds ? 'Max Time' : 'Paused';
                 } else {
                     statusDot.classList.add('bg-slate-500');
                     statusDot.classList.remove('bg-amber-500');
@@ -3923,7 +4017,45 @@
 
         // Get current game time string
         function getGameTime() {
-            return formatTime(clockState.seconds);
+            return formatTime(getCurrentClockSeconds());
+        }
+
+        // Initialize global clock manager (updates history view clocks)
+        function initGlobalClockManager() {
+            // Clear any existing interval
+            if (globalClockIntervalId) {
+                clearInterval(globalClockIntervalId);
+            }
+
+            // Update every second
+            globalClockIntervalId = setInterval(() => {
+                updateInProgressClockDisplays();
+            }, 1000);
+        }
+
+        // Update all in-progress clock displays in history view
+        function updateInProgressClockDisplays() {
+            const clockDisplays = document.querySelectorAll('.in-progress-clock-display');
+            if (clockDisplays.length === 0) return;
+
+            // Read current persisted game to get clock state
+            const savedGame = loadPersistedGame();
+            if (!savedGame || !savedGame.metadata) return;
+
+            const meta = savedGame.metadata;
+            let totalSeconds = meta.clockAccumulatedSeconds || 0;
+
+            if (meta.clockIsRunning && meta.clockStartTimestamp) {
+                const elapsedMs = Date.now() - meta.clockStartTimestamp;
+                const elapsedSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
+                totalSeconds += elapsedSeconds;
+            }
+
+            totalSeconds = Math.min(totalSeconds, 7200); // Cap at 120 minutes
+
+            clockDisplays.forEach(display => {
+                display.textContent = formatTime(totalSeconds);
+            });
         }
 
         // Initialize app
@@ -3946,6 +4078,9 @@
                     updateWakeLockToggleUI();
                     requestWakeLock();
                 }
+
+                // Start global clock manager for updating history view clocks
+                initGlobalClockManager();
             } catch (e) {
                 console.error('Initialization error:', e);
             }
@@ -4482,8 +4617,9 @@
                 homeColor: document.getElementById('home-color').value,
                 awayColor: document.getElementById('away-color').value,
                 gameDate: document.getElementById('game-date').value,
-                clockSeconds: clockState.seconds,
-                clockRunning: clockState.isRunning
+                clockStartTimestamp: clockState.startTimestamp,
+                clockAccumulatedSeconds: clockState.accumulatedSeconds,
+                clockIsRunning: clockState.isRunning
             };
 
             try {
@@ -4542,7 +4678,10 @@
                     homeColor: document.getElementById('home-color').value,
                     awayColor: document.getElementById('away-color').value,
                     gameDate: document.getElementById('game-date').value,
-                    clockSeconds: clockState.seconds,
+                    // New timestamp-based clock fields
+                    clockStartTimestamp: clockState.startTimestamp,
+                    clockAccumulatedSeconds: clockState.accumulatedSeconds,
+                    clockIsRunning: clockState.isRunning,
                     teamId: currentTeamId,
                     shotMapEnabled,
                     playerTrackingEnabled,
@@ -4690,7 +4829,39 @@
             document.getElementById('home-color').value = metadata.homeColor || '#10b981';
             document.getElementById('away-color').value = metadata.awayColor || '#3b82f6';
             document.getElementById('game-date').value = metadata.gameDate || new Date().toISOString().split('T')[0];
-            clockState.seconds = metadata.clockSeconds || 0;
+
+            // Restore clock state (new timestamp-based format)
+            if (metadata.clockStartTimestamp !== undefined) {
+                // New format with timestamp
+                clockState.startTimestamp = metadata.clockStartTimestamp;
+                clockState.accumulatedSeconds = metadata.clockAccumulatedSeconds || 0;
+                clockState.isRunning = metadata.clockIsRunning || false;
+
+                // Check if clock exceeded 120 minutes while away
+                const currentSeconds = getCurrentClockSeconds();
+                if (currentSeconds >= clockState.maxSeconds && metadata.clockIsRunning) {
+                    // Clock was running and exceeded limit - cap it and notify
+                    clockState.accumulatedSeconds = clockState.maxSeconds;
+                    clockState.startTimestamp = null;
+                    clockState.isRunning = false;
+                    showClockLimitNotification();
+                } else if (clockState.isRunning) {
+                    // Restart the interval to continue updating
+                    clockState.intervalId = setInterval(() => {
+                        const secs = getCurrentClockSeconds();
+                        if (secs >= clockState.maxSeconds) {
+                            stopClockAtLimit();
+                        } else {
+                            updateClockDisplay();
+                        }
+                    }, 1000);
+                }
+            } else {
+                // Legacy format - convert clockSeconds to new format
+                clockState.accumulatedSeconds = metadata.clockSeconds || 0;
+                clockState.startTimestamp = null;
+                clockState.isRunning = false;
+            }
 
             // Update UI displays
             const homeTeam = metadata.homeTeam || 'Home Team';
@@ -4875,7 +5046,18 @@
             // Get box shadow for light color dots
             const homeBoxShadow = needsContrastBorder(homeColorRaw) ? 'box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);' : '';
             const awayBoxShadow = needsContrastBorder(awayColorRaw) ? 'box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);' : '';
-            const clockDisplay = formatTime(metadata.clockSeconds || 0);
+            // Calculate clock display from timestamp-based format
+            let clockSeconds = metadata.clockAccumulatedSeconds || 0;
+            if (metadata.clockIsRunning && metadata.clockStartTimestamp) {
+                const elapsedMs = Date.now() - metadata.clockStartTimestamp;
+                const elapsedSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
+                clockSeconds = Math.min(clockSeconds + elapsedSeconds, 7200);
+            }
+            // Handle legacy format
+            if (metadata.clockSeconds !== undefined && metadata.clockStartTimestamp === undefined) {
+                clockSeconds = metadata.clockSeconds;
+            }
+            const clockDisplay = formatTime(clockSeconds);
             const halfText = metadata.currentHalf === 2 ? '2nd Half' : '1st Half';
             const isRunning = metadata.isRunning;
 
@@ -6581,7 +6763,7 @@
                 rawType: type,
                 half: gameState.currentHalf,
                 gameTime: getGameTime(),
-                clockSeconds: clockState.seconds,
+                clockSeconds: getCurrentClockSeconds(),
                 position: null,
                 playerId: null,
                 playerName: null
@@ -7132,7 +7314,7 @@
                 content: content,
                 half: gameState.currentHalf,
                 gameTime: getGameTime(),
-                clockSeconds: clockState.seconds
+                clockSeconds: getCurrentClockSeconds()
             });
 
             noteInput.value = '';
@@ -7183,7 +7365,7 @@
                 shot_log: [...gameState.log],
                 game_notes: [...gameState.notes],
                 final_time: getGameTime(),
-                final_clock_seconds: clockState.seconds
+                final_clock_seconds: getCurrentClockSeconds()
             };
 
             try {
@@ -7333,14 +7515,37 @@
                 day: 'numeric'
             }) : 'Today';
 
+            // Calculate current clock time from persisted state
+            let clockSeconds = metadata.clockAccumulatedSeconds || 0;
+            const clockIsRunning = metadata.clockIsRunning || false;
+            if (clockIsRunning && metadata.clockStartTimestamp) {
+                const elapsedMs = Date.now() - metadata.clockStartTimestamp;
+                const elapsedSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
+                clockSeconds = Math.min(clockSeconds + elapsedSeconds, 7200);
+            }
+            // Handle legacy format
+            if (metadata.clockSeconds !== undefined && metadata.clockStartTimestamp === undefined) {
+                clockSeconds = metadata.clockSeconds;
+            }
+
             return `
                 <div class="game-item bg-amber-50 dark:bg-amber-900/20 rounded-xl p-5 border-2 border-amber-400 dark:border-amber-500 mb-4" id="game-in-progress">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-1">
+                            <div class="flex items-center gap-2 mb-1 flex-wrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-400 text-amber-900">
                                     In Progress
                                 </span>
+                                ${clockIsRunning ? `
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500 text-white">
+                                    <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+                                    <span class="in-progress-clock-display">${formatTime(clockSeconds)}</span>
+                                </span>
+                                ` : `
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-400 text-white">
+                                    <span class="in-progress-clock-display">${formatTime(clockSeconds)}</span>
+                                </span>
+                                `}
                                 <span class="text-sm text-slate-400">${formattedDate}</span>
                             </div>
                             <div class="font-semibold text-slate-800 dark:text-white">${homeTeam} vs ${awayTeam}</div>
