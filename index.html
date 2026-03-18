@@ -201,9 +201,14 @@
                                 <div class="font-semibold text-slate-800 dark:text-white text-sm" id="game-teams-display"></div>
                             </div>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 items-center">
                             <button type="button" class="half-btn active py-2 px-4 border-2 border-emerald-500 bg-emerald-500 text-white rounded-xl text-sm font-semibold transition-all duration-200" id="half-1-btn" onclick="setHalf(1)">1st Half</button>
                             <button type="button" class="half-btn py-2 px-4 border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500" id="half-2-btn" onclick="setHalf(2)">2nd Half</button>
+                            <button type="button" id="share-game-btn" onclick="showShareModal()" title="Share live game" class="hidden p-2 border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-xl transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1392,6 +1397,78 @@
         </div>
     </div><!-- End app-wrapper -->
 
+    <!-- =====================================================
+         LIVE GAME VIEW (no auth required — accessed via ?live=TEAM_ID)
+         ===================================================== -->
+    <div id="live-game-view" class="hidden min-h-screen bg-slate-50 dark:bg-slate-900">
+        <div class="max-w-sm mx-auto px-4 py-6">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        <path d="M2 12h20"/>
+                    </svg>
+                    <span class="font-bold text-slate-800 dark:text-white text-sm tracking-tight">Soccer Tracker</span>
+                </div>
+                <div id="live-status-badge" class="flex items-center gap-1.5 px-2.5 py-1 bg-red-100 dark:bg-red-900/40 rounded-full">
+                    <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse" id="live-dot"></span>
+                    <span class="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide" id="live-badge-text">Live</span>
+                </div>
+            </div>
+
+            <!-- Dynamic content -->
+            <div id="live-game-content">
+                <!-- Loading state -->
+                <div id="live-loading" class="flex flex-col items-center justify-center py-20 gap-3">
+                    <svg class="animate-spin w-8 h-8 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <p class="text-slate-400 text-sm">Loading game…</p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <p class="mt-6 text-center text-xs text-slate-400" id="live-update-info"></p>
+        </div>
+    </div>
+
+    <!-- Share Live Game Modal -->
+    <div id="share-game-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-slate-800 dark:text-white text-base">Share Live Game</h3>
+                <button onclick="closeShareModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-3">Anyone with this link can follow the game live — no login needed.</p>
+            <div class="flex gap-2 mb-3">
+                <input type="text" id="share-link-input" readonly
+                    class="flex-1 px-3 py-2.5 text-xs border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 rounded-xl bg-slate-50 truncate cursor-text select-all"
+                    onclick="this.select()">
+                <button onclick="copyLiveGameLink()" id="share-copy-btn"
+                    class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-xl transition-all duration-200 whitespace-nowrap flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" id="share-copy-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    <span id="share-copy-label">Copy</span>
+                </button>
+            </div>
+            <button id="share-native-btn" onclick="nativeShareLiveGame()" class="hidden w-full py-2.5 border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-emerald-500 hover:text-emerald-500 flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                </svg>
+                Share via…
+            </button>
+        </div>
+    </div>
+
     <script>
         // =====================================================
         // SUPABASE CONFIGURATION
@@ -2002,6 +2079,17 @@
 
         // Check authentication state on page load
         async function checkAuthState() {
+            // If this is a shared live-game link, skip auth entirely
+            const urlParams = new URLSearchParams(window.location.search);
+            const liveTeamId = urlParams.get('live');
+            if (liveTeamId) {
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-wrapper').classList.add('hidden');
+                document.getElementById('live-game-view').classList.remove('hidden');
+                initLiveGameView(liveTeamId);
+                return;
+            }
+
             try {
                 // Get current session
                 const { data: { session }, error } = await supabaseClient.auth.getSession();
@@ -4093,6 +4181,326 @@
         }
 
         // Initialize app
+        // =====================================================
+        // LIVE GAME SHARE — public read-only view
+        // =====================================================
+
+        let liveGamePollInterval = null;
+        let liveGameLastUpdated = null;
+
+        async function initLiveGameView(teamId) {
+            await fetchAndRenderLiveGame(teamId);
+            // Poll every 15 seconds
+            liveGamePollInterval = setInterval(() => fetchAndRenderLiveGame(teamId), 15000);
+        }
+
+        async function fetchAndRenderLiveGame(teamId) {
+            try {
+                // 1. Try active_games first (live game in progress)
+                const { data: activeData, error: activeError } = await supabaseClient
+                    .from('active_games')
+                    .select('*')
+                    .eq('team_id', teamId)
+                    .maybeSingle();
+
+                if (activeData && activeData.game_state) {
+                    renderLiveActiveGame(activeData.game_state, activeData.game_metadata);
+                    return;
+                }
+
+                // 2. Fallback: most recent saved game for this team
+                const { data: finalData, error: finalError } = await supabaseClient
+                    .from('games')
+                    .select('*')
+                    .eq('team_id', teamId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (finalData) {
+                    renderLiveFinalGame(finalData);
+                    return;
+                }
+
+                // 3. Nothing found
+                renderLiveNoGame();
+
+            } catch (err) {
+                console.error('Live game fetch error:', err);
+                renderLiveError();
+            }
+        }
+
+        function renderLiveActiveGame(gameState, meta) {
+            // Update header badge to LIVE
+            document.getElementById('live-dot').classList.add('animate-pulse');
+            document.getElementById('live-badge-text').textContent = 'Live';
+            document.getElementById('live-status-badge').className =
+                'flex items-center gap-1.5 px-2.5 py-1 bg-red-100 dark:bg-red-900/40 rounded-full';
+            document.getElementById('live-dot').className = 'w-2 h-2 rounded-full bg-red-500 animate-pulse';
+            document.getElementById('live-badge-text').className =
+                'text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide';
+
+            const home = gameState.home || {};
+            const away = gameState.away || {};
+            const homeGoals = home.goals || 0;
+            const awayGoals = away.goals || 0;
+            const homeOn = home.onTarget || 0;
+            const homeOff = home.offTarget || 0;
+            const awayOn = away.onTarget || 0;
+            const awayOff = away.offTarget || 0;
+            const homeTot = homeGoals + homeOn + homeOff;
+            const awayTot = awayGoals + awayOn + awayOff;
+            const homeAcc = homeTot > 0 ? Math.round(((homeGoals + homeOn) / homeTot) * 100) : 0;
+            const awayAcc = awayTot > 0 ? Math.round(((awayGoals + awayOn) / awayTot) * 100) : 0;
+            const homeColor = (meta && meta.homeColor) || '#10b981';
+            const awayColor = (meta && meta.awayColor) || '#3b82f6';
+            const homeTeam = (meta && meta.homeTeam) || 'Home';
+            const awayTeam = (meta && meta.awayTeam) || 'Away';
+            const half = gameState.currentHalf === 2 ? '2nd Half' : '1st Half';
+
+            // Compute live clock
+            let clockDisplay = '00:00';
+            if (meta && meta.clockIsRunning && meta.clockStartTimestamp) {
+                const elapsed = meta.clockAccumulatedSeconds + Math.floor((Date.now() - meta.clockStartTimestamp) / 1000);
+                clockDisplay = formatLiveClock(Math.min(elapsed, 5400));
+            } else if (meta && meta.clockAccumulatedSeconds != null) {
+                clockDisplay = formatLiveClock(meta.clockAccumulatedSeconds);
+            }
+
+            document.getElementById('live-game-content').innerHTML = buildLiveScoreHTML({
+                homeTeam, awayTeam, homeColor, awayColor,
+                homeGoals, awayGoals, half, clockDisplay,
+                homeOn, homeOff, homeTot, homeAcc,
+                awayOn, awayOff, awayTot, awayAcc,
+                home, away, isLive: true
+            });
+
+            liveGameLastUpdated = Date.now();
+            updateLiveTimestamp();
+        }
+
+        function renderLiveFinalGame(game) {
+            // Update header badge to FINAL
+            document.getElementById('live-dot').className = 'w-2 h-2 rounded-full bg-slate-400';
+            document.getElementById('live-badge-text').textContent = 'Final';
+            document.getElementById('live-status-badge').className =
+                'flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-700 rounded-full';
+            document.getElementById('live-badge-text').className =
+                'text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide';
+
+            const hs = game.home_stats || {};
+            const as = game.away_stats || {};
+            const homeGoals = hs.goals || 0;
+            const awayGoals = as.goals || 0;
+            const homeOn = hs.onTarget || 0;
+            const homeOff = hs.offTarget || 0;
+            const awayOn = as.onTarget || 0;
+            const awayOff = as.offTarget || 0;
+            const homeTot = homeGoals + homeOn + homeOff;
+            const awayTot = awayGoals + awayOn + awayOff;
+            const homeAcc = homeTot > 0 ? Math.round(((homeGoals + homeOn) / homeTot) * 100) : 0;
+            const awayAcc = awayTot > 0 ? Math.round(((awayGoals + awayOn) / awayTot) * 100) : 0;
+
+            document.getElementById('live-game-content').innerHTML = buildLiveScoreHTML({
+                homeTeam: game.home_team || 'Home',
+                awayTeam: game.away_team || 'Away',
+                homeColor: game.home_color || '#10b981',
+                awayColor: game.away_color || '#3b82f6',
+                homeGoals, awayGoals,
+                half: game.final_time ? `Ended ${game.final_time}` : 'Full Time',
+                clockDisplay: game.final_time || '',
+                homeOn, homeOff, homeTot, homeAcc,
+                awayOn, awayOff, awayTot, awayAcc,
+                home: hs, away: as, isLive: false
+            });
+
+            document.getElementById('live-update-info').textContent = 'Game has ended';
+        }
+
+        function renderLiveNoGame() {
+            document.getElementById('live-dot').className = 'w-2 h-2 rounded-full bg-slate-400';
+            document.getElementById('live-badge-text').textContent = 'No Game';
+            document.getElementById('live-status-badge').className =
+                'flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-700 rounded-full';
+            document.getElementById('live-badge-text').className =
+                'text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide';
+
+            document.getElementById('live-game-content').innerHTML = `
+                <div class="flex flex-col items-center justify-center py-20 gap-3 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-slate-300 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/>
+                    </svg>
+                    <p class="font-semibold text-slate-600 dark:text-slate-300">No active game</p>
+                    <p class="text-sm text-slate-400">Check back when the game starts.</p>
+                </div>`;
+            document.getElementById('live-update-info').textContent = 'Checking every 15 seconds…';
+        }
+
+        function renderLiveError() {
+            document.getElementById('live-game-content').innerHTML = `
+                <div class="flex flex-col items-center justify-center py-20 gap-3 text-center">
+                    <p class="text-slate-400 text-sm">Unable to load game data. Retrying…</p>
+                </div>`;
+        }
+
+        function buildLiveScoreHTML({ homeTeam, awayTeam, homeColor, awayColor,
+                                      homeGoals, awayGoals, half, clockDisplay,
+                                      homeOn, homeOff, homeTot, homeAcc,
+                                      awayOn, awayOff, awayTot, awayAcc,
+                                      home, away, isLive }) {
+            const h1home = (home.firstHalf && home.firstHalf.goals != null) ? home.firstHalf.goals : '–';
+            const h2home = (home.secondHalf && home.secondHalf.goals != null) ? home.secondHalf.goals : '–';
+            const h1away = (away.firstHalf && away.firstHalf.goals != null) ? away.firstHalf.goals : '–';
+            const h2away = (away.secondHalf && away.secondHalf.goals != null) ? away.secondHalf.goals : '–';
+
+            return `
+            <!-- Scoreboard -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-lg mb-4">
+                <div class="flex items-center mb-4">
+                    <!-- Home team -->
+                    <div class="flex-1 flex flex-col items-center gap-1.5">
+                        <div class="w-9 h-9 rounded-full border-2 border-white dark:border-slate-700 shadow" style="background:${homeColor}"></div>
+                        <span class="text-xs font-semibold text-slate-600 dark:text-slate-300 text-center leading-tight max-w-[80px] truncate">${homeTeam}</span>
+                    </div>
+                    <!-- Score + clock -->
+                    <div class="flex flex-col items-center px-3 min-w-[120px]">
+                        <div class="text-5xl font-bold font-mono text-slate-800 dark:text-white tracking-tight">
+                            ${homeGoals}<span class="text-slate-300 dark:text-slate-600 mx-1">–</span>${awayGoals}
+                        </div>
+                        <div class="text-xs text-slate-400 mt-1 font-medium">${half}</div>
+                        ${isLive && clockDisplay ? `<div class="text-sm font-mono text-emerald-500 font-semibold mt-0.5">${clockDisplay}</div>` : ''}
+                    </div>
+                    <!-- Away team -->
+                    <div class="flex-1 flex flex-col items-center gap-1.5">
+                        <div class="w-9 h-9 rounded-full border-2 border-white dark:border-slate-700 shadow" style="background:${awayColor}"></div>
+                        <span class="text-xs font-semibold text-slate-600 dark:text-slate-300 text-center leading-tight max-w-[80px] truncate">${awayTeam}</span>
+                    </div>
+                </div>
+                <!-- Half breakdown -->
+                <div class="border-t border-slate-100 dark:border-slate-700 pt-3">
+                    <div class="grid grid-cols-3 text-xs text-center">
+                        <div class="text-slate-400 font-medium">${h1home}</div>
+                        <div class="text-slate-400">1st Half</div>
+                        <div class="text-slate-400 font-medium">${h1away}</div>
+                    </div>
+                    <div class="grid grid-cols-3 text-xs text-center mt-1">
+                        <div class="text-slate-400 font-medium">${h2home}</div>
+                        <div class="text-slate-400">2nd Half</div>
+                        <div class="text-slate-400 font-medium">${h2away}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-lg">
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Shots</h3>
+                <div class="grid grid-cols-3 gap-y-2 text-sm text-center mb-1">
+                    <div class="font-semibold text-slate-800 dark:text-white">${homeTeam}</div>
+                    <div></div>
+                    <div class="font-semibold text-slate-800 dark:text-white">${awayTeam}</div>
+                </div>
+                ${buildStatRow(homeGoals, 'Goals', awayGoals)}
+                ${buildStatRow(homeOn, 'On Target', awayOn)}
+                ${buildStatRow(homeOff, 'Off Target', awayOff)}
+                ${buildStatRow(homeTot, 'Total', awayTot)}
+                ${buildStatRow(homeAcc + '%', 'Accuracy', awayAcc + '%')}
+            </div>`;
+        }
+
+        function buildStatRow(homeVal, label, awayVal) {
+            return `
+            <div class="grid grid-cols-3 gap-y-1 text-sm text-center py-1.5 border-t border-slate-50 dark:border-slate-700/50">
+                <div class="font-medium text-slate-700 dark:text-slate-200">${homeVal}</div>
+                <div class="text-xs text-slate-400">${label}</div>
+                <div class="font-medium text-slate-700 dark:text-slate-200">${awayVal}</div>
+            </div>`;
+        }
+
+        function formatLiveClock(totalSeconds) {
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function updateLiveTimestamp() {
+            const el = document.getElementById('live-update-info');
+            if (!el || !liveGameLastUpdated) return;
+            const secs = Math.floor((Date.now() - liveGameLastUpdated) / 1000);
+            el.textContent = secs < 5 ? 'Just updated · refreshing every 15s' : `Updated ${secs}s ago · refreshing every 15s`;
+        }
+        setInterval(updateLiveTimestamp, 5000);
+
+        // =====================================================
+        // SHARE MODAL
+        // =====================================================
+
+        window.showShareModal = function() {
+            if (!currentTeamId) return;
+            const link = `${window.location.origin}${window.location.pathname}?live=${currentTeamId}`;
+            document.getElementById('share-link-input').value = link;
+            // Show native share button if available
+            if (navigator.share) {
+                document.getElementById('share-native-btn').classList.remove('hidden');
+            }
+            document.getElementById('share-game-modal').classList.remove('hidden');
+            // Select link text for easy copying
+            setTimeout(() => document.getElementById('share-link-input').select(), 50);
+        }
+
+        window.closeShareModal = function() {
+            document.getElementById('share-game-modal').classList.add('hidden');
+        }
+
+        window.copyLiveGameLink = function() {
+            const input = document.getElementById('share-link-input');
+            const label = document.getElementById('share-copy-label');
+            const icon = document.getElementById('share-copy-icon');
+
+            navigator.clipboard.writeText(input.value).then(() => {
+                label.textContent = 'Copied!';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>';
+                setTimeout(() => {
+                    label.textContent = 'Copy';
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>';
+                }, 2000);
+            }).catch(() => {
+                // Fallback: select input
+                input.select();
+                document.execCommand('copy');
+                label.textContent = 'Copied!';
+                setTimeout(() => { label.textContent = 'Copy'; }, 2000);
+            });
+        }
+
+        window.nativeShareLiveGame = function() {
+            const link = document.getElementById('share-link-input').value;
+            if (navigator.share) {
+                navigator.share({ title: 'Live Soccer Game', url: link })
+                    .catch(err => console.log('Share cancelled', err));
+            }
+        }
+
+        // Close share modal on backdrop click
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('share-game-modal');
+            if (modal && !modal.classList.contains('hidden') && e.target === modal) {
+                closeShareModal();
+            }
+        });
+
+        // Show/hide the share button depending on whether coach has a team
+        function updateShareButtonVisibility() {
+            const btn = document.getElementById('share-game-btn');
+            if (btn) {
+                if (currentUserRole === 'coach' && currentTeamId) {
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // First, check if user is already logged in
             checkAuthState();
@@ -4548,6 +4956,9 @@
         window.navigateToGame = function() {
             hideAllViews();
             document.getElementById('game-view').classList.remove('hidden');
+
+            // Show share button for coaches who have a team
+            updateShareButtonVisibility();
 
             // Push history state for back button handling
             history.pushState({ view: 'game', teamId: currentTeamId }, '', window.location.href);
