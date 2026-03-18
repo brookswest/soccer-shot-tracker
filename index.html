@@ -5376,6 +5376,7 @@
 
         let fanReconnectAttempts = 0;
         const FAN_MAX_RECONNECT_ATTEMPTS = 5;
+        let fanConnectionWarningTimeout = null;
 
         function subscribeToActiveGame(teamId) {
             if (activeGameSubscription) {
@@ -5411,7 +5412,14 @@
 
         function handleRealtimeDisconnect() {
             console.log('Realtime disconnected');
-            showFanConnectionWarning(true);
+
+            // Delay showing the warning — transient CLOSED states during normal
+            // subscribe/unsubscribe cycles resolve to SUBSCRIBED within ~1s and
+            // should never surface to the user.
+            if (fanConnectionWarningTimeout) clearTimeout(fanConnectionWarningTimeout);
+            fanConnectionWarningTimeout = setTimeout(() => {
+                showFanConnectionWarning(true);
+            }, 3000);
 
             if (fanReconnectAttempts < FAN_MAX_RECONNECT_ATTEMPTS) {
                 const delay = Math.pow(2, fanReconnectAttempts) * 1000;
@@ -5425,6 +5433,11 @@
         }
 
         function showFanConnectionWarning(show) {
+            // Cancels any pending delayed show when the connection recovers
+            if (!show && fanConnectionWarningTimeout) {
+                clearTimeout(fanConnectionWarningTimeout);
+                fanConnectionWarningTimeout = null;
+            }
             const warning = document.getElementById('fan-connection-warning');
             if (warning) {
                 warning.classList.toggle('hidden', !show);
